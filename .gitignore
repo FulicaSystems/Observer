@@ -1,0 +1,24 @@
+# Visual Studio
+.vs
+*.user
+
+# resources
+[Aa]sset
+[Aa]ssets
+*.obj
+*.png
+*.jpg
+
+# Build results
+[Dd]ebug
+[Rr]elease
+[Rr]eleases
+x64
+
+# git merge original files
+*.orig
+
+# archives
+*.zip
+*.rar
+*.7z
