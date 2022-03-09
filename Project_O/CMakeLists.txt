@@ -4,10 +4,22 @@ project(renderer)
 
 set(CXX_STANDARD 20)
 
+set(HEADER ${PROJECT_SOURCE_DIR}/header)
 set(INCLUDE ${PROJECT_SOURCE_DIR}/include)
 set(SOURCE ${PROJECT_SOURCE_DIR}/src)
 
-add_executable(renderer ${SOURCE}/main.cpp)
+file(GLOB FILES
+	${HEADER}/*.h
+	${HEADER}/*.hpp
+	${INCLUDE}/*.h
+	${INCLUDE}/*.hpp
+	${SOURCE}/*.c
+	${SOURCE}/*.cpp
+)
+
+include_directories(renderer ${HEADER} ${INCLUDE})
+
+add_executable(renderer ${FILES})
 
 # external git
 include(FetchContent)
