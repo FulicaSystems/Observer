@@ -21,3 +21,4 @@ FetchContent_MakeAvailable(glfw)
 
 # external libraries
 target_link_libraries(renderer glfw)
+target_link_libraries(renderer opengl32)
