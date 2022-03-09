@@ -1,11 +1,9 @@
-# Visual Studio
-.vs
-*.user
+# project
+[Bb]uild
 
 # resources
-[Aa]sset
-[Aa]ssets
 *.obj
+*.fbx
 *.png
 *.jpg
 
