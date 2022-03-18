@@ -35,21 +35,21 @@ namespace Resources
 		/**
 		 * Pass bool to shader as uniform.
 		 */
-		void uniformBool(const char* uniform, const bool& b);
+		void uniformBool(const char* uniform, const bool& b) const;
 
 		/**
 		 * Pass float to shader as uniform.
 		 */
-		void uniformFloat(const char* uniform, const float& f);
+		void uniformFloat(const char* uniform, const float& f) const;
 
 		/**
 		 * Pass vec3 to shader as uniform.
 		 */
-		void uniformVec3(const char* uniform, const vec3& v);
+		void uniformVec3(const char* uniform, const vec3& v) const;
 
 		/**
 		 * Pass mat4 to shader as uniform.
 		 */
-		void uniformMat4(const char* uniform, const mat4& m, const bool transpose);
+		void uniformMat4(const char* uniform, const mat4& m, const bool transpose) const;
 	};
 }

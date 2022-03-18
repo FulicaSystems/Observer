@@ -63,8 +63,21 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
+        float fovY = 90.f;
+        float near = 0.001f;
+        float far = 1000.f;
+        vec3 camPos = { 0.f, 0.f, 1.f };
+        vec3 camRot = vec3::zo;
+
+        mat4 p = Math3::perspective(fovY, SCRN_WIDTH / (float)SCRN_HEIGHT, near, far);
+        mat4 v = Math3::translateMatrix(-camPos) * Math3::rotateXMatrix(camRot.x) * Math3::rotateYMatrix(-camRot.y) * Math3::rotateZMatrix(camRot.z);
+        mat4 m = mat4::id;
 
         sh.use();
+        sh.uniformMat4("uProjection", p, false);
+        sh.uniformMat4("uView", v, false);
+        sh.uniformMat4("uModel", m, false);
+
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
