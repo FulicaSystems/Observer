@@ -78,30 +78,30 @@ void Resources::Shader::use() const
     glUseProgram(program);
 }
 
-void Resources::Shader::uniformBool(const bool& b, const char* name)
+void Resources::Shader::uniformBool(const char* uniform, const bool& b)
 {
-    int location = glGetUniformLocation(program, name);
+    int location = glGetUniformLocation(program, uniform);
     use();
     glUniform1i(location, b);
 }
 
-void Resources::Shader::uniformFloat(const float& f, const char* name)
+void Resources::Shader::uniformFloat(const char* uniform, const float& f)
 {
-    int location = glGetUniformLocation(program, name);
+    int location = glGetUniformLocation(program, uniform);
     use();
     glUniform1f(location, f);
 }
 
-void Resources::Shader::uniformVec3(const vec3& v, const char* name)
+void Resources::Shader::uniformVec3(const char* uniform, const vec3& v)
 {
-    int location = glGetUniformLocation(program, name);
+    int location = glGetUniformLocation(program, uniform);
     use();
     glUniform3fv(location, 1, v.elem);
 }
 
-void Resources::Shader::uniformMat4(const mat4& m, const bool transpose, const char* name)
+void Resources::Shader::uniformMat4(const char* uniform, const mat4& m, const bool transpose)
 {
-    int location = glGetUniformLocation(program, name);
+    int location = glGetUniformLocation(program, uniform);
     use();
     glUniformMatrix4fv(location, 1, transpose, m.elem);
 }

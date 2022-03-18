@@ -42,7 +42,7 @@ int main(void)
     glViewport(0, 0, SCRN_WIDTH, SCRN_HEIGHT);
 
 
-    Shader sh("basic");
+    Resources::Shader sh("basic");
 
     GLuint VBO;
     glGenBuffers(1, &VBO);
