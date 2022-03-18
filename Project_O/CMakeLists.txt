@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(renderer)
+project(Project_O)
 
 set(CMAKE_CXX_STANDARD 20)
+
+include(FetchContent)
 
 set(HEADER ${PROJECT_SOURCE_DIR}/header)
 set(INCLUDE ${PROJECT_SOURCE_DIR}/include)
 set(SOURCE ${PROJECT_SOURCE_DIR}/src)
-
-include_directories(renderer ${HEADER} ${INCLUDE})
 
 file(GLOB_RECURSE SOURCES
 	${HEADER}/*.h
@@ -20,10 +20,12 @@ file(GLOB_RECURSE SOURCES
 )
 
 add_executable(renderer ${SOURCES})
+target_include_directories(renderer
+	PRIVATE ${HEADER}
+	PRIVATE ${INCLUDE}
+)
 
 # external git
-include(FetchContent)
-
 FetchContent_Declare(
 	glfw
 	GIT_REPOSITORY https://github.com/glfw/glfw.git
