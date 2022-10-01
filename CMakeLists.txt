@@ -20,4 +20,5 @@ target_include_directories(renderer PRIVATE include)
 target_link_libraries(renderer
     PUBLIC glad
     PUBLIC glfw
+    PUBLIC libraries
 )

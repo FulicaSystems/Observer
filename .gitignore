@@ -2,6 +2,7 @@
 out
 
 [Bb]uild
+*.spv
 
 *.zip
 *.rar

@@ -1,3 +1,18 @@
 [submodule "externals/glfw"]
 	path = externals/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "externals/libraries"]
+	path = externals/libraries
+	url = https://github.com/SJarod/libraries.git
+[submodule "externals/shaderc"]
+	path = externals/shaderc
+	url = https://github.com/google/shaderc.git
+[submodule "externals/spirv-tools"]
+	path = externals/spirv-tools
+	url = https://github.com/KhronosGroup/SPIRV-Tools.git
+[submodule "externals/glslang"]
+	path = externals/glslang
+	url = https://github.com/KhronosGroup/glslang.git
+[submodule "externals/spirv-headers"]
+	path = externals/spirv-headers
+	url = https://github.com/KhronosGroup/SPIRV-Headers.git
