@@ -15,7 +15,16 @@ project(Project_O)
 
 add_subdirectory(externals)
 
-add_executable(renderer src/main.cpp)
+set(HEADERS
+    include/application.hpp
+)
+
+set(SOURCES
+    src/main.cpp
+    src/application.cpp
+)
+
+add_executable(renderer ${HEADERS} ${SOURCES})
 target_include_directories(renderer PRIVATE include)
 target_link_libraries(renderer
     PUBLIC glad

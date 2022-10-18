@@ -1,9 +1,10 @@
 add_library(glad INTERFACE)
 target_sources(glad INTERFACE
+	#vulkan
 	glad/include/vk_platform.h
 	glad/include/glad/vulkan.h
 	glad/src/vulkan.c
-
+	#opengl
 	glad/include/glad/gl.h
 	glad/include/KHR/khrplatform.h
 	glad/src/gl.c
