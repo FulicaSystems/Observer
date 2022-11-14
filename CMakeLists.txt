@@ -17,11 +17,16 @@ add_subdirectory(externals)
 
 set(HEADERS
     include/application.hpp
+    include/graphicsdevice.hpp
+    include/graphicspipeline.hpp
 )
 
 set(SOURCES
     src/main.cpp
+
     src/application.cpp
+    src/graphicsdevice.cpp
+    src/graphicspipeline.cpp
 )
 
 add_executable(renderer ${HEADERS} ${SOURCES})

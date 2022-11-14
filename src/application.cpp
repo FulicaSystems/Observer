@@ -4,6 +4,62 @@
 
 #include "application.hpp"
 
+Application::Application()
+	: pipeline(device)
+{
+	glfwInit();
+
+	windowInit();
+}
+
+void Application::create()
+{
+	vulkanInit();
+	vulkanExtensions();
+	vulkanLayers();
+	vulkanCreate();
+#ifndef NDEBUG
+	vulkanDebugMessenger();
+#endif
+	vulkanSurface();
+
+	device.create();
+	pipeline.create();
+}
+
+void Application::destroy()
+{
+	vulkanDestroy();
+	glfwDestroyWindow(window);
+
+	glfwTerminate();
+}
+
+void Application::getWindowSize(int& width, int& height)
+{
+	glfwGetFramebufferSize(window, &width, &height);
+}
+
+const VkSurfaceKHR& Application::getSurface() const
+{
+	return surface;
+}
+
+const VkInstance& Application::getVkInstance() const
+{
+	return instance;
+}
+
+VKAPI_ATTR VkBool32 VKAPI_CALL Application::debugCallback(
+	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+	VkDebugUtilsMessageTypeFlagsEXT messageType,
+	const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
+	void* userData)
+{
+	std::cerr << "validation layer: " << callbackData->pMessage << std::endl;
+	return VK_FALSE;
+}
+
 void Application::windowInit()
 {
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -22,23 +78,9 @@ void Application::vulkanInit()
 
 void Application::vulkanDestroy()
 {
-	vkDestroySemaphore(device, renderReadySemaphore, nullptr);
-	vkDestroySemaphore(device, renderDoneSemaphore, nullptr);
-	vkDestroyFence(device, renderOnceFence, nullptr);
-	vkDestroyCommandPool(device, commandPool, nullptr);
-	for (VkFramebuffer& framebuffer : swapchainFramebuffers)
-	{
-		vkDestroyFramebuffer(device, framebuffer, nullptr);
-	}
-	vkDestroyPipeline(device, graphicsPipeline, nullptr);
-	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-	vkDestroyRenderPass(device, renderPass, nullptr);
-	for (VkImageView& imageView : swapchainImageViews)
-	{
-		vkDestroyImageView(device, imageView, nullptr);
-	}
-	vkDestroySwapchainKHR(device, swapchain, nullptr);
-	vkDestroyDevice(device, nullptr);
+	pipeline.destroy();
+	device.destroy();
+
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	vkDestroyInstance(instance, nullptr);
@@ -48,7 +90,7 @@ void Application::vulkanCreate()
 {
 	VkApplicationInfo appInfo = {
 		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-		.pApplicationName = "Hello triangle",
+		.pApplicationName = "renderer",
 		.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
 		.engineVersion = VK_MAKE_VERSION(1, 0, 0),
 		.apiVersion = VK_API_VERSION_1_0
@@ -125,4 +167,19 @@ void Application::vulkanLayers()
 	std::cout << "available layers : " << layerCount << '\n';
 	for (const auto& layer : layers)
 		std::cout << '\t' << layer.layerName << '\n';
+}
+
+void Application::vulkanSurface()
+{
+	if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+		throw std::exception("Failed to create window surface");
+}
+
+void Application::loop()
+{
+	while (!glfwWindowShouldClose(window))
+	{
+		glfwPollEvents();
+		pipeline.drawFrame();
+	}
 }
