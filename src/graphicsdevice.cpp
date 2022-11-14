@@ -3,7 +3,7 @@
 #include <set>
 #include <iostream>
 
-#include "application.hpp" // temporary (for validationLayers and deviceExtensions variables)
+#include "lowrenderer.hpp"
 #include "graphicsdevice.hpp"
 
 const VkPhysicalDevice& PhysicalDevice::getDevice() const
@@ -11,25 +11,23 @@ const VkPhysicalDevice& PhysicalDevice::getDevice() const
 	return vkDevice;
 }
 
-void GraphicsDevice::create()
+void LogicalDevice::create()
 {
-	Application* app = Application::getInstance();
-
-	vulkanPhysicalDevice(app->getVkInstance());
-	vulkanLogicalDevice(app->getVkInstance());
+	vulkanPhysicalDevice(LowRenderer::instance);
+	vulkanLogicalDevice(LowRenderer::instance);
 }
 
-void GraphicsDevice::destroy()
+void LogicalDevice::destroy()
 {
 	vkDestroyDevice(device, nullptr);
 }
 
-const VkPhysicalDevice& GraphicsDevice::getPDevice() const
+const VkPhysicalDevice& LogicalDevice::getPDevice() const
 {
 	return pdevice.getDevice();
 }
 
-const VkDevice& GraphicsDevice::getLDevice() const
+const VkDevice& LogicalDevice::getLDevice() const
 {
 	return device;
 }
@@ -63,7 +61,7 @@ PhysicalDevice::PhysicalDevice(VkPhysicalDevice vk)
 
 VkSwapchainSupportDetails PhysicalDevice::querySwapchainSupport()
 {
-	const VkSurfaceKHR& surface = Application::getInstance()->getSurface();
+	const VkSurfaceKHR& surface = LowRenderer::surface;
 
 	VkSwapchainSupportDetails details;
 
@@ -114,7 +112,7 @@ bool PhysicalDevice::isDeviceSuitable()
 #endif
 }
 
-void GraphicsDevice::vulkanPhysicalDevice(VkInstance instance)
+void LogicalDevice::vulkanPhysicalDevice(VkInstance instance)
 {
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -152,7 +150,7 @@ void GraphicsDevice::vulkanPhysicalDevice(VkInstance instance)
 
 VkQueueFamilyIndices PhysicalDevice::findQueueFamilies()
 {
-	const VkSurfaceKHR surface = Application::getInstance()->getSurface();
+	const VkSurfaceKHR surface = LowRenderer::surface;
 
 	VkQueueFamilyIndices indices;
 
@@ -176,7 +174,7 @@ VkQueueFamilyIndices PhysicalDevice::findQueueFamilies()
 	return indices;
 }
 
-void GraphicsDevice::vulkanLogicalDevice(VkInstance instance)
+void LogicalDevice::vulkanLogicalDevice(VkInstance instance)
 {
 	VkQueueFamilyIndices indices = pdevice.findQueueFamilies();
 

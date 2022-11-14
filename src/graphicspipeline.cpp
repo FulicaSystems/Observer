@@ -1,12 +1,12 @@
 #include <limits>
 
 #include "mathematics.hpp"
-#include "application.hpp"
-#include "graphicsdevice.hpp"
+#include "lowrenderer.hpp"
 
+#include "graphicsdevice.hpp"
 #include "graphicspipeline.hpp"
 
-GraphicsPipeline::GraphicsPipeline(GraphicsDevice& device)
+GraphicsPipeline::GraphicsPipeline(LogicalDevice& device)
 	: device(device)
 {
 }
@@ -98,7 +98,7 @@ void GraphicsPipeline::vulkanSwapchain()
 {
 	VkDevice ldevice = device.getLDevice();
 	PhysicalDevice pdevice = device.getPDevice();
-	VkSurfaceKHR surface = Application::getInstance()->getSurface();
+	VkSurfaceKHR surface = LowRenderer::surface;
 
 	VkSwapchainSupportDetails support = pdevice.querySwapchainSupport();
 

@@ -49,7 +49,7 @@ public:
 /**
  * Logical device.
  */
-class GraphicsDevice
+class LogicalDevice
 {
 private:
 	PhysicalDevice pdevice;

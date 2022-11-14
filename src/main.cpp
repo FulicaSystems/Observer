@@ -4,12 +4,11 @@
 
 int main()
 {
-	Application* app = Application::getInstance();
+	Application app;
 
 	try
 	{
-		app->create();
-		app->loop();
+		app.loop();
 
 		//vkDeviceWaitIdle(device);
 	}
@@ -19,7 +18,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	app->destroy();
+	app.destroy();
 
 	return EXIT_SUCCESS;
 }

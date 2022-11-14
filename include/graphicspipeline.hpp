@@ -25,7 +25,7 @@ static std::vector<char> readBinaryFile(const std::string& filename)
 class GraphicsPipeline
 {
 private:
-	GraphicsDevice& device;
+	LogicalDevice& device;
 
 	//swapchain
 	VkSwapchainKHR swapchain;
@@ -50,7 +50,7 @@ private:
 	VkFence renderOnceFence;
 
 public:
-	GraphicsPipeline(GraphicsDevice& device);
+	GraphicsPipeline(LogicalDevice& device);
 
 	void create();
 	void destroy();
@@ -63,11 +63,14 @@ public:
 
 	void vulkanSwapchain();
 	void vulkanImageViews();
+
 	void vulkanGraphicsPipeline();
 	void vulkanRenderPass();
+
 	void vulkanFramebuffers();
 	void vulkanCommandPool();
 	void vulkanCommandBuffer();
+
 	void vulkanMultithreadObjects();
 
 	void recordCommandBuffer(VkCommandBuffer cb, uint32_t imageIndex);

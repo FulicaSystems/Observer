@@ -17,6 +17,7 @@ add_subdirectory(externals)
 
 set(HEADERS
     include/application.hpp
+    include/lowrenderer.hpp
     include/graphicsdevice.hpp
     include/graphicspipeline.hpp
 )
@@ -25,6 +26,7 @@ set(SOURCES
     src/main.cpp
 
     src/application.cpp
+    src/lowrenderer.cpp
     src/graphicsdevice.cpp
     src/graphicspipeline.cpp
 )
