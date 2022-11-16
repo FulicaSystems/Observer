@@ -22,6 +22,16 @@ void LowRenderer::destroy()
 	vulkanDestroy();
 }
 
+VkInstance LowRenderer::getVkInstance()
+{
+	return getInstance().instance;
+}
+
+VkSurfaceKHR LowRenderer::getSurface()
+{
+	return getInstance().surface;
+}
+
 VKAPI_ATTR VkBool32 VKAPI_CALL LowRenderer::debugCallback(
 	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 	VkDebugUtilsMessageTypeFlagsEXT messageType,

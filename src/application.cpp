@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 
+#include "format.hpp"
 #include "lowrenderer.hpp"
 
 #include "application.hpp"
@@ -18,16 +19,12 @@ void Application::destroy()
 	glfwTerminate();
 }
 
-void Application::getWindowSize(int& width, int& height)
-{
-	glfwGetFramebufferSize(window, &width, &height);
-}
-
 void Application::windowInit()
 {
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-	window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
+	window = glfwCreateWindow(Format::height, Format::width, "Vulkan window", nullptr, nullptr);
+	glfwGetFramebufferSize(window, &Format::framebufferHeight, &Format::framebufferWidth);
 }
 
 void Application::loop()

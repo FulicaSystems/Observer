@@ -1,6 +1,7 @@
 #include <limits>
 
 #include "mathematics.hpp"
+#include "format.hpp"
 #include "lowrenderer.hpp"
 
 #include "graphicsdevice.hpp"
@@ -75,8 +76,8 @@ VkExtent2D GraphicsPipeline::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& ca
 	}
 	else
 	{
-		int width, height;
-		Application::getInstance()->getWindowSize(width, height);
+		const int height = Format::framebufferHeight;
+		const int width = Format::framebufferWidth;
 
 		VkExtent2D actualExtent = {
 			.width = static_cast<uint32_t>(width),
@@ -98,7 +99,7 @@ void GraphicsPipeline::vulkanSwapchain()
 {
 	VkDevice ldevice = device.getLDevice();
 	PhysicalDevice pdevice = device.getPDevice();
-	VkSurfaceKHR surface = LowRenderer::surface;
+	VkSurfaceKHR surface = LowRenderer::getSurface();
 
 	VkSwapchainSupportDetails support = pdevice.querySwapchainSupport();
 

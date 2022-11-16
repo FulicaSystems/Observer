@@ -1,6 +1,8 @@
 #pragma once
 
 #include <optional>
+#include <vector>
+
 #include <glad/vulkan.h>
 
 using VkQueueFamilyIndex = std::optional<uint32_t>;

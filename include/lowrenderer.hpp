@@ -23,9 +23,12 @@ class LowRenderer : public Utils::Singleton<LowRenderer>
 	friend class Utils::Singleton<LowRenderer>;
 
 private:
-	LowRenderer() = default;
+	VkInstance instance;
+	VkSurfaceKHR surface;
 
 	VkDebugUtilsMessengerEXT debugMessenger;
+
+	LowRenderer() = default;
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -44,9 +47,9 @@ private:
 	void vulkanSurface(GLFWwindow* window);
 
 public:
-	static VkInstance instance;
-	static VkSurfaceKHR surface;
-
 	void create(GLFWwindow* window);
 	void destroy();
+
+	static VkInstance getVkInstance();
+	static VkSurfaceKHR getSurface();
 };

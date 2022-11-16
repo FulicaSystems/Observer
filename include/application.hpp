@@ -15,7 +15,5 @@ public:
 	Application();
 	void destroy();
 
-	void getWindowSize(int& width, int& height);
-
 	void loop();
 };

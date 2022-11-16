@@ -16,7 +16,9 @@ project(Project_O)
 add_subdirectory(externals)
 
 set(HEADERS
+    include/format.hpp
     include/application.hpp
+
     include/lowrenderer.hpp
     include/graphicsdevice.hpp
     include/graphicspipeline.hpp
@@ -25,7 +27,9 @@ set(HEADERS
 set(SOURCES
     src/main.cpp
 
+    src/format.cpp
     src/application.cpp
+
     src/lowrenderer.cpp
     src/graphicsdevice.cpp
     src/graphicspipeline.cpp

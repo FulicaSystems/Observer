@@ -13,8 +13,8 @@ const VkPhysicalDevice& PhysicalDevice::getDevice() const
 
 void LogicalDevice::create()
 {
-	vulkanPhysicalDevice(LowRenderer::instance);
-	vulkanLogicalDevice(LowRenderer::instance);
+	vulkanPhysicalDevice(LowRenderer::getVkInstance());
+	vulkanLogicalDevice(LowRenderer::getVkInstance());
 }
 
 void LogicalDevice::destroy()
@@ -61,7 +61,7 @@ PhysicalDevice::PhysicalDevice(VkPhysicalDevice vk)
 
 VkSwapchainSupportDetails PhysicalDevice::querySwapchainSupport()
 {
-	const VkSurfaceKHR& surface = LowRenderer::surface;
+	const VkSurfaceKHR& surface = LowRenderer::getSurface();
 
 	VkSwapchainSupportDetails details;
 
@@ -150,7 +150,7 @@ void LogicalDevice::vulkanPhysicalDevice(VkInstance instance)
 
 VkQueueFamilyIndices PhysicalDevice::findQueueFamilies()
 {
-	const VkSurfaceKHR surface = LowRenderer::surface;
+	const VkSurfaceKHR surface = LowRenderer::getSurface();
 
 	VkQueueFamilyIndices indices;
 
