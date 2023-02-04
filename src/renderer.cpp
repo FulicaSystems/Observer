@@ -19,3 +19,8 @@ void Renderer::destroy()
 	device.destroy();
 	low.destroy();
 }
+
+void Renderer::render()
+{
+	pipeline.drawFrame();
+}

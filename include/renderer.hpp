@@ -13,13 +13,15 @@ class Renderer : public IGraphicsObject
 {
 private:
 	LogicalDevice device;
+	GraphicsPipeline pipeline;
 
 public:
 	LowRenderer low;
-	GraphicsPipeline pipeline;
 
 	Renderer();
 
 	void create() override;
 	void destroy() override;
+
+	void render();
 };

@@ -2,8 +2,16 @@
 
 #include "lowrenderer.hpp"
 
+void LowRenderer::loadExtensions(std::vector<const char*>& additionalExtensions)
+{
+	this->additionalExtensions = additionalExtensions;
+}
+
 void LowRenderer::create()
 {
+	if (!gladLoaderLoadVulkan(nullptr, nullptr, nullptr))
+		throw std::exception("Unable to load Vulkan symbols");
+
 	// check extensions and layers
 	vulkanExtensions();
 	vulkanLayers();
@@ -47,15 +55,8 @@ void LowRenderer::vulkanCreate()
 		.apiVersion = VK_API_VERSION_1_0
 	};
 
-	// TODO : remove reference to GLFW
-	uint32_t glfwExtensionCount = 0;
-	const char** glfwExtensions;
-
-	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-	std::vector<const char*> enabledExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 #ifndef NDEBUG
-	enabledExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+	additionalExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
 	VkInstanceCreateInfo createInfo = {
@@ -67,8 +68,8 @@ void LowRenderer::vulkanCreate()
 		.enabledLayerCount = static_cast<uint32_t>(validationLayers.size()),
 		.ppEnabledLayerNames = validationLayers.data(),
 #endif
-		.enabledExtensionCount = static_cast<uint32_t>(enabledExtensions.size()),
-		.ppEnabledExtensionNames = enabledExtensions.data()
+		.enabledExtensionCount = static_cast<uint32_t>(additionalExtensions.size()),
+		.ppEnabledExtensionNames = additionalExtensions.data()
 	};
 
 	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)

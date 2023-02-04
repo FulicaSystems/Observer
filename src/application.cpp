@@ -12,12 +12,20 @@ Application::Application()
 	glfwInit();
 	windowInit();
 
-	// load the vulkan symbols using GLFW and glad
+	// init GLFW for Vulkan
 	if (!glfwVulkanSupported())
 		throw std::exception("GLFW failed to find the Vulkan loader");
 
-	if (!gladLoaderLoadVulkan(nullptr, nullptr, nullptr))
-		throw std::exception("Unable to load Vulkan symbols");
+	// gather Vulkan extensions required by GLFW
+	uint32_t glfwExtensionCount = 0;
+	const char** glfwExtensions;
+
+	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+	std::vector<const char*> requiredExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+	// give the extensions to the low renderer
+	rdr.low.loadExtensions(requiredExtensions);
 
 	// create the Vulkan instance first
 	rdr.low.create();
@@ -52,6 +60,6 @@ void Application::loop()
 		glfwPollEvents();
 		//draw frame
 
-		rdr.pipeline.drawFrame();
+		rdr.render();
 	}
 }

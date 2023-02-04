@@ -3,7 +3,6 @@
 #include <vector>
 
 #include <glad/vulkan.h>
-#include <GLFW/glfw3.h>
 
 #include "graphicsobject.hpp"
 
@@ -23,6 +22,8 @@ const std::vector<const char*> deviceExtensions = {
 class LowRenderer : public IGraphicsObject
 {
 private:
+	std::vector<const char*> additionalExtensions;
+
 	VkDebugUtilsMessengerEXT debugMessenger;
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -43,6 +44,8 @@ public:
 	VkInstance instance;
 	// surface must be initialized using the windowing framework
 	VkSurfaceKHR surface;
+
+	void loadExtensions(std::vector<const char*>& additionalExtensions);
 
 	// the Vulkan symbols must be loaded before trying to create the low renderer
 	void create() override;
