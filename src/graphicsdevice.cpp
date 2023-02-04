@@ -18,8 +18,8 @@ LogicalDevice::LogicalDevice(LowRenderer& low)
 
 void LogicalDevice::create()
 {
-	vulkanPhysicalDevice(low.instance, low.surface);
-	vulkanLogicalDevice(low.instance, low.surface);
+	vulkanPhysicalDevice();
+	vulkanLogicalDevice();
 }
 
 void LogicalDevice::destroy()
@@ -115,8 +115,11 @@ bool PhysicalDevice::isDeviceSuitable(const VkSurfaceKHR& surface)
 #endif
 }
 
-void LogicalDevice::vulkanPhysicalDevice(VkInstance instance, VkSurfaceKHR surface)
+void LogicalDevice::vulkanPhysicalDevice()
 {
+	VkInstance instance = low.instance;
+	VkSurfaceKHR surface = low.surface;
+
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 	if (deviceCount == 0)
@@ -175,8 +178,11 @@ VkQueueFamilyIndices PhysicalDevice::findQueueFamilies(const VkSurfaceKHR& surfa
 	return indices;
 }
 
-void LogicalDevice::vulkanLogicalDevice(VkInstance instance, VkSurfaceKHR surface)
+void LogicalDevice::vulkanLogicalDevice()
 {
+	VkInstance instance = low.instance;
+	VkSurfaceKHR surface = low.surface;
+
 	VkQueueFamilyIndices indices = pdevice.findQueueFamilies(surface);
 
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;

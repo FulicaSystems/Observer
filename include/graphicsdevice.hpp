@@ -65,8 +65,8 @@ private:
 
 	VkDevice device;
 
-	void vulkanPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
-	void vulkanLogicalDevice(VkInstance instance, VkSurfaceKHR surface);
+	void vulkanPhysicalDevice();
+	void vulkanLogicalDevice();
 
 public:
 	LowRenderer& low;
