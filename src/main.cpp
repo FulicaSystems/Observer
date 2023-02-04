@@ -9,8 +9,6 @@ int main()
 	try
 	{
 		app.loop();
-
-		//vkDeviceWaitIdle(device);
 	}
 	catch (const std::exception& ex)
 	{

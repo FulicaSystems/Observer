@@ -14,9 +14,6 @@ void LowRenderer::create(GLFWwindow* window)
 	lr.vulkanDebugMessenger();
 #endif
 	lr.vulkanSurface(window);
-
-	//device.create();
-	//pipeline.create();
 }
 
 void LowRenderer::destroy()
@@ -55,9 +52,6 @@ void LowRenderer::vulkanInit()
 
 void LowRenderer::vulkanDestroy()
 {
-	//pipeline.destroy();
-	//device.destroy();
-
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	vkDestroyInstance(instance, nullptr);

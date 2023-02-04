@@ -49,18 +49,6 @@ private:
 	VkSemaphore renderDoneSemaphore;
 	VkFence renderOnceFence;
 
-public:
-	GraphicsPipeline(LogicalDevice& device);
-
-	void create();
-	void destroy();
-
-	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availableModes);
-	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-
-	VkShaderModule createShaderModule(const std::vector<char>& code);
-
 	void vulkanSwapchain();
 	void vulkanImageViews();
 
@@ -74,5 +62,18 @@ public:
 	void vulkanMultithreadObjects();
 
 	void recordCommandBuffer(VkCommandBuffer cb, uint32_t imageIndex);
+
+public:
+	GraphicsPipeline(LogicalDevice& device);
+
+	void create();
+	void destroy();
+
+	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availableModes);
+	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+
+	VkShaderModule createShaderModule(const std::vector<char>& code);
+
 	void drawFrame();
 };
