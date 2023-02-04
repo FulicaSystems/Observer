@@ -1,12 +1,11 @@
 #pragma once
 
+#include <vector>
+
 #include <glad/vulkan.h>
 #include <GLFW/glfw3.h>
 
-#include "utils/singleton.hpp"
-
-#include "graphicsdevice.hpp"
-#include "graphicspipeline.hpp"
+#include "graphicsobject.hpp"
 
 #ifndef NDEBUG
 const std::vector<const char*> validationLayers = {
@@ -18,17 +17,13 @@ const std::vector<const char*> deviceExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-class LowRenderer : public Utils::Singleton<LowRenderer>, IGraphicsObject
+/**
+ * Low level rendering instance.
+ */
+class LowRenderer : public IGraphicsObject
 {
-	friend class Utils::Singleton<LowRenderer>;
-
 private:
-	VkInstance instance;
-	VkSurfaceKHR surface;
-
 	VkDebugUtilsMessengerEXT debugMessenger;
-
-	LowRenderer() = default;
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -36,24 +31,20 @@ private:
 		const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
 		void* userData);
 
-	void vulkanInit();
-	void vulkanDestroy();
 	void vulkanCreate();
+	void vulkanDestroy();
 
-	void vulkanDebugMessenger();
 	void vulkanExtensions();
 	void vulkanLayers();
 
-	void vulkanSurface(GLFWwindow* window);
+	void vulkanDebugMessenger();
 
 public:
-	~LowRenderer();
+	VkInstance instance;
+	// surface must be initialized using the windowing framework
+	VkSurfaceKHR surface;
 
+	// the Vulkan symbols must be loaded before trying to create the low renderer
 	void create() override;
 	void destroy() override;
-
-	static void create(GLFWwindow* window);
-
-	static VkInstance getVkInstance();
-	static VkSurfaceKHR getSurface();
 };

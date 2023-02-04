@@ -12,7 +12,20 @@ Application::Application()
 	glfwInit();
 	windowInit();
 
-	LowRenderer::create(window);
+	// load the vulkan symbols using GLFW and glad
+	if (!glfwVulkanSupported())
+		throw std::exception("GLFW failed to find the Vulkan loader");
+
+	if (!gladLoaderLoadVulkan(nullptr, nullptr, nullptr))
+		throw std::exception("Unable to load Vulkan symbols");
+
+	// create the Vulkan instance first
+	rdr.low.create();
+
+	// create a surface using the instance
+	if (glfwCreateWindowSurface(rdr.low.instance, window, nullptr, &rdr.low.surface) != VK_SUCCESS)
+		throw std::exception("Failed to create window surface");
+
 	rdr.create();
 }
 

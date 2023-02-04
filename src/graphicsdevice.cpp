@@ -11,10 +11,15 @@ const VkPhysicalDevice& PhysicalDevice::getDevice() const
 	return vkDevice;
 }
 
+LogicalDevice::LogicalDevice(LowRenderer& low)
+	: low(low)
+{
+}
+
 void LogicalDevice::create()
 {
-	vulkanPhysicalDevice(LowRenderer::getVkInstance());
-	vulkanLogicalDevice(LowRenderer::getVkInstance());
+	vulkanPhysicalDevice(low.instance, low.surface);
+	vulkanLogicalDevice(low.instance, low.surface);
 }
 
 void LogicalDevice::destroy()
@@ -59,10 +64,8 @@ PhysicalDevice::PhysicalDevice(VkPhysicalDevice vk)
 	vkDevice = vk;
 }
 
-VkSwapchainSupportDetails PhysicalDevice::querySwapchainSupport()
+VkSwapchainSupportDetails PhysicalDevice::querySwapchainSupport(const VkSurfaceKHR& surface)
 {
-	const VkSurfaceKHR& surface = LowRenderer::getSurface();
-
 	VkSwapchainSupportDetails details;
 
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkDevice, surface, &details.capabilities);
@@ -86,7 +89,7 @@ VkSwapchainSupportDetails PhysicalDevice::querySwapchainSupport()
 	return details;
 }
 
-bool PhysicalDevice::isDeviceSuitable()
+bool PhysicalDevice::isDeviceSuitable(const VkSurfaceKHR& surface)
 {
 #if false
 	VkPhysicalDeviceProperties deviceProperties;
@@ -97,14 +100,14 @@ bool PhysicalDevice::isDeviceSuitable()
 	return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
 		deviceFeatures.geometryShader;
 #else
-	VkQueueFamilyIndices indices = findQueueFamilies();
+	VkQueueFamilyIndices indices = findQueueFamilies(surface);
 
 	bool extensionSupport = checkDeviceExtensionSupport();
 
 	bool swapchainSupport = false;
 	if (extensionSupport)
 	{
-		VkSwapchainSupportDetails support = querySwapchainSupport();
+		VkSwapchainSupportDetails support = querySwapchainSupport(surface);
 		swapchainSupport = !support.formats.empty() && !support.presentModes.empty();
 	}
 
@@ -112,7 +115,7 @@ bool PhysicalDevice::isDeviceSuitable()
 #endif
 }
 
-void LogicalDevice::vulkanPhysicalDevice(VkInstance instance)
+void LogicalDevice::vulkanPhysicalDevice(VkInstance instance, VkSurfaceKHR surface)
 {
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -134,7 +137,7 @@ void LogicalDevice::vulkanPhysicalDevice(VkInstance instance)
 	for (const auto& device : devices)
 	{
 		PhysicalDevice d(device);
-		if (d.isDeviceSuitable())
+		if (d.isDeviceSuitable(surface))
 		{
 			pdevice = device;
 			//break;
@@ -148,10 +151,8 @@ void LogicalDevice::vulkanPhysicalDevice(VkInstance instance)
 		throw std::exception("Unable to reload Vulkan symbols with physical device");
 }
 
-VkQueueFamilyIndices PhysicalDevice::findQueueFamilies()
+VkQueueFamilyIndices PhysicalDevice::findQueueFamilies(const VkSurfaceKHR& surface)
 {
-	const VkSurfaceKHR surface = LowRenderer::getSurface();
-
 	VkQueueFamilyIndices indices;
 
 	uint32_t queueFamilyCount = 0;
@@ -174,9 +175,9 @@ VkQueueFamilyIndices PhysicalDevice::findQueueFamilies()
 	return indices;
 }
 
-void LogicalDevice::vulkanLogicalDevice(VkInstance instance)
+void LogicalDevice::vulkanLogicalDevice(VkInstance instance, VkSurfaceKHR surface)
 {
-	VkQueueFamilyIndices indices = pdevice.findQueueFamilies();
+	VkQueueFamilyIndices indices = pdevice.findQueueFamilies(surface);
 
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 	std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };

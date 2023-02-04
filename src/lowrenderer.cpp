@@ -2,24 +2,13 @@
 
 #include "lowrenderer.hpp"
 
-LowRenderer::~LowRenderer()
-{
-	destroy();
-}
-
-void LowRenderer::create(GLFWwindow* window)
-{
-	LowRenderer& lr = getInstance();
-
-	lr.create();
-	lr.vulkanSurface(window);
-}
-
 void LowRenderer::create()
 {
-	vulkanInit();
+	// check extensions and layers
 	vulkanExtensions();
 	vulkanLayers();
+
+	// create the Vulkan instance
 	vulkanCreate();
 #ifndef NDEBUG
 	vulkanDebugMessenger();
@@ -31,16 +20,6 @@ void LowRenderer::destroy()
 	vulkanDestroy();
 }
 
-VkInstance LowRenderer::getVkInstance()
-{
-	return getInstance().instance;
-}
-
-VkSurfaceKHR LowRenderer::getSurface()
-{
-	return getInstance().surface;
-}
-
 VKAPI_ATTR VkBool32 VKAPI_CALL LowRenderer::debugCallback(
 	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 	VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -49,15 +28,6 @@ VKAPI_ATTR VkBool32 VKAPI_CALL LowRenderer::debugCallback(
 {
 	std::cerr << "validation layer: " << callbackData->pMessage << std::endl;
 	return VK_FALSE;
-}
-void LowRenderer::vulkanInit()
-{
-	if (!glfwVulkanSupported())
-		throw std::exception("GLFW failed to find the Vulkan loader");
-
-	// TODO : move glad call to a LowRenderer function
-	if (!gladLoaderLoadVulkan(nullptr, nullptr, nullptr))
-		throw std::exception("Unable to load Vulkan symbols");
 }
 
 void LowRenderer::vulkanDestroy()
@@ -77,6 +47,7 @@ void LowRenderer::vulkanCreate()
 		.apiVersion = VK_API_VERSION_1_0
 	};
 
+	// TODO : remove reference to GLFW
 	uint32_t glfwExtensionCount = 0;
 	const char** glfwExtensions;
 
@@ -102,6 +73,7 @@ void LowRenderer::vulkanCreate()
 
 	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
 		throw std::exception("Failed to create Vulkan instance");
+
 	if (!gladLoaderLoadVulkan(instance, nullptr, nullptr))
 		throw std::exception("Unable to reload Vulkan symbols with Vulkan instance");
 }
@@ -148,10 +120,4 @@ void LowRenderer::vulkanLayers()
 	std::cout << "available layers : " << layerCount << '\n';
 	for (const auto& layer : layers)
 		std::cout << '\t' << layer.layerName << '\n';
-}
-
-void LowRenderer::vulkanSurface(GLFWwindow* window)
-{
-	if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
-		throw std::exception("Failed to create window surface");
 }

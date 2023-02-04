@@ -23,10 +23,13 @@ static std::vector<char> readBinaryFile(const std::string& filename)
 	return buffer;
 }
 
-
+/**
+ * Rendering pipeline using a specific logical device.
+ */
 class GraphicsPipeline : public IGraphicsObject
 {
 private:
+	// device used by this pipeline
 	LogicalDevice& device;
 
 	//swapchain

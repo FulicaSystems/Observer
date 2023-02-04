@@ -100,9 +100,8 @@ void GraphicsPipeline::vulkanSwapchain()
 {
 	VkDevice ldevice = device.getLDevice();
 	PhysicalDevice pdevice = device.getPDevice();
-	VkSurfaceKHR surface = LowRenderer::getSurface();
 
-	VkSwapchainSupportDetails support = pdevice.querySwapchainSupport();
+	VkSwapchainSupportDetails support = pdevice.querySwapchainSupport(device.low.surface);
 
 	VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(support.formats);
 	VkPresentModeKHR presentMode = chooseSwapPresentMode(support.presentModes);
@@ -114,7 +113,7 @@ void GraphicsPipeline::vulkanSwapchain()
 
 	VkSwapchainCreateInfoKHR createInfo = {
 		.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-		.surface = surface,
+		.surface = device.low.surface,
 		.minImageCount = imageCount,
 		.imageFormat = surfaceFormat.format,
 		.imageColorSpace = surfaceFormat.colorSpace,
@@ -128,7 +127,7 @@ void GraphicsPipeline::vulkanSwapchain()
 		.oldSwapchain = VK_NULL_HANDLE
 	};
 
-	VkQueueFamilyIndices indices = pdevice.findQueueFamilies();
+	VkQueueFamilyIndices indices = pdevice.findQueueFamilies(device.low.surface);
 	uint32_t queueFamilyIndices[] = {
 		indices.graphicsFamily.value(),
 		indices.presentFamily.value()
@@ -449,7 +448,7 @@ void GraphicsPipeline::vulkanCommandPool()
 	VkDevice ldevice = device.getLDevice();
 	PhysicalDevice pdevice = device.getPDevice();
 
-	VkQueueFamilyIndices indices = pdevice.findQueueFamilies();
+	VkQueueFamilyIndices indices = pdevice.findQueueFamilies(device.low.surface);
 
 	VkCommandPoolCreateInfo createInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,

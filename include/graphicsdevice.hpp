@@ -7,6 +7,8 @@
 
 #include "graphicsobject.hpp"
 
+#include "lowrenderer.hpp"
+
 using VkQueueFamilyIndex = std::optional<uint32_t>;
 struct VkQueueFamilyIndices
 {
@@ -25,6 +27,9 @@ struct VkSwapchainSupportDetails
 	std::vector<VkPresentModeKHR> presentModes;
 };
 
+/**
+ * Physical device (GPU).
+ */
 class PhysicalDevice
 {
 private:
@@ -35,17 +40,17 @@ public:
 	PhysicalDevice(VkPhysicalDevice vk);
 
 	bool checkDeviceExtensionSupport();
-	VkSwapchainSupportDetails querySwapchainSupport();
+	VkSwapchainSupportDetails querySwapchainSupport(const VkSurfaceKHR& surface);
 
 	/**
 	 * Find a queue family capable of VK_QUEUE_GRAPHICS_BIT and presenting images.
 	 */
-	VkQueueFamilyIndices findQueueFamilies();
+	VkQueueFamilyIndices findQueueFamilies(const VkSurfaceKHR& surface);
 
 	/**
 	 * Checks to tell if the device can do the given tasks.
 	 */
-	bool isDeviceSuitable();
+	bool isDeviceSuitable(const VkSurfaceKHR& surface);
 
 	const VkPhysicalDevice& getDevice() const;
 };
@@ -60,12 +65,16 @@ private:
 
 	VkDevice device;
 
-	void vulkanPhysicalDevice(VkInstance instance);
-	void vulkanLogicalDevice(VkInstance instance);
+	void vulkanPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
+	void vulkanLogicalDevice(VkInstance instance, VkSurfaceKHR surface);
 
 public:
+	LowRenderer& low;
+
 	VkQueue graphicsQueue;
 	VkQueue presentQueue;
+
+	LogicalDevice(LowRenderer& low);
 
 	void create() override;
 	void destroy() override;
