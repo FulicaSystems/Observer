@@ -16,7 +16,7 @@ Application::Application()
 	rdr.create();
 }
 
-void Application::destroy()
+Application::~Application()
 {
 	rdr.destroy();
 	LowRenderer::destroy();

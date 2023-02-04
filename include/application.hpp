@@ -17,7 +17,7 @@ private:
 
 public:
 	Application();
-	void destroy();
+	~Application();
 
 	void loop();
 };

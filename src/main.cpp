@@ -16,7 +16,5 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	app.destroy();
-
 	return EXIT_SUCCESS;
 }
