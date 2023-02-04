@@ -18,7 +18,7 @@ const std::vector<const char*> deviceExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-class LowRenderer : public Utils::Singleton<LowRenderer>
+class LowRenderer : public Utils::Singleton<LowRenderer>, IGraphicsObject
 {
 	friend class Utils::Singleton<LowRenderer>;
 
@@ -47,8 +47,12 @@ private:
 	void vulkanSurface(GLFWwindow* window);
 
 public:
+	~LowRenderer();
+
+	void create() override;
+	void destroy() override;
+
 	static void create(GLFWwindow* window);
-	static void destroy();
 
 	static VkInstance getVkInstance();
 	static VkSurfaceKHR getSurface();

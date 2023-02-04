@@ -5,6 +5,8 @@
 
 #include <glad/vulkan.h>
 
+#include "graphicsobject.hpp"
+
 static std::vector<char> readBinaryFile(const std::string& filename)
 {
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -22,7 +24,7 @@ static std::vector<char> readBinaryFile(const std::string& filename)
 }
 
 
-class GraphicsPipeline
+class GraphicsPipeline : public IGraphicsObject
 {
 private:
 	LogicalDevice& device;
@@ -66,8 +68,8 @@ private:
 public:
 	GraphicsPipeline(LogicalDevice& device);
 
-	void create();
-	void destroy();
+	void create() override;
+	void destroy() override;
 
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availableModes);

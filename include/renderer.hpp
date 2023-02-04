@@ -3,7 +3,7 @@
 #include "graphicsdevice.hpp"
 #include "graphicspipeline.hpp"
 
-class Renderer
+class Renderer : public IGraphicsObject
 {
 private:
 	LogicalDevice device;
@@ -13,6 +13,6 @@ public:
 
 	Renderer();
 
-	void create();
-	void destroy();
+	void create() override;
+	void destroy() override;
 };

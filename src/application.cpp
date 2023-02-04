@@ -19,7 +19,6 @@ Application::Application()
 Application::~Application()
 {
 	rdr.destroy();
-	LowRenderer::destroy();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();

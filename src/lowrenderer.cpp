@@ -2,23 +2,33 @@
 
 #include "lowrenderer.hpp"
 
+LowRenderer::~LowRenderer()
+{
+	destroy();
+}
+
 void LowRenderer::create(GLFWwindow* window)
 {
 	LowRenderer& lr = getInstance();
 
-	lr.vulkanInit();
-	lr.vulkanExtensions();
-	lr.vulkanLayers();
-	lr.vulkanCreate();
-#ifndef NDEBUG
-	lr.vulkanDebugMessenger();
-#endif
+	lr.create();
 	lr.vulkanSurface(window);
+}
+
+void LowRenderer::create()
+{
+	vulkanInit();
+	vulkanExtensions();
+	vulkanLayers();
+	vulkanCreate();
+#ifndef NDEBUG
+	vulkanDebugMessenger();
+#endif
 }
 
 void LowRenderer::destroy()
 {
-	getInstance().vulkanDestroy();
+	vulkanDestroy();
 }
 
 VkInstance LowRenderer::getVkInstance()

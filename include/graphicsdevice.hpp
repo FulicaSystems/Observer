@@ -5,6 +5,8 @@
 
 #include <glad/vulkan.h>
 
+#include "graphicsobject.hpp"
+
 using VkQueueFamilyIndex = std::optional<uint32_t>;
 struct VkQueueFamilyIndices
 {
@@ -51,7 +53,7 @@ public:
 /**
  * Logical device.
  */
-class LogicalDevice
+class LogicalDevice : public IGraphicsObject
 {
 private:
 	PhysicalDevice pdevice;
@@ -65,11 +67,8 @@ public:
 	VkQueue graphicsQueue;
 	VkQueue presentQueue;
 
-	void create();
-	/**
-	 * Destroy the logical device.
-	 */
-	void destroy();
+	void create() override;
+	void destroy() override;
 
 	/**
 	 * Get the physical device.
