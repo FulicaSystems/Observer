@@ -27,6 +27,7 @@ void GraphicsPipeline::create()
 void GraphicsPipeline::destroy()
 {
 	VkDevice ldevice = device.getLDevice();
+	vkDeviceWaitIdle(ldevice);
 
 	vkDestroySemaphore(ldevice, renderReadySemaphore, nullptr);
 	vkDestroySemaphore(ldevice, renderDoneSemaphore, nullptr);

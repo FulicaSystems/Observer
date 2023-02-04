@@ -7,9 +7,12 @@ class Renderer
 {
 private:
 	LogicalDevice device;
-	GraphicsPipeline pipeline;
 
 public:
+	GraphicsPipeline pipeline;
+
+	Renderer();
+
 	void create();
 	void destroy();
 };

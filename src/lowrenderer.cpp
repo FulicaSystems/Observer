@@ -4,14 +4,16 @@
 
 void LowRenderer::create(GLFWwindow* window)
 {
-	vulkanInit();
-	vulkanExtensions();
-	vulkanLayers();
-	vulkanCreate();
+	LowRenderer& lr = getInstance();
+
+	lr.vulkanInit();
+	lr.vulkanExtensions();
+	lr.vulkanLayers();
+	lr.vulkanCreate();
 #ifndef NDEBUG
-	vulkanDebugMessenger();
+	lr.vulkanDebugMessenger();
 #endif
-	vulkanSurface(window);
+	lr.vulkanSurface(window);
 
 	//device.create();
 	//pipeline.create();
@@ -19,7 +21,7 @@ void LowRenderer::create(GLFWwindow* window)
 
 void LowRenderer::destroy()
 {
-	vulkanDestroy();
+	getInstance().vulkanDestroy();
 }
 
 VkInstance LowRenderer::getVkInstance()
@@ -46,6 +48,7 @@ void LowRenderer::vulkanInit()
 	if (!glfwVulkanSupported())
 		throw std::exception("GLFW failed to find the Vulkan loader");
 
+	// TODO : move glad call to a LowRenderer function
 	if (!gladLoaderLoadVulkan(nullptr, nullptr, nullptr))
 		throw std::exception("Unable to load Vulkan symbols");
 }

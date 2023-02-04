@@ -19,9 +19,11 @@ set(HEADERS
     include/format.hpp
     include/application.hpp
 
-    include/lowrenderer.hpp
     include/graphicsdevice.hpp
     include/graphicspipeline.hpp
+
+    include/lowrenderer.hpp
+    include/renderer.hpp
 )
 
 set(SOURCES
@@ -30,9 +32,11 @@ set(SOURCES
     src/format.cpp
     src/application.cpp
 
-    src/lowrenderer.cpp
     src/graphicsdevice.cpp
     src/graphicspipeline.cpp
+
+    src/lowrenderer.cpp
+    src/renderer.cpp
 )
 
 add_executable(renderer ${HEADERS} ${SOURCES})

@@ -11,10 +11,16 @@ Application::Application()
 {
 	glfwInit();
 	windowInit();
+
+	LowRenderer::create(window);
+	rdr.create();
 }
 
 void Application::destroy()
 {
+	rdr.destroy();
+	LowRenderer::destroy();
+
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
@@ -33,5 +39,7 @@ void Application::loop()
 	{
 		glfwPollEvents();
 		//draw frame
+
+		rdr.pipeline.drawFrame();
 	}
 }

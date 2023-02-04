@@ -4,10 +4,14 @@
 
 #include <GLFW/glfw3.h>
 
+#include "renderer.hpp"
+
 class Application
 {
 private:
 	GLFWwindow* window;
+
+	Renderer rdr;
 
 	void windowInit();
 

@@ -47,8 +47,8 @@ private:
 	void vulkanSurface(GLFWwindow* window);
 
 public:
-	void create(GLFWwindow* window);
-	void destroy();
+	static void create(GLFWwindow* window);
+	static void destroy();
 
 	static VkInstance getVkInstance();
 	static VkSurfaceKHR getSurface();
