@@ -8,7 +8,7 @@ Renderer::Renderer()
 
 void Renderer::create()
 {
-	// do not forget to call low.create() first to create the rendering instance
+	// create the rendering instance first using low.create()
 	device.create();
 	pipeline.create();
 }

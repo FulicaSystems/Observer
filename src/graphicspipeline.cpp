@@ -14,13 +14,20 @@ GraphicsPipeline::GraphicsPipeline(LogicalDevice& device)
 
 void GraphicsPipeline::create()
 {
+	// swapchain
 	vulkanSwapchain();
 	vulkanImageViews();
+
+	// pipeline
 	vulkanRenderPass();
 	vulkanGraphicsPipeline();
+
+	// framebuffer
 	vulkanFramebuffers();
 	vulkanCommandPool();
 	vulkanCommandBuffer();
+
+	// multithreading
 	vulkanMultithreadObjects();
 }
 

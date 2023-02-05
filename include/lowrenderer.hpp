@@ -22,6 +22,7 @@ const std::vector<const char*> deviceExtensions = {
 class LowRenderer : public IGraphicsObject
 {
 private:
+	// some extensions are required
 	std::vector<const char*> additionalExtensions;
 
 	VkDebugUtilsMessengerEXT debugMessenger;
@@ -47,7 +48,6 @@ public:
 
 	void loadExtensions(std::vector<const char*>& additionalExtensions);
 
-	// the Vulkan symbols must be loaded before trying to create the low renderer
 	void create() override;
 	void destroy() override;
 };

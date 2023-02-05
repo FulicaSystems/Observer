@@ -58,8 +58,8 @@ void Application::loop()
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
-		//draw frame
 
+		//draw frame
 		rdr.render();
 	}
 }

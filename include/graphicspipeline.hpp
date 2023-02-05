@@ -32,24 +32,24 @@ private:
 	// device used by this pipeline
 	LogicalDevice& device;
 
-	//swapchain
+	// swapchain
 	VkSwapchainKHR swapchain;
 	std::vector<VkImage> swapchainImages;
 	VkFormat swapchainImageFormat;
 	VkExtent2D swapchainExtent;
 	std::vector<VkImageView> swapchainImageViews;
 
-	//pipeline
+	// pipeline
 	VkRenderPass renderPass;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 
-	//framebuffer
+	// framebuffer
 	std::vector<VkFramebuffer> swapchainFramebuffers;
 	VkCommandPool commandPool;
 	VkCommandBuffer commandBuffer;
 
-	//multithreading
+	// multithreading
 	VkSemaphore renderReadySemaphore;
 	VkSemaphore renderDoneSemaphore;
 	VkFence renderOnceFence;

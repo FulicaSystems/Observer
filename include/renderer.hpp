@@ -13,6 +13,7 @@ class Renderer : public IGraphicsObject
 {
 private:
 	LogicalDevice device;
+	// TODO : make the pipeline independant in order to create multiple different pipelines
 	GraphicsPipeline pipeline;
 
 public:
