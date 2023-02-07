@@ -520,12 +520,12 @@ void GraphicsPipeline::recordImageCommandBuffer(VkCommandBuffer cb,
 	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
 	VkViewport viewport = {
-	.x = 0.f,
-	.y = 0.f,
-	.width = static_cast<float>(swapchainExtent.width),
-	.height = static_cast<float>(swapchainExtent.height),
-	.minDepth = 0.f,
-	.maxDepth = 1.f
+		.x = 0.f,
+		.y = 0.f,
+		.width = static_cast<float>(swapchainExtent.width),
+		.height = static_cast<float>(swapchainExtent.height),
+		.minDepth = 0.f,
+		.maxDepth = 1.f
 	};
 
 	vkCmdSetViewport(cb, 0, 1, &viewport);
