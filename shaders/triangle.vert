@@ -1,21 +1,12 @@
 #version 450
 
+layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec3 aColor;
+
 layout(location = 0) out vec3 vertexColor;
-
-vec2 positions[3] = {
-	vec2(0.0, -0.5),
-	vec2(0.5, 0.5),
-	vec2(-0.5, 0.5)
-};
-
-vec3 colors[3] = {
-	vec3(1.0, 0.0, 0.0),
-	vec3(0.0, 1.0, 0.0),
-	vec3(0.0, 0.0, 1.0)
-};
 
 void main()
 {
-	gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
-	vertexColor = colors[gl_VertexIndex];
+	gl_Position = vec4(aPos, 1.0);
+	vertexColor = aColor;
 }

@@ -52,6 +52,8 @@ public:
 	 */
 	bool isDeviceSuitable(const VkSurfaceKHR& surface);
 
+	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
+
 	const VkPhysicalDevice& getDevice() const;
 };
 
@@ -80,12 +82,17 @@ public:
 	void destroy() override;
 
 	/**
-	 * Get the physical device.
+	 * Get the physical device custom class.
 	 */
-	const VkPhysicalDevice& getPDevice() const;
+	const PhysicalDevice& getPDevice() const;
 
 	/**
-	 * Get the logical device.
+	 * Get the Vulkan physical device.
 	 */
-	const VkDevice& getLDevice() const;
+	const VkPhysicalDevice& getVkPDevice() const;
+
+	/**
+	 * Get the Vulkan logical device.
+	 */
+	const VkDevice& getVkLDevice() const;
 };

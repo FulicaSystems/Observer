@@ -22,6 +22,9 @@ set(HEADERS
     include/graphicsdevice.hpp
     include/graphicspipeline.hpp
 
+    include/vertex.hpp
+    include/vertexbuffer.hpp
+
     include/lowrenderer.hpp
     include/renderer.hpp
 )
@@ -34,6 +37,9 @@ set(SOURCES
 
     src/graphicsdevice.cpp
     src/graphicspipeline.cpp
+
+    src/vertex.cpp
+    src/vertexbuffer.cpp
 
     src/lowrenderer.cpp
     src/renderer.cpp

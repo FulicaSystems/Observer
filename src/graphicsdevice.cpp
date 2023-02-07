@@ -27,12 +27,17 @@ void LogicalDevice::destroy()
 	vkDestroyDevice(device, nullptr);
 }
 
-const VkPhysicalDevice& LogicalDevice::getPDevice() const
+const PhysicalDevice& LogicalDevice::getPDevice() const
+{
+	return pdevice;
+}
+
+const VkPhysicalDevice& LogicalDevice::getVkPDevice() const
 {
 	return pdevice.getDevice();
 }
 
-const VkDevice& LogicalDevice::getLDevice() const
+const VkDevice& LogicalDevice::getVkLDevice() const
 {
 	return device;
 }
@@ -113,6 +118,22 @@ bool PhysicalDevice::isDeviceSuitable(const VkSurfaceKHR& surface)
 
 	return indices.isComplete() && extensionSupport && swapchainSupport;
 #endif
+}
+
+uint32_t PhysicalDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const
+{
+	VkPhysicalDeviceMemoryProperties memProp;
+	vkGetPhysicalDeviceMemoryProperties(vkDevice, &memProp);
+
+	for (uint32_t i = 0; i < memProp.memoryTypeCount; ++i)
+	{
+		bool rightType = typeFilter & (1 << i);
+		bool rightFlag = (memProp.memoryTypes[i].propertyFlags & properties) == properties;
+		if (rightType && rightFlag)
+			return i;
+	}
+
+	throw std::exception("Failed to find suitable memory type");
 }
 
 void LogicalDevice::vulkanPhysicalDevice()

@@ -5,6 +5,8 @@
 #include "lowrenderer.hpp"
 
 #include "graphicsdevice.hpp"
+#include "vertex.hpp"
+
 #include "graphicspipeline.hpp"
 
 GraphicsPipeline::GraphicsPipeline(LogicalDevice& device)
@@ -33,7 +35,7 @@ void GraphicsPipeline::create()
 
 void GraphicsPipeline::destroy()
 {
-	VkDevice ldevice = device.getLDevice();
+	VkDevice ldevice = device.getVkLDevice();
 	vkDeviceWaitIdle(ldevice);
 
 	vkDestroySemaphore(ldevice, renderReadySemaphore, nullptr);
@@ -105,7 +107,7 @@ VkExtent2D GraphicsPipeline::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& ca
 
 void GraphicsPipeline::vulkanSwapchain()
 {
-	VkDevice ldevice = device.getLDevice();
+	VkDevice ldevice = device.getVkLDevice();
 	PhysicalDevice pdevice = device.getPDevice();
 
 	VkSwapchainSupportDetails support = pdevice.querySwapchainSupport(device.low.surface);
@@ -190,7 +192,7 @@ void GraphicsPipeline::vulkanImageViews()
 			}
 		};
 
-		VkDevice ldevice = device.getLDevice();
+		VkDevice ldevice = device.getVkLDevice();
 		if (vkCreateImageView(ldevice, &createInfo, nullptr, &swapchainImageViews[i]) != VK_SUCCESS)
 			throw std::exception("Failed to create an image view");
 	}
@@ -237,13 +239,15 @@ void GraphicsPipeline::vulkanGraphicsPipeline()
 		.pDynamicStates = dynamicStates.data()
 	};
 
-	//vertex buffer
+	//vertex buffer (enabling the binding for our Vertex structure)
+	auto binding = Vertex::getBindingDescription();
+	auto attribs = Vertex::getAttributeDescription();
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		.vertexBindingDescriptionCount = 0,
-		.pVertexBindingDescriptions = nullptr,
-		.vertexAttributeDescriptionCount = 0,
-		.pVertexAttributeDescriptions = nullptr
+		.vertexBindingDescriptionCount = 1,
+		.pVertexBindingDescriptions = &binding,
+		.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribs.size()),
+		.pVertexAttributeDescriptions = attribs.data()
 	};
 
 	//draw mode
@@ -330,7 +334,7 @@ void GraphicsPipeline::vulkanGraphicsPipeline()
 		.pPushConstantRanges = nullptr
 	};
 
-	VkDevice ldevice = device.getLDevice();
+	VkDevice ldevice = device.getVkLDevice();
 
 	if (vkCreatePipelineLayout(ldevice, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
 		throw std::exception("Failed to create pipeline layout");
@@ -373,7 +377,7 @@ VkShaderModule GraphicsPipeline::createShaderModule(const std::vector<char>& cod
 		.pCode = reinterpret_cast<const uint32_t*>(code.data())
 	};
 
-	VkDevice ldevice = device.getLDevice();
+	VkDevice ldevice = device.getVkLDevice();
 	VkShaderModule shaderModule;
 	if (vkCreateShaderModule(ldevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
 		throw std::exception("Failed to create shader module");
@@ -423,14 +427,14 @@ void GraphicsPipeline::vulkanRenderPass()
 		.pDependencies = &dependency
 	};
 
-	VkDevice ldevice = device.getLDevice();
+	VkDevice ldevice = device.getVkLDevice();
 	if (vkCreateRenderPass(ldevice, &createInfo, nullptr, &renderPass) != VK_SUCCESS)
 		throw std::exception("Failed to create render pass");
 }
 
 void GraphicsPipeline::vulkanFramebuffers()
 {
-	VkDevice ldevice = device.getLDevice();
+	VkDevice ldevice = device.getVkLDevice();
 	swapchainFramebuffers.resize(swapchainImageViews.size());
 
 	for (size_t i = 0; i < swapchainImageViews.size(); ++i)
@@ -452,7 +456,7 @@ void GraphicsPipeline::vulkanFramebuffers()
 
 void GraphicsPipeline::vulkanCommandPool()
 {
-	VkDevice ldevice = device.getLDevice();
+	VkDevice ldevice = device.getVkLDevice();
 	PhysicalDevice pdevice = device.getPDevice();
 
 	VkQueueFamilyIndices indices = pdevice.findQueueFamilies(device.low.surface);
@@ -469,7 +473,7 @@ void GraphicsPipeline::vulkanCommandPool()
 
 void GraphicsPipeline::vulkanCommandBuffer()
 {
-	VkDevice ldevice = device.getLDevice();
+	VkDevice ldevice = device.getVkLDevice();
 
 	VkCommandBufferAllocateInfo allocInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -540,7 +544,7 @@ void GraphicsPipeline::recordCommandBuffer(VkCommandBuffer cb, uint32_t imageInd
 
 void GraphicsPipeline::drawFrame()
 {
-	VkDevice ldevice = device.getLDevice();
+	VkDevice ldevice = device.getVkLDevice();
 
 	vkWaitForFences(ldevice, 1, &renderOnceFence, VK_TRUE, UINT64_MAX);
 	vkResetFences(ldevice, 1, &renderOnceFence);
@@ -593,7 +597,7 @@ void GraphicsPipeline::vulkanMultithreadObjects()
 		.flags = VK_FENCE_CREATE_SIGNALED_BIT
 	};
 
-	VkDevice ldevice = device.getLDevice();
+	VkDevice ldevice = device.getVkLDevice();
 
 	if (vkCreateSemaphore(ldevice, &semaphoreCreateInfo, nullptr, &renderReadySemaphore) != VK_SUCCESS)
 		throw std::exception("Failed to create semaphore");
