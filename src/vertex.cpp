@@ -1,3 +1,5 @@
+#include <glad/vulkan.h>
+
 #include "vertex.hpp"
 
 VkVertexInputBindingDescription Vertex::getBindingDescription()

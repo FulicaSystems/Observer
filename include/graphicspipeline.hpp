@@ -7,6 +7,8 @@
 
 #include "graphicsobject.hpp"
 
+#include "vertexbuffer.hpp"
+
 static std::vector<char> readBinaryFile(const std::string& filename)
 {
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -69,7 +71,7 @@ private:
 
 	void recordImageCommandBuffer(VkCommandBuffer cb,
 		uint32_t imageIndex,
-		const std::vector<VkBuffer>& vbos);
+		const std::vector<VertexBuffer>& vbos);
 
 public:
 	GraphicsPipeline(LogicalDevice& device);
@@ -83,5 +85,5 @@ public:
 
 	VkShaderModule createShaderModule(const std::vector<char>& code);
 
-	void drawFrame(const std::vector<VkBuffer>& vbos);
+	void drawFrame(const std::vector<VertexBuffer>& vbos);
 };

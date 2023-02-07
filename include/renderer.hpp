@@ -3,8 +3,12 @@
 #include "graphicsobject.hpp"
 
 #include "lowrenderer.hpp"
+
 #include "graphicsdevice.hpp"
 #include "graphicspipeline.hpp"
+
+#include "vertex.hpp"
+#include "vertexbuffer.hpp"
 
 /**
  * High level renderer.
@@ -12,17 +16,28 @@
 class Renderer : public IGraphicsObject
 {
 private:
+	LogicalDevice ldevice;
 	// TODO : make the pipeline independant in order to make different pipelines
 	GraphicsPipeline pipeline;
 
+	// every created buffer objects
+	std::vector<VertexBuffer> vbos;
+
+	void destroyBufferObject(VertexBuffer& vbo);
+
 public:
 	LowRenderer low;
-	LogicalDevice device;
 
 	Renderer();
 
 	void create() override;
 	void destroy() override;
 
-	void renderScene(const std::vector<VkBuffer>& vbos);
+	VertexBuffer& createBufferObject(uint32_t vertexNum,
+		VkBufferUsageFlags usage,
+		VkMemoryPropertyFlags memProperties);
+
+	void populateBufferObject(VertexBuffer& vbo, Vertex* vertices);
+
+	void render();
 };

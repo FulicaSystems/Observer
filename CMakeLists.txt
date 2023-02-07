@@ -19,6 +19,7 @@ set(HEADERS
     include/format.hpp
     include/application.hpp
 
+    include/graphicsobject.hpp
     include/graphicsdevice.hpp
     include/graphicspipeline.hpp
 
@@ -39,7 +40,6 @@ set(SOURCES
     src/graphicspipeline.cpp
 
     src/vertex.cpp
-    src/vertexbuffer.cpp
 
     src/lowrenderer.cpp
     src/renderer.cpp

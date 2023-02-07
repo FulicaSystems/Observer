@@ -2,14 +2,11 @@
 
 #include <array>
 
-#include <glad/vulkan.h>
-
 #include "mathematics.hpp"
 #include "types/color.hpp"
 
-class Vertex
+struct Vertex
 {
-public:
 	// 2 attributes
 	vec3 position;
 	//vec3 normal;

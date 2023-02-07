@@ -2,6 +2,7 @@
 
 #include "mathematics.hpp"
 #include "format.hpp"
+
 #include "lowrenderer.hpp"
 
 #include "graphicsdevice.hpp"
@@ -488,7 +489,7 @@ void GraphicsPipeline::vulkanCommandBuffer()
 
 void GraphicsPipeline::recordImageCommandBuffer(VkCommandBuffer cb,
 	uint32_t imageIndex,
-	const std::vector<VkBuffer>& vbos)
+	const std::vector<VertexBuffer>& vbos)
 {
 	VkCommandBufferBeginInfo commandBufferBeginInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -519,9 +520,16 @@ void GraphicsPipeline::recordImageCommandBuffer(VkCommandBuffer cb,
 	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
 	// bind VBOs
-	// TODO : get vbo's offset
-	VkDeviceSize offsets[] = { 0 };
-	vkCmdBindVertexBuffers(cb, 0, vbos.size(), vbos.data(), offsets);
+	std::vector<VkBuffer> buffers;
+	std::vector<VkDeviceSize> offsets;
+	uint32_t vertexNum = 0;
+	for (const VertexBuffer& vbo : vbos)
+	{
+		buffers.push_back(vbo.buffer);
+		offsets.push_back(vbo.offset);
+		vertexNum += vbo.vertexNum;
+	}
+	vkCmdBindVertexBuffers(cb, 0, buffers.size(), buffers.data(), offsets.data());
 
 	VkViewport viewport = {
 		.x = 0.f,
@@ -541,8 +549,7 @@ void GraphicsPipeline::recordImageCommandBuffer(VkCommandBuffer cb,
 
 	vkCmdSetScissor(cb, 0, 1, &scissor);
 
-	// TODO : get vbo's vertices num
-	vkCmdDraw(cb, 3, 1, 0, 0);
+	vkCmdDraw(cb, vertexNum, 1, 0, 0);
 
 	vkCmdEndRenderPass(cb);
 
@@ -550,7 +557,7 @@ void GraphicsPipeline::recordImageCommandBuffer(VkCommandBuffer cb,
 		throw std::exception("Failed to record command buffer");
 }
 
-void GraphicsPipeline::drawFrame(const std::vector<VkBuffer>& vbos)
+void GraphicsPipeline::drawFrame(const std::vector<VertexBuffer>& vbos)
 {
 	VkDevice ldevice = device.getVkLDevice();
 

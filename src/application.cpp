@@ -59,8 +59,7 @@ void Application::windowInit()
 void Application::loop()
 {
 	// TODO : store vbos in a scene
-	VertexBuffer vbo = VertexBuffer::createBufferObject(rdr.device,
-		3,
+	VertexBuffer& vbo = rdr.createBufferObject(3,
 		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
@@ -69,16 +68,13 @@ void Application::loop()
 		{ {0.5f,  0.5f}, Color::green },
 		{ {-0.5f, 0.5f}, Color::blue }
 	};
-	vbo.populate(vertices);
+	rdr.populateBufferObject(vbo, vertices);
 	
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
 
 		//draw frame
-		rdr.renderScene({ vbo.buffer });
+		rdr.render();
 	}
-
-	// TODO : destroy when pipeline is destroyed
-	vbo.destroy();
 }
