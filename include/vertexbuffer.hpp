@@ -13,8 +13,6 @@ struct VertexBuffer
 	// vertex buffer object
 	VkBuffer buffer;
 
-	// memory offset of this buffer object
-	uint32_t offset = 0;
 	// memory allocated on the GPU heap
 	VkDeviceMemory memory;
 };

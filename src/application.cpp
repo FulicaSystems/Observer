@@ -59,17 +59,26 @@ void Application::windowInit()
 void Application::loop()
 {
 	// TODO : store vbos in a scene
-	VertexBuffer& vbo = rdr.createBufferObject(3,
+	VertexBuffer& vbo1 = rdr.createBufferObject(3,
+		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	VertexBuffer& vbo2 = rdr.createBufferObject(3,
 		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 	Vertex vertices[] = {
-		{ {0.0f, -0.5f}, Color::red },
-		{ {0.5f,  0.5f}, Color::green },
-		{ {-0.5f, 0.5f}, Color::blue }
+		{ { 0.0f, -0.5f}, Color::red },
+		{ { 0.5f,  0.5f}, Color::green },
+		{ {-0.5f,  0.5f}, Color::blue }
 	};
-	rdr.populateBufferObject(vbo, vertices);
-	
+	Vertex vertices2[] = {
+		{ { 0.0f,  0.5f}, Color::white },
+		{ {-0.5f, -0.5f}, Color::maroon },
+		{ { 0.5f, -0.5f}, Color::lime }
+	};
+	rdr.populateBufferObject(vbo1, vertices);
+	rdr.populateBufferObject(vbo2, vertices2);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();

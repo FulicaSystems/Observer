@@ -489,7 +489,7 @@ void GraphicsPipeline::vulkanCommandBuffer()
 
 void GraphicsPipeline::recordImageCommandBuffer(VkCommandBuffer cb,
 	uint32_t imageIndex,
-	const std::vector<VertexBuffer>& vbos)
+	const std::unordered_map<int, VertexBuffer>& vbos)
 {
 	VkCommandBufferBeginInfo commandBufferBeginInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -519,25 +519,13 @@ void GraphicsPipeline::recordImageCommandBuffer(VkCommandBuffer cb,
 	vkCmdBeginRenderPass(cb, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
-	// bind VBOs
-	std::vector<VkBuffer> buffers;
-	std::vector<VkDeviceSize> offsets;
-	uint32_t vertexNum = 0;
-	for (const VertexBuffer& vbo : vbos)
-	{
-		buffers.push_back(vbo.buffer);
-		offsets.push_back(vbo.offset);
-		vertexNum += vbo.vertexNum;
-	}
-	vkCmdBindVertexBuffers(cb, 0, buffers.size(), buffers.data(), offsets.data());
-
 	VkViewport viewport = {
-		.x = 0.f,
-		.y = 0.f,
-		.width = static_cast<float>(swapchainExtent.width),
-		.height = static_cast<float>(swapchainExtent.height),
-		.minDepth = 0.f,
-		.maxDepth = 1.f
+	.x = 0.f,
+	.y = 0.f,
+	.width = static_cast<float>(swapchainExtent.width),
+	.height = static_cast<float>(swapchainExtent.height),
+	.minDepth = 0.f,
+	.maxDepth = 1.f
 	};
 
 	vkCmdSetViewport(cb, 0, 1, &viewport);
@@ -549,7 +537,14 @@ void GraphicsPipeline::recordImageCommandBuffer(VkCommandBuffer cb,
 
 	vkCmdSetScissor(cb, 0, 1, &scissor);
 
-	vkCmdDraw(cb, vertexNum, 1, 0, 0);
+	// bind VBOs
+	for (int i = 0; i < vbos.size(); ++i)
+	{
+		VkBuffer buffers[] = { vbos.at(i).buffer };
+		VkDeviceSize offsets[] = { 0 };
+		vkCmdBindVertexBuffers(cb, 0, 1, buffers, offsets);
+		vkCmdDraw(cb, vbos.at(i).vertexNum, 1, 0, 0);
+	}
 
 	vkCmdEndRenderPass(cb);
 
@@ -557,7 +552,7 @@ void GraphicsPipeline::recordImageCommandBuffer(VkCommandBuffer cb,
 		throw std::exception("Failed to record command buffer");
 }
 
-void GraphicsPipeline::drawFrame(const std::vector<VertexBuffer>& vbos)
+void GraphicsPipeline::drawFrame(const std::unordered_map<int, VertexBuffer>& vbos)
 {
 	VkDevice ldevice = device.getVkLDevice();
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "graphicsobject.hpp"
 
 #include "lowrenderer.hpp"
@@ -21,7 +23,7 @@ private:
 	GraphicsPipeline pipeline;
 
 	// every created buffer objects
-	std::vector<VertexBuffer> vbos;
+	std::unordered_map<int, VertexBuffer> vbos;
 
 	void destroyBufferObject(VertexBuffer& vbo);
 

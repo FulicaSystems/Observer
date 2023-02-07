@@ -23,9 +23,9 @@ void Renderer::destroy()
 {
 	pipeline.destroy();
 
-	for (VertexBuffer& vbo : vbos)
+	for (int i = 0; i < vbos.size(); ++i)
 	{
-		destroyBufferObject(vbo);
+		destroyBufferObject(vbos[i]);
 	}
 
 	ldevice.destroy();
@@ -38,11 +38,6 @@ VertexBuffer& Renderer::createBufferObject(uint32_t vertexNum, VkBufferUsageFlag
 	VertexBuffer outVbo;
 	outVbo.bufferSize = sizeof(Vertex) * (size_t)vertexNum;
 	outVbo.vertexNum = vertexNum;
-	// add offset of already created buffer objects
-	for (VertexBuffer& vbo : vbos)
-	{
-		outVbo.offset += vbo.offset + vbo.bufferSize;
-	}
 
 	const VkDevice& device = ldevice.getVkLDevice();
 
@@ -73,9 +68,10 @@ VertexBuffer& Renderer::createBufferObject(uint32_t vertexNum, VkBufferUsageFlag
 
 	// TODO : use offset
 	vkBindBufferMemory(device, outVbo.buffer, outVbo.memory, 0);
-
-	vbos.push_back(outVbo);
-	return *(vbos.end() - 1);
+	
+	int index = vbos.size();
+	vbos[index] = outVbo;
+	return vbos[index];
 }
 
 void Renderer::populateBufferObject(VertexBuffer& vbo, Vertex* vertices)
