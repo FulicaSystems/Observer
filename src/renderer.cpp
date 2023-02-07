@@ -1,5 +1,4 @@
 #include "renderer.hpp"
-#include "renderer.hpp"
 
 Renderer::Renderer()
 	: device(low), pipeline(device)
@@ -20,7 +19,7 @@ void Renderer::destroy()
 	low.destroy();
 }
 
-void Renderer::render()
+void Renderer::renderScene(const std::vector<VkBuffer>& vbos)
 {
-	pipeline.drawFrame();
+	pipeline.drawFrame(vbos);
 }

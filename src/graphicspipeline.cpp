@@ -35,7 +35,7 @@ void GraphicsPipeline::create()
 
 void GraphicsPipeline::destroy()
 {
-	VkDevice ldevice = device.getVkLDevice();
+	const VkDevice& ldevice = device.getVkLDevice();
 	vkDeviceWaitIdle(ldevice);
 
 	vkDestroySemaphore(ldevice, renderReadySemaphore, nullptr);
@@ -486,7 +486,9 @@ void GraphicsPipeline::vulkanCommandBuffer()
 		throw std::exception("Failed to allocate command buffers");
 }
 
-void GraphicsPipeline::recordCommandBuffer(VkCommandBuffer cb, uint32_t imageIndex)
+void GraphicsPipeline::recordImageCommandBuffer(VkCommandBuffer cb,
+	uint32_t imageIndex,
+	const std::vector<VkBuffer>& vbos)
 {
 	VkCommandBufferBeginInfo commandBufferBeginInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -516,6 +518,11 @@ void GraphicsPipeline::recordCommandBuffer(VkCommandBuffer cb, uint32_t imageInd
 	vkCmdBeginRenderPass(cb, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
+	// bind VBOs
+	// TODO : upgrade
+	VkDeviceSize offsets[] = { 0 };
+	vkCmdBindVertexBuffers(cb, 0, vbos.size(), vbos.data(), offsets);
+
 	VkViewport viewport = {
 		.x = 0.f,
 		.y = 0.f,
@@ -534,6 +541,7 @@ void GraphicsPipeline::recordCommandBuffer(VkCommandBuffer cb, uint32_t imageInd
 
 	vkCmdSetScissor(cb, 0, 1, &scissor);
 
+	// TODO : get vbo's vertices num
 	vkCmdDraw(cb, 3, 1, 0, 0);
 
 	vkCmdEndRenderPass(cb);
@@ -542,7 +550,7 @@ void GraphicsPipeline::recordCommandBuffer(VkCommandBuffer cb, uint32_t imageInd
 		throw std::exception("Failed to record command buffer");
 }
 
-void GraphicsPipeline::drawFrame()
+void GraphicsPipeline::drawFrame(const std::vector<VkBuffer>& vbos)
 {
 	VkDevice ldevice = device.getVkLDevice();
 
@@ -553,7 +561,7 @@ void GraphicsPipeline::drawFrame()
 	vkAcquireNextImageKHR(ldevice, swapchain, UINT64_MAX, renderReadySemaphore, VK_NULL_HANDLE, &imageIndex);
 
 	vkResetCommandBuffer(commandBuffer, 0);
-	recordCommandBuffer(commandBuffer, imageIndex);
+	recordImageCommandBuffer(commandBuffer, imageIndex, vbos);
 
 	VkSemaphore waitSemaphores[] = { renderReadySemaphore };
 	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };

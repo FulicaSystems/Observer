@@ -66,7 +66,9 @@ private:
 
 	void vulkanMultithreadObjects();
 
-	void recordCommandBuffer(VkCommandBuffer cb, uint32_t imageIndex);
+	void recordImageCommandBuffer(VkCommandBuffer cb,
+		uint32_t imageIndex,
+		const std::vector<VkBuffer>& vbos);
 
 public:
 	GraphicsPipeline(LogicalDevice& device);
@@ -80,5 +82,5 @@ public:
 
 	VkShaderModule createShaderModule(const std::vector<char>& code);
 
-	void drawFrame();
+	void drawFrame(const std::vector<VkBuffer>& vbos);
 };

@@ -12,17 +12,17 @@
 class Renderer : public IGraphicsObject
 {
 private:
-	LogicalDevice device;
 	// TODO : make the pipeline independant in order to create multiple different pipelines
 	GraphicsPipeline pipeline;
 
 public:
 	LowRenderer low;
+	LogicalDevice device;
 
 	Renderer();
 
 	void create() override;
 	void destroy() override;
 
-	void render();
+	void renderScene(const std::vector<VkBuffer>& vbos);
 };

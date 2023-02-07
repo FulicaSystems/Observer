@@ -53,13 +53,31 @@ void Application::windowInit()
 	glfwGetFramebufferSize(window, &Format::framebufferHeight, &Format::framebufferWidth);
 }
 
+#include "vertex.hpp"
+#include "vertexbuffer.hpp"
+
 void Application::loop()
 {
+	VertexBuffer vbo = VertexBuffer::createBufferObject(rdr.device,
+		3,
+		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	Vertex vertices[] = {
+		{ {0.0f, -0.5f}, Color::red },
+		{ {0.5f,  0.5f}, Color::green },
+		{ {-0.5f, 0.5f}, Color::blue }
+	};
+	vbo.populate(vertices);
+	
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
 
 		//draw frame
-		rdr.render();
+		rdr.renderScene({ vbo.buffer });
 	}
+
+	// TODO : destroy when pipeline is destroyed
+	vbo.destroy();
 }
