@@ -4,6 +4,7 @@
 
 int main()
 {
+	// TODO : check memory leaks
 	Application app;
 
 	try

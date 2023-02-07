@@ -519,7 +519,7 @@ void GraphicsPipeline::recordImageCommandBuffer(VkCommandBuffer cb,
 	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
 	// bind VBOs
-	// TODO : upgrade
+	// TODO : get vbo's offset
 	VkDeviceSize offsets[] = { 0 };
 	vkCmdBindVertexBuffers(cb, 0, vbos.size(), vbos.data(), offsets);
 

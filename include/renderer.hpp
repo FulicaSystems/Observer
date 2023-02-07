@@ -12,7 +12,7 @@
 class Renderer : public IGraphicsObject
 {
 private:
-	// TODO : make the pipeline independant in order to create multiple different pipelines
+	// TODO : make the pipeline independant in order to make different pipelines
 	GraphicsPipeline pipeline;
 
 public:

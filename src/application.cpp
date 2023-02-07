@@ -58,6 +58,7 @@ void Application::windowInit()
 
 void Application::loop()
 {
+	// TODO : store vbos in a scene
 	VertexBuffer vbo = VertexBuffer::createBufferObject(rdr.device,
 		3,
 		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,

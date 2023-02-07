@@ -46,6 +46,7 @@ VertexBuffer VertexBuffer::createBufferObject(LogicalDevice& ldevice,
 	if (vkAllocateMemory(device, &allocInfo, nullptr, &bo.memory) != VK_SUCCESS)
 		throw std::exception("Failed to allocate vertex buffer memory");
 
+	// TODO : use offset
 	vkBindBufferMemory(device, bo.buffer, bo.memory, 0);
 
 	return bo;
