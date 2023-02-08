@@ -8,6 +8,8 @@
 
 int main()
 {
+	CHKLK_INIT
+
 	// TODO : check memory leaks
 	Application app;
 
@@ -21,6 +23,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	CHKLK_APP
+	CHKLK_DIFF_SNAP
+	//CHKLK_APP
 	return EXIT_SUCCESS;
 }
