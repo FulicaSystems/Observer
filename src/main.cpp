@@ -2,6 +2,10 @@
 
 #include "application.hpp"
 
+#define CHKLK_OVERRIDE_NEW_OP
+#include "utils/checkleak.hpp"
+#include <Windows.h>
+
 int main()
 {
 	// TODO : check memory leaks
@@ -17,5 +21,6 @@ int main()
 		return EXIT_FAILURE;
 	}
 
+	CHKLK_APP
 	return EXIT_SUCCESS;
 }
