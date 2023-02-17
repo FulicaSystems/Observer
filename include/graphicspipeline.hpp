@@ -49,9 +49,6 @@ private:
 
 	// framebuffer
 	std::vector<VkFramebuffer> swapchainFramebuffers;
-	VkCommandPool commandPool;
-	// TODO : make command buffer independant in order to make different command buffers
-	VkCommandBuffer commandBuffer;
 
 	// multithreading
 	VkSemaphore renderReadySemaphore;
@@ -65,8 +62,6 @@ private:
 	void vulkanRenderPass();
 
 	void vulkanFramebuffers();
-	void vulkanCommandPool();
-	void vulkanCommandBuffer();
 
 	void vulkanMultithreadObjects();
 

@@ -27,8 +27,6 @@ void GraphicsPipeline::create()
 
 	// framebuffer
 	vulkanFramebuffers();
-	vulkanCommandPool();
-	vulkanCommandBuffer();
 
 	// multithreading
 	vulkanMultithreadObjects();
@@ -453,38 +451,6 @@ void GraphicsPipeline::vulkanFramebuffers()
 		if (vkCreateFramebuffer(ldevice, &createInfo, nullptr, &swapchainFramebuffers[i]) != VK_SUCCESS)
 			throw std::exception("Failed to create framebuffer");
 	}
-}
-
-void GraphicsPipeline::vulkanCommandPool()
-{
-	VkDevice ldevice = device.getVkLDevice();
-	PhysicalDevice pdevice = device.getPDevice();
-
-	VkQueueFamilyIndices indices = pdevice.findQueueFamilies(device.low.surface);
-
-	VkCommandPoolCreateInfo createInfo = {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-		.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-		.queueFamilyIndex = indices.graphicsFamily.value()
-	};
-
-	if (vkCreateCommandPool(ldevice, &createInfo, nullptr, &commandPool) != VK_SUCCESS)
-		throw std::exception("Failed to create command pool");
-}
-
-void GraphicsPipeline::vulkanCommandBuffer()
-{
-	VkDevice ldevice = device.getVkLDevice();
-
-	VkCommandBufferAllocateInfo allocInfo = {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-		.commandPool = commandPool,
-		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-		.commandBufferCount = 1
-	};
-
-	if (vkAllocateCommandBuffers(ldevice, &allocInfo, &commandBuffer) != VK_SUCCESS)
-		throw std::exception("Failed to allocate command buffers");
 }
 
 void GraphicsPipeline::recordImageCommandBuffer(VkCommandBuffer cb,
