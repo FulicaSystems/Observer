@@ -9,8 +9,6 @@
 int main()
 {
 	CHKLK_INIT
-
-	// TODO : check memory leaks
 	Application app;
 
 	try
