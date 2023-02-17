@@ -63,11 +63,10 @@ void Application::windowInit()
 void Application::loop()
 {
 	// TODO : store vbos in a scene
-	VertexBuffer& vbo1 = rdr.createBufferObject(3,
-		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	VertexBuffer& vbo2 = rdr.createBufferObject(3,
-		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+
+	// this buffer is a CPU accessible buffer (temporary buffer to later load to the GPU)
+	VertexBuffer& stagingVBO = rdr.createBufferObject(3,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,	// used for memory transfer operation
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 	Vertex vertices[] = {
@@ -75,13 +74,25 @@ void Application::loop()
 		{ { 0.5f,  0.5f}, Color::green },
 		{ {-0.5f,  0.5f}, Color::blue }
 	};
-	Vertex vertices2[] = {
-		{ { 0.0f,  0.5f}, Color::white },
-		{ {-0.5f, -0.5f}, Color::maroon },
-		{ { 0.5f, -0.5f}, Color::lime }
+
+	rdr.populateBufferObject(stagingVBO, vertices);
+
+	// creating a device local buffer (on a specific GPU)
+	VertexBuffer& vbo = rdr.createBufferObject(3,
+		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,	// memory transfer operation
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+	// copying the staging buffer data into the device local buffer
+	// using a command buffer to transfer the data
+	VkCommandBufferAllocateInfo allocInfo = {
+		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+		.commandBufferCount = 1,
+		.commandPool = commandPool
 	};
-	rdr.populateBufferObject(vbo1, vertices);
-	rdr.populateBufferObject(vbo2, vertices2);
+
+	VkCommandBuffer commandBuffer;
+	vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
 
 	while (!glfwWindowShouldClose(window))
 	{
