@@ -40,7 +40,6 @@ void GraphicsPipeline::destroy()
 	vkDestroySemaphore(ldevice, renderReadySemaphore, nullptr);
 	vkDestroySemaphore(ldevice, renderDoneSemaphore, nullptr);
 	vkDestroyFence(ldevice, renderOnceFence, nullptr);
-	vkDestroyCommandPool(ldevice, commandPool, nullptr);
 	for (VkFramebuffer& framebuffer : swapchainFramebuffers)
 	{
 		vkDestroyFramebuffer(ldevice, framebuffer, nullptr);

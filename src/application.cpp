@@ -94,6 +94,8 @@ void Application::loop()
 	VkCommandBuffer commandBuffer;
 	vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
 
+	rdr.
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();

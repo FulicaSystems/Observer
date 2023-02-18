@@ -8,6 +8,7 @@
 
 #include "graphicsdevice.hpp"
 #include "graphicspipeline.hpp"
+#include "commandpool.hpp"
 
 #include "vertex.hpp"
 #include "vertexbuffer.hpp"
@@ -19,11 +20,13 @@ class Renderer : public IGraphicsObject
 {
 private:
 	LogicalDevice ldevice;
+	CommandPool cmdPool;
 	// TODO : make the pipeline independant in order to make different pipelines
 	GraphicsPipeline pipeline;
 
 	// every created buffer objects
 	std::unordered_map<int, VertexBuffer> vbos;
+	// TODO : array of command buffers
 
 	void destroyBufferObject(VertexBuffer& vbo);
 
@@ -40,6 +43,8 @@ public:
 		VkMemoryPropertyFlags memProperties);
 
 	void populateBufferObject(VertexBuffer& vbo, Vertex* vertices);
+
+	CommandBuffer& createCommandBuffer();
 
 	void render();
 };

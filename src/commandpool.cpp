@@ -1,4 +1,7 @@
 #include "commandpool.hpp"
+#include "graphicsdevice.hpp"
+
+#include "commandpool.hpp"
 
 void CommandPool::vulkanCommandPool()
 {
@@ -17,10 +20,37 @@ void CommandPool::vulkanCommandPool()
 		throw std::exception("Failed to create command pool");
 }
 
+CommandBuffer& CommandPool::vulkanCommandBuffer()
+{
+	VkDevice ldevice = device.getVkLDevice();
+
+	VkCommandBufferAllocateInfo allocInfo = {
+		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+		.commandPool = commandPool,
+		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+		.commandBufferCount = 1
+	};
+
+	CommandBuffer outCbo;
+	if (vkAllocateCommandBuffers(ldevice, &allocInfo, &outCbo.commandBuffer) != VK_SUCCESS)
+		throw std::exception("Failed to allocate command buffers");
+
+	int index = cbos.size();
+	cbos[index] = outCbo;
+	return cbos[index];
+}
+
+CommandPool::CommandPool(LogicalDevice& device)
+	: device(device)
+{
+}
+
 void CommandPool::create()
 {
+	vulkanCommandPool();
 }
 
 void CommandPool::destroy()
 {
+	vkDestroyCommandPool(ldevice, commandPool, nullptr);
 }

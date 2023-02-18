@@ -8,7 +8,7 @@ void Renderer::destroyBufferObject(VertexBuffer& vbo)
 }
 
 Renderer::Renderer()
-	: ldevice(low), pipeline(ldevice)
+	: ldevice(low), cmdPool(ldevice), pipeline(ldevice)
 {
 }
 
@@ -16,12 +16,14 @@ void Renderer::create()
 {
 	// create the rendering instance first using low.create()
 	ldevice.create();
+	cmdPool.create();
 	pipeline.create();
 }
 
 void Renderer::destroy()
 {
 	pipeline.destroy();
+	cmdPool.destroy();
 
 	for (int i = 0; i < vbos.size(); ++i)
 	{
@@ -84,6 +86,11 @@ void Renderer::populateBufferObject(VertexBuffer& vbo, Vertex* vertices)
 	memcpy(vbo.vertices, vertices, vbo.bufferSize);
 	// TODO : invalidate memory before reading in the pipeline
 	vkUnmapMemory(device, vbo.memory);
+}
+
+CommandBuffer& Renderer::createCommandBuffer()
+{
+	return cmdPool.vulkanCommandBuffer();
 }
 
 void Renderer::render()

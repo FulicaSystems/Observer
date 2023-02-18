@@ -2,16 +2,7 @@
 
 #include <glad/vulkan.h>
 
-#include "graphicsobject.hpp"
-
-class CommandBuffer : public IGraphicsObject
+struct CommandBuffer
 {
-private:
 	VkCommandBuffer commandBuffer;
-
-	void vulkanCommandBuffer();
-
-public:
-	void create() override;
-	void destroy() override;
 };
