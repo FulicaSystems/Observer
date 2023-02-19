@@ -32,7 +32,7 @@ CommandBuffer& CommandPool::vulkanCommandBuffer()
 	};
 
 	CommandBuffer outCbo;
-	if (vkAllocateCommandBuffers(ldevice, &allocInfo, &outCbo.getBuffer()) != VK_SUCCESS)
+	if (vkAllocateCommandBuffers(ldevice, &allocInfo, &outCbo.getVkBuffer()) != VK_SUCCESS)
 		throw std::exception("Failed to allocate command buffers");
 
 	int index = cbos.size();

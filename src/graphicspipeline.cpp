@@ -459,7 +459,7 @@ void GraphicsPipeline::recordImageCommandBuffer(CommandBuffer& cb,
 	cb.reset();
 	cb.beginRecord();
 
-	VkCommandBuffer& cbo = cb.getBuffer();
+	VkCommandBuffer& cbo = cb.getVkBuffer();
 
 	VkClearValue clearColor = {
 		.color = { 0.2f, 0.2f, 0.2f, 1.f }
@@ -533,7 +533,7 @@ void GraphicsPipeline::drawFrame(CommandBuffer& cb, const std::unordered_map<int
 		.pWaitSemaphores = waitSemaphores,
 		.pWaitDstStageMask = waitStages,
 		.commandBufferCount = 1,
-		.pCommandBuffers = &cb.getBuffer(),
+		.pCommandBuffers = &cb.getVkBuffer(),
 		.signalSemaphoreCount = 1,
 		.pSignalSemaphores = signalSemaphores
 	};

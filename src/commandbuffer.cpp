@@ -25,7 +25,7 @@ void CommandBuffer::endRecord()
 		throw std::exception("Failed to record command buffer");
 }
 
-VkCommandBuffer& CommandBuffer::getBuffer()
+VkCommandBuffer& CommandBuffer::getVkBuffer()
 {
 	return commandBuffer;
 }

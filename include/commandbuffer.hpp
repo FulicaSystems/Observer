@@ -13,5 +13,5 @@ public:
 	void beginRecord();
 	void endRecord();
 
-	VkCommandBuffer& getBuffer();
+	VkCommandBuffer& getVkBuffer();
 };
