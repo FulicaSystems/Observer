@@ -84,17 +84,7 @@ void Application::loop()
 
 	// copying the staging buffer data into the device local buffer
 	// using a command buffer to transfer the data
-	VkCommandBufferAllocateInfo allocInfo = {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-		.commandBufferCount = 1,
-		.commandPool = commandPool
-	};
-
-	VkCommandBuffer commandBuffer;
-	vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
-
-	rdr.
+	CommandBuffer& cbo = rdr.createCommandBuffer();
 
 	while (!glfwWindowShouldClose(window))
 	{

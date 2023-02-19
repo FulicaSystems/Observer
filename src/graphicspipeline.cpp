@@ -452,18 +452,14 @@ void GraphicsPipeline::vulkanFramebuffers()
 	}
 }
 
-void GraphicsPipeline::recordImageCommandBuffer(VkCommandBuffer cb,
+void GraphicsPipeline::recordImageCommandBuffer(CommandBuffer& cb,
 	uint32_t imageIndex,
 	const std::unordered_map<int, VertexBuffer>& vbos)
 {
-	VkCommandBufferBeginInfo commandBufferBeginInfo = {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-		.flags = 0,
-		.pInheritanceInfo = nullptr
-	};
+	cb.reset();
+	cb.beginRecord();
 
-	if (vkBeginCommandBuffer(cb, &commandBufferBeginInfo) != VK_SUCCESS)
-		throw std::exception("Failed to begin recording command buffer");
+	VkCommandBuffer& cbo = cb.getBuffer();
 
 	VkClearValue clearColor = {
 		.color = { 0.2f, 0.2f, 0.2f, 1.f }
@@ -481,8 +477,8 @@ void GraphicsPipeline::recordImageCommandBuffer(VkCommandBuffer cb,
 		.pClearValues = &clearColor
 	};
 
-	vkCmdBeginRenderPass(cb, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+	vkCmdBeginRenderPass(cbo, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdBindPipeline(cbo, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
 	VkViewport viewport = {
 		.x = 0.f,
@@ -493,31 +489,30 @@ void GraphicsPipeline::recordImageCommandBuffer(VkCommandBuffer cb,
 		.maxDepth = 1.f
 	};
 
-	vkCmdSetViewport(cb, 0, 1, &viewport);
+	vkCmdSetViewport(cbo, 0, 1, &viewport);
 
 	VkRect2D scissor = {
 		.offset = { 0, 0 },
 		.extent = swapchainExtent
 	};
 
-	vkCmdSetScissor(cb, 0, 1, &scissor);
+	vkCmdSetScissor(cbo, 0, 1, &scissor);
 
 	// bind VBOs
 	for (int i = 0; i < vbos.size(); ++i)
 	{
 		VkBuffer buffers[] = { vbos.at(i).buffer };
 		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(cb, 0, 1, buffers, offsets);
-		vkCmdDraw(cb, vbos.at(i).vertexNum, 1, 0, 0);
+		vkCmdBindVertexBuffers(cbo, 0, 1, buffers, offsets);
+		vkCmdDraw(cbo, vbos.at(i).vertexNum, 1, 0, 0);
 	}
 
-	vkCmdEndRenderPass(cb);
+	vkCmdEndRenderPass(cbo);
 
-	if (vkEndCommandBuffer(cb) != VK_SUCCESS)
-		throw std::exception("Failed to record command buffer");
+	cb.endRecord();
 }
 
-void GraphicsPipeline::drawFrame(const std::unordered_map<int, VertexBuffer>& vbos)
+void GraphicsPipeline::drawFrame(CommandBuffer& cb, const std::unordered_map<int, VertexBuffer>& vbos)
 {
 	VkDevice ldevice = device.getVkLDevice();
 
@@ -527,8 +522,7 @@ void GraphicsPipeline::drawFrame(const std::unordered_map<int, VertexBuffer>& vb
 	uint32_t imageIndex;
 	vkAcquireNextImageKHR(ldevice, swapchain, UINT64_MAX, renderReadySemaphore, VK_NULL_HANDLE, &imageIndex);
 
-	vkResetCommandBuffer(commandBuffer, 0);
-	recordImageCommandBuffer(commandBuffer, imageIndex, vbos);
+	recordImageCommandBuffer(cb, imageIndex, vbos);
 
 	VkSemaphore waitSemaphores[] = { renderReadySemaphore };
 	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
@@ -539,7 +533,7 @@ void GraphicsPipeline::drawFrame(const std::unordered_map<int, VertexBuffer>& vb
 		.pWaitSemaphores = waitSemaphores,
 		.pWaitDstStageMask = waitStages,
 		.commandBufferCount = 1,
-		.pCommandBuffers = &commandBuffer,
+		.pCommandBuffers = &cb.getBuffer(),
 		.signalSemaphoreCount = 1,
 		.pSignalSemaphores = signalSemaphores
 	};

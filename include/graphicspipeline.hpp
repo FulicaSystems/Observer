@@ -9,6 +9,7 @@
 #include "graphicsobject.hpp"
 
 #include "vertexbuffer.hpp"
+#include "commandbuffer.hpp"
 
 static std::vector<char> readBinaryFile(const std::string& filename)
 {
@@ -65,7 +66,7 @@ private:
 
 	void vulkanMultithreadObjects();
 
-	void recordImageCommandBuffer(VkCommandBuffer cb,
+	void recordImageCommandBuffer(CommandBuffer& cb,
 		uint32_t imageIndex,
 		const std::unordered_map<int, VertexBuffer>& vbos);
 
@@ -81,5 +82,5 @@ public:
 
 	VkShaderModule createShaderModule(const std::vector<char>& code);
 
-	void drawFrame(const std::unordered_map<int, VertexBuffer>& vbos);
+	void drawFrame(CommandBuffer& cb, const std::unordered_map<int, VertexBuffer>& vbos);
 };

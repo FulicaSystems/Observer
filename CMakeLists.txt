@@ -26,6 +26,9 @@ set(HEADERS
     include/vertex.hpp
     include/vertexbuffer.hpp
 
+    include/commandbuffer.hpp
+    include/commandpool.hpp
+
     include/lowrenderer.hpp
     include/renderer.hpp
 )
@@ -40,6 +43,9 @@ set(SOURCES
     src/graphicspipeline.cpp
 
     src/vertex.cpp
+
+    src/commandbuffer.cpp
+    src/commandpool.cpp
 
     src/lowrenderer.cpp
     src/renderer.cpp

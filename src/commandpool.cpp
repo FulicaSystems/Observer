@@ -32,11 +32,16 @@ CommandBuffer& CommandPool::vulkanCommandBuffer()
 	};
 
 	CommandBuffer outCbo;
-	if (vkAllocateCommandBuffers(ldevice, &allocInfo, &outCbo.commandBuffer) != VK_SUCCESS)
+	if (vkAllocateCommandBuffers(ldevice, &allocInfo, &outCbo.getBuffer()) != VK_SUCCESS)
 		throw std::exception("Failed to allocate command buffers");
 
 	int index = cbos.size();
 	cbos[index] = outCbo;
+	return cbos[index];
+}
+
+CommandBuffer& CommandPool::getCmdBufferByIndex(const int index)
+{
 	return cbos[index];
 }
 
@@ -52,5 +57,5 @@ void CommandPool::create()
 
 void CommandPool::destroy()
 {
-	vkDestroyCommandPool(ldevice, commandPool, nullptr);
+	vkDestroyCommandPool(device.getVkLDevice(), commandPool, nullptr);
 }

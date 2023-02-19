@@ -6,6 +6,7 @@
 
 #include "graphicsobject.hpp"
 #include "commandbuffer.hpp"
+#include "graphicsdevice.hpp"
 
 class CommandPool : public IGraphicsObject
 {
@@ -17,11 +18,14 @@ private:
 	std::unordered_map<int, CommandBuffer> cbos;
 
 	void vulkanCommandPool();
-	CommandBuffer& vulkanCommandBuffer();
 
 public:
 	CommandPool(LogicalDevice& device);
 
 	void create() override;
 	void destroy() override;
+
+	CommandBuffer& vulkanCommandBuffer();
+
+	CommandBuffer& getCmdBufferByIndex(const int index);
 };

@@ -2,7 +2,16 @@
 
 #include <glad/vulkan.h>
 
-struct CommandBuffer
+class CommandBuffer
 {
+private:
 	VkCommandBuffer commandBuffer;
+
+public:
+	void reset();
+
+	void beginRecord();
+	void endRecord();
+
+	VkCommandBuffer& getBuffer();
 };

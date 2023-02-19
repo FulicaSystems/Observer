@@ -95,5 +95,5 @@ CommandBuffer& Renderer::createCommandBuffer()
 
 void Renderer::render()
 {
-	pipeline.drawFrame(vbos);
+	pipeline.drawFrame(cmdPool.getCmdBufferByIndex(0), vbos);
 }
