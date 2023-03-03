@@ -20,7 +20,7 @@ void CommandPool::vulkanCommandPool()
 		throw std::exception("Failed to create command pool");
 }
 
-CommandBuffer& CommandPool::vulkanCommandBuffer()
+CommandBuffer CommandPool::createFloatingCommandBuffer()
 {
 	VkDevice ldevice = device.getVkLDevice();
 
@@ -35,8 +35,13 @@ CommandBuffer& CommandPool::vulkanCommandBuffer()
 	if (vkAllocateCommandBuffers(ldevice, &allocInfo, &outCbo.getVkBuffer()) != VK_SUCCESS)
 		throw std::exception("Failed to allocate command buffers");
 
+	return outCbo;
+}
+
+CommandBuffer& CommandPool::createCommandBuffer()
+{
 	int index = cbos.size();
-	cbos[index] = outCbo;
+	cbos[index] = createFloatingCommandBuffer();
 	return cbos[index];
 }
 
@@ -58,4 +63,15 @@ void CommandPool::create()
 void CommandPool::destroy()
 {
 	vkDestroyCommandPool(device.getVkLDevice(), commandPool, nullptr);
+}
+
+void CommandPool::destroyCommandBuffer(const int index)
+{
+	vkFreeCommandBuffers(device.getVkLDevice(), commandPool, 1, &cbos[index].getVkBuffer());
+	cbos.erase(index);
+}
+
+void CommandPool::destroyCommandBuffer(CommandBuffer& cbo)
+{
+	vkFreeCommandBuffers(device.getVkLDevice(), commandPool, 1, &cbo.getVkBuffer());
 }

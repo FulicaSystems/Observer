@@ -67,14 +67,14 @@ private:
 
 	VkDevice device;
 
+	VkQueue graphicsQueue;
+	VkQueue presentQueue;
+
 	void vulkanPhysicalDevice();
 	void vulkanLogicalDevice();
 
 public:
 	LowRenderer& low;
-
-	VkQueue graphicsQueue;
-	VkQueue presentQueue;
 
 	LogicalDevice(LowRenderer& low);
 
@@ -95,4 +95,10 @@ public:
 	 * Get the Vulkan logical device.
 	 */
 	const VkDevice& getVkLDevice() const;
+
+	void waitGraphicsQueue();
+
+	void submitCommandToGraphicsQueue(VkSubmitInfo& submitInfo, VkFence fence = VK_NULL_HANDLE);
+
+	void present(VkPresentInfoKHR& presentInfo);
 };

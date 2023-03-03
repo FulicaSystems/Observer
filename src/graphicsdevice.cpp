@@ -42,6 +42,22 @@ const VkDevice& LogicalDevice::getVkLDevice() const
 	return device;
 }
 
+void LogicalDevice::waitGraphicsQueue()
+{
+	vkQueueWaitIdle(graphicsQueue);
+}
+
+void LogicalDevice::submitCommandToGraphicsQueue(VkSubmitInfo& submitInfo, VkFence fence)
+{
+	if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, fence) != VK_SUCCESS)
+		throw std::exception("Failed to submit draw command buffer");
+}
+
+void LogicalDevice::present(VkPresentInfoKHR& presentInfo)
+{
+	vkQueuePresentKHR(presentQueue, &presentInfo);
+}
+
 bool PhysicalDevice::checkDeviceExtensionSupport()
 {
 	uint32_t extensionCount = 0;

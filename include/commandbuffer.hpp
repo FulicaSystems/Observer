@@ -10,7 +10,7 @@ private:
 public:
 	void reset();
 
-	void beginRecord();
+	void beginRecord(VkCommandBufferUsageFlags flags = 0);
 	void endRecord();
 
 	VkCommandBuffer& getVkBuffer();

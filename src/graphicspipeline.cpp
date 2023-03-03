@@ -538,8 +538,7 @@ void GraphicsPipeline::drawFrame(CommandBuffer& cb, const std::unordered_map<int
 		.pSignalSemaphores = signalSemaphores
 	};
 
-	if (vkQueueSubmit(device.graphicsQueue, 1, &submitInfo, renderOnceFence) != VK_SUCCESS)
-		throw std::exception("Failed to submit draw command buffer");
+	device.submitCommandToGraphicsQueue(submitInfo, renderOnceFence);
 
 	VkSwapchainKHR swapchains[] = { swapchain };
 	VkPresentInfoKHR presentInfo = {
@@ -552,7 +551,7 @@ void GraphicsPipeline::drawFrame(CommandBuffer& cb, const std::unordered_map<int
 		.pResults = nullptr
 	};
 
-	vkQueuePresentKHR(device.presentQueue, &presentInfo);
+	device.present(presentInfo);
 }
 
 void GraphicsPipeline::vulkanMultithreadObjects()

@@ -19,32 +19,34 @@
 class Renderer : public IGraphicsObject
 {
 private:
-	LogicalDevice ldevice;
-	CommandPool cmdPool;
 	// TODO : make the pipeline independant in order to make different pipelines
 	GraphicsPipeline pipeline;
 
 	// every created buffer objects
 	std::unordered_map<int, VertexBuffer> vbos;
-	// TODO : array of command buffers
-
-	void destroyBufferObject(VertexBuffer& vbo);
 
 public:
 	LowRenderer low;
+
+	LogicalDevice ldevice;
+	CommandPool commandPool;
 
 	Renderer();
 
 	void create() override;
 	void destroy() override;
 
+	VertexBuffer createFloatingBufferObject(uint32_t vertexNum,
+		VkBufferUsageFlags usage,
+		VkMemoryPropertyFlags memProperties);
 	VertexBuffer& createBufferObject(uint32_t vertexNum,
 		VkBufferUsageFlags usage,
 		VkMemoryPropertyFlags memProperties);
 
 	void populateBufferObject(VertexBuffer& vbo, Vertex* vertices);
 
-	CommandBuffer& createCommandBuffer();
+	void destroyBufferObject(int index);
+	void destroyBufferObject(VertexBuffer& vbo);
 
 	void render();
 };

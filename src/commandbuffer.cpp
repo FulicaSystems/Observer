@@ -7,11 +7,11 @@ void CommandBuffer::reset()
 	vkResetCommandBuffer(commandBuffer, 0);
 }
 
-void CommandBuffer::beginRecord()
+void CommandBuffer::beginRecord(VkCommandBufferUsageFlags flags)
 {
 	VkCommandBufferBeginInfo commandBufferBeginInfo = {
 	.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-	.flags = 0,
+	.flags = flags,
 	.pInheritanceInfo = nullptr
 	};
 

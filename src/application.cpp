@@ -65,7 +65,7 @@ void Application::loop()
 	// TODO : store vbos in a scene
 
 	// this buffer is a CPU accessible buffer (temporary buffer to later load to the GPU)
-	VertexBuffer& stagingVBO = rdr.createBufferObject(3,
+	VertexBuffer stagingVBO = rdr.createFloatingBufferObject(3,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,	// used for memory transfer operation
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
@@ -84,7 +84,28 @@ void Application::loop()
 
 	// copying the staging buffer data into the device local buffer
 	// using a command buffer to transfer the data
-	CommandBuffer& cbo = rdr.createCommandBuffer();
+	CommandBuffer cbo = rdr.commandPool.createFloatingCommandBuffer();
+
+	// copy the staging buffer (CPU accessible) into the GPU buffer (GPU memory)
+	cbo.beginRecord(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+	VkBufferCopy copyRegion = {
+		.srcOffset = 0,
+		.dstOffset = 0,
+		.size = stagingVBO.bufferSize
+	};
+	vkCmdCopyBuffer(cbo.getVkBuffer(), stagingVBO.buffer, vbo.buffer, 1, &copyRegion);
+	cbo.endRecord();
+
+	VkSubmitInfo submitInfo = {
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		.commandBufferCount = 1,
+		.pCommandBuffers = &cbo.getVkBuffer()
+	};
+	rdr.ldevice.submitCommandToGraphicsQueue(submitInfo);
+	rdr.ldevice.waitGraphicsQueue();
+
+	rdr.commandPool.destroyCommandBuffer(cbo);
+	rdr.destroyBufferObject(stagingVBO);
 
 	while (!glfwWindowShouldClose(window))
 	{

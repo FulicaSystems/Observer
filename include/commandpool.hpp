@@ -25,7 +25,11 @@ public:
 	void create() override;
 	void destroy() override;
 
-	CommandBuffer& vulkanCommandBuffer();
+	void destroyCommandBuffer(const int index);
+	void destroyCommandBuffer(CommandBuffer& cbo);
+
+	CommandBuffer createFloatingCommandBuffer();
+	CommandBuffer& createCommandBuffer();
 
 	CommandBuffer& getCmdBufferByIndex(const int index);
 };

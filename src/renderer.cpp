@@ -1,5 +1,14 @@
 #include "renderer.hpp"
 
+void Renderer::destroyBufferObject(int index)
+{
+	const VkDevice& device = ldevice.getVkLDevice();
+	vkDestroyBuffer(device, vbos[index].buffer, nullptr);
+	vkFreeMemory(device, vbos[index].memory, nullptr);
+
+	vbos.erase(index);
+}
+
 void Renderer::destroyBufferObject(VertexBuffer& vbo)
 {
 	const VkDevice& device = ldevice.getVkLDevice();
@@ -8,7 +17,7 @@ void Renderer::destroyBufferObject(VertexBuffer& vbo)
 }
 
 Renderer::Renderer()
-	: ldevice(low), cmdPool(ldevice), pipeline(ldevice)
+	: ldevice(low), commandPool(ldevice), pipeline(ldevice)
 {
 }
 
@@ -16,25 +25,28 @@ void Renderer::create()
 {
 	// create the rendering instance first using low.create()
 	ldevice.create();
-	cmdPool.create();
+	commandPool.create();
 	pipeline.create();
+
+	commandPool.createCommandBuffer();
 }
 
 void Renderer::destroy()
 {
 	pipeline.destroy();
-	cmdPool.destroy();
+	commandPool.destroy();
 
 	for (int i = 0; i < vbos.size(); ++i)
 	{
 		destroyBufferObject(vbos[i]);
 	}
+	vbos.clear();
 
 	ldevice.destroy();
 	low.destroy();
 }
 
-VertexBuffer& Renderer::createBufferObject(uint32_t vertexNum, VkBufferUsageFlags usage, VkMemoryPropertyFlags memProperties)
+VertexBuffer Renderer::createFloatingBufferObject(uint32_t vertexNum, VkBufferUsageFlags usage, VkMemoryPropertyFlags memProperties)
 {
 	// out buffer object
 	VertexBuffer outVbo;
@@ -43,7 +55,6 @@ VertexBuffer& Renderer::createBufferObject(uint32_t vertexNum, VkBufferUsageFlag
 
 	const VkDevice& device = ldevice.getVkLDevice();
 
-	// TODO : staging buffers for better performance (https://vulkan-tutorial.com/en/Vertex_buffers/Staging_buffer)
 	VkBufferCreateInfo createInfo = {
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
 		.flags = 0,
@@ -70,9 +81,14 @@ VertexBuffer& Renderer::createBufferObject(uint32_t vertexNum, VkBufferUsageFlag
 
 	// TODO : use offset
 	vkBindBufferMemory(device, outVbo.buffer, outVbo.memory, 0);
-	
+
+	return outVbo;
+}
+
+VertexBuffer& Renderer::createBufferObject(uint32_t vertexNum, VkBufferUsageFlags usage, VkMemoryPropertyFlags memProperties)
+{	
 	int index = vbos.size();
-	vbos[index] = outVbo;
+	vbos[index] = createFloatingBufferObject(vertexNum, usage, memProperties);
 	return vbos[index];
 }
 
@@ -88,12 +104,7 @@ void Renderer::populateBufferObject(VertexBuffer& vbo, Vertex* vertices)
 	vkUnmapMemory(device, vbo.memory);
 }
 
-CommandBuffer& Renderer::createCommandBuffer()
-{
-	return cmdPool.vulkanCommandBuffer();
-}
-
 void Renderer::render()
 {
-	pipeline.drawFrame(cmdPool.getCmdBufferByIndex(0), vbos);
+	pipeline.drawFrame(commandPool.getCmdBufferByIndex(0), vbos);
 }
