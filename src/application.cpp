@@ -104,8 +104,8 @@ void Application::loop()
 	rdr.ldevice.submitCommandToGraphicsQueue(submitInfo);
 	rdr.ldevice.waitGraphicsQueue();
 
-	rdr.commandPool.destroyCommandBuffer(cbo);
-	rdr.destroyBufferObject(stagingVBO);
+	rdr.commandPool.destroyFloatingCommandBuffer(cbo);
+	rdr.destroyFloatingBufferObject(stagingVBO);
 
 	while (!glfwWindowShouldClose(window))
 	{

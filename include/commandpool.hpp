@@ -25,11 +25,11 @@ public:
 	void create() override;
 	void destroy() override;
 
-	void destroyCommandBuffer(const int index);
-	void destroyCommandBuffer(CommandBuffer& cbo);
-
 	CommandBuffer createFloatingCommandBuffer();
 	CommandBuffer& createCommandBuffer();
+
+	void destroyFloatingCommandBuffer(CommandBuffer& cbo);
+	void destroyCommandBuffer(const int index);
 
 	CommandBuffer& getCmdBufferByIndex(const int index);
 };

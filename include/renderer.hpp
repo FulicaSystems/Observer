@@ -36,6 +36,8 @@ public:
 	void create() override;
 	void destroy() override;
 
+	// vertex buffer object
+
 	VertexBuffer createFloatingBufferObject(uint32_t vertexNum,
 		VkBufferUsageFlags usage,
 		VkMemoryPropertyFlags memProperties);
@@ -45,8 +47,14 @@ public:
 
 	void populateBufferObject(VertexBuffer& vbo, Vertex* vertices);
 
+	void destroyFloatingBufferObject(VertexBuffer& vbo);
 	void destroyBufferObject(int index);
-	void destroyBufferObject(VertexBuffer& vbo);
 
+
+	// rendering
+
+	/**
+	 * Rendering a single frame.
+	 */
 	void render();
 };

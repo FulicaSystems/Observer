@@ -62,16 +62,22 @@ void CommandPool::create()
 
 void CommandPool::destroy()
 {
+	for (int i = 0; i < cbos.size(); ++i)
+	{
+		destroyFloatingCommandBuffer(cbos[i]);
+	}
+	cbos.clear();
+
 	vkDestroyCommandPool(device.getVkLDevice(), commandPool, nullptr);
+}
+
+void CommandPool::destroyFloatingCommandBuffer(CommandBuffer& cbo)
+{
+	vkFreeCommandBuffers(device.getVkLDevice(), commandPool, 1, &cbo.getVkBuffer());
 }
 
 void CommandPool::destroyCommandBuffer(const int index)
 {
-	vkFreeCommandBuffers(device.getVkLDevice(), commandPool, 1, &cbos[index].getVkBuffer());
+	destroyFloatingCommandBuffer(cbos[index]);
 	cbos.erase(index);
-}
-
-void CommandPool::destroyCommandBuffer(CommandBuffer& cbo)
-{
-	vkFreeCommandBuffers(device.getVkLDevice(), commandPool, 1, &cbo.getVkBuffer());
 }

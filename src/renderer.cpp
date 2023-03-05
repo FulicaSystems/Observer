@@ -1,19 +1,16 @@
 #include "renderer.hpp"
 
-void Renderer::destroyBufferObject(int index)
-{
-	const VkDevice& device = ldevice.getVkLDevice();
-	vkDestroyBuffer(device, vbos[index].buffer, nullptr);
-	vkFreeMemory(device, vbos[index].memory, nullptr);
-
-	vbos.erase(index);
-}
-
-void Renderer::destroyBufferObject(VertexBuffer& vbo)
+void Renderer::destroyFloatingBufferObject(VertexBuffer& vbo)
 {
 	const VkDevice& device = ldevice.getVkLDevice();
 	vkDestroyBuffer(device, vbo.buffer, nullptr);
 	vkFreeMemory(device, vbo.memory, nullptr);
+}
+
+void Renderer::destroyBufferObject(int index)
+{
+	destroyFloatingBufferObject(vbos[index]);
+	vbos.erase(index);
 }
 
 Renderer::Renderer()
@@ -28,6 +25,7 @@ void Renderer::create()
 	commandPool.create();
 	pipeline.create();
 
+	// default command buffer
 	commandPool.createCommandBuffer();
 }
 
@@ -38,7 +36,7 @@ void Renderer::destroy()
 
 	for (int i = 0; i < vbos.size(); ++i)
 	{
-		destroyBufferObject(vbos[i]);
+		destroyFloatingBufferObject(vbos[i]);
 	}
 	vbos.clear();
 
