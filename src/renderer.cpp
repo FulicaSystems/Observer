@@ -13,6 +13,51 @@ void Renderer::destroyBufferObject(int index)
 	vbos.erase(index);
 }
 
+void Renderer::createVertexBufferObject(uint32_t vertexNum, Vertex* vertices)
+{
+	// this buffer is a CPU accessible buffer (temporary buffer to later load the data to the GPU)
+	VertexBuffer stagingVBO = createFloatingBufferObject(vertexNum,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,	// used for memory transfer operation
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	// populating the CPU accessible buffer
+	populateBufferObject(stagingVBO, vertices);
+
+	// creating a device (GPU) local buffer (on the specific device of the renderer)
+	// store this vertex buffer to keep a reference
+	VertexBuffer& vbo = createBufferObject(vertexNum,
+		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,	// memory transfer operation
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+	// copying the staging buffer data into the device local buffer
+
+	// using a command buffer to transfer the data
+	CommandBuffer cbo = commandPool.createFloatingCommandBuffer();
+
+	// copy the staging buffer (CPU accessible) into the GPU buffer (GPU memory)
+	cbo.beginRecord(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+		VkBufferCopy copyRegion = {
+			.srcOffset = 0,
+			.dstOffset = 0,
+			.size = stagingVBO.bufferSize
+		};
+		vkCmdCopyBuffer(cbo.getVkBuffer(), stagingVBO.buffer, vbo.buffer, 1, &copyRegion);
+
+	cbo.endRecord();
+
+	VkSubmitInfo submitInfo = {
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		.commandBufferCount = 1,
+		.pCommandBuffers = &cbo.getVkBuffer()
+	};
+	ldevice.submitCommandToGraphicsQueue(submitInfo);
+	ldevice.waitGraphicsQueue();
+
+	commandPool.destroyFloatingCommandBuffer(cbo);
+	destroyFloatingBufferObject(stagingVBO);
+}
+
 Renderer::Renderer()
 	: ldevice(low), commandPool(ldevice), pipeline(ldevice)
 {

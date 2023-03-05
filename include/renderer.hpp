@@ -50,6 +50,11 @@ public:
 	void destroyFloatingBufferObject(VertexBuffer& vbo);
 	void destroyBufferObject(int index);
 
+	/**
+	 * Create a vertex buffer and store it to the vertex buffer container.
+	 */
+	void createVertexBufferObject(uint32_t vertexNum, Vertex* vertices);
+
 
 	// rendering
 
