@@ -189,6 +189,12 @@ void LogicalDevice::vulkanPhysicalDevice()
 		throw std::exception("Failed to find a suitable GPU");
 	if (!gladLoaderLoadVulkan(instance, d, nullptr))
 		throw std::exception("Unable to reload Vulkan symbols with physical device");
+
+	// physical device limits
+	VkPhysicalDeviceProperties prop;
+	vkGetPhysicalDeviceProperties(pdevice.getDevice(), &prop);
+	VkPhysicalDeviceLimits limit = prop.limits;
+	std::cout << "Physical device max memory allocation count : " << limit.maxMemoryAllocationCount << std::endl;
 }
 
 VkQueueFamilyIndices PhysicalDevice::findQueueFamilies(const VkSurfaceKHR& surface)
