@@ -29,6 +29,8 @@ set(HEADERS
     include/commandbuffer.hpp
     include/commandpool.hpp
 
+    include/memoryallocator.hpp
+
     include/lowrenderer.hpp
     include/renderer.hpp
 )
@@ -46,6 +48,8 @@ set(SOURCES
 
     src/commandbuffer.cpp
     src/commandpool.cpp
+
+    src/memoryallocator.cpp
 
     src/lowrenderer.cpp
     src/renderer.cpp

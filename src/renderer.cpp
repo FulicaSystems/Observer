@@ -4,7 +4,6 @@ void Renderer::destroyFloatingBufferObject(VertexBuffer& vbo)
 {
 	const VkDevice& device = ldevice.getVkLDevice();
 	vkDestroyBuffer(device, vbo.buffer, nullptr);
-	vkFreeMemory(device, vbo.memory, nullptr);
 }
 
 void Renderer::destroyBufferObject(int index)
@@ -59,7 +58,7 @@ void Renderer::createVertexBufferObject(uint32_t vertexNum, Vertex* vertices)
 }
 
 Renderer::Renderer()
-	: ldevice(low), commandPool(ldevice), pipeline(ldevice)
+	: ldevice(low), commandPool(ldevice), pipeline(ldevice), allocator(ldevice)
 {
 }
 
@@ -85,6 +84,8 @@ void Renderer::destroy()
 	}
 	vbos.clear();
 
+	allocator.destroy();
+
 	ldevice.destroy();
 	low.destroy();
 }
@@ -109,21 +110,13 @@ VertexBuffer Renderer::createFloatingBufferObject(uint32_t vertexNum, VkBufferUs
 	if (vkCreateBuffer(device, &createInfo, nullptr, &outVbo.buffer) != VK_SUCCESS)
 		throw std::exception("Failed to create vertex buffer");
 
-	VkMemoryRequirements memReq;
-	vkGetBufferMemoryRequirements(device, outVbo.buffer, &memReq);
-
-	// VRAM heap
-	VkMemoryAllocateInfo allocInfo = {
-		.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-		.allocationSize = memReq.size,
-		.memoryTypeIndex = ldevice.getPDevice().findMemoryType(memReq.memoryTypeBits, memProperties)
-	};
-
-	if (vkAllocateMemory(device, &allocInfo, nullptr, &outVbo.memory) != VK_SUCCESS)
-		throw std::exception("Failed to allocate vertex buffer memory");
-
-	// TODO : use offset
-	vkBindBufferMemory(device, outVbo.buffer, outVbo.memory, 0);
+	// binding memory block
+	MemoryBlock& block = allocator.getAvailableBlock(outVbo.bufferSize, outVbo.buffer, memProperties);
+	outVbo.memoryOffset = block.usedSpace;
+	vkBindBufferMemory(device, outVbo.buffer, block.memory, block.usedSpace);
+	// marking space as taken
+	block.usedSpace += outVbo.bufferSize;
+	outVbo.memoryBlock = &block;
 
 	return outVbo;
 }
@@ -140,11 +133,18 @@ void Renderer::populateBufferObject(VertexBuffer& vbo, Vertex* vertices)
 	const VkDevice& device = ldevice.getVkLDevice();
 
 	// populating the VBO (using a CPU accessible memory)
-	vkMapMemory(device, vbo.memory, 0, (VkDeviceSize)vbo.bufferSize, 0, &vbo.vertices);
+	vkMapMemory(device,
+		vbo.memoryBlock->memory,
+		(VkDeviceSize)vbo.memoryOffset,
+		(VkDeviceSize)vbo.bufferSize,
+		0,
+		&vbo.vertices);
+
 	// TODO : flush memory
 	memcpy(vbo.vertices, vertices, vbo.bufferSize);
 	// TODO : invalidate memory before reading in the pipeline
-	vkUnmapMemory(device, vbo.memory);
+
+	vkUnmapMemory(device, vbo.memoryBlock->memory);
 }
 
 void Renderer::render()

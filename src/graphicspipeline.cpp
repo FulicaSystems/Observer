@@ -501,10 +501,12 @@ void GraphicsPipeline::recordImageCommandBuffer(CommandBuffer& cb,
 	// bind VBOs
 	for (int i = 0; i < vbos.size(); ++i)
 	{
-		VkBuffer buffers[] = { vbos.at(i).buffer };
+		const VertexBuffer& vbo = vbos.at(i);
+
+		VkBuffer buffers[] = { vbo.buffer };
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(cbo, 0, 1, buffers, offsets);
-		vkCmdDraw(cbo, vbos.at(i).vertexNum, 1, 0, 0);
+		vkCmdDraw(cbo, vbo.vertexNum, 1, 0, 0);
 	}
 
 	vkCmdEndRenderPass(cbo);
