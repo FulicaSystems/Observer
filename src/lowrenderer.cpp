@@ -2,13 +2,10 @@
 
 #include "lowrenderer.hpp"
 
-void LowRenderer::loadExtensions(std::vector<const char*>& additionalExtensions)
+void LowRenderer::initGraphicsAPI(std::vector<const char*>& additionalExtensions)
 {
 	this->additionalExtensions = additionalExtensions;
-}
 
-void LowRenderer::create(LowRenderer* api, LogicalDevice* device)
-{
 	if (!gladLoaderLoadVulkan(nullptr, nullptr, nullptr))
 		throw std::exception("Unable to load Vulkan symbols");
 
@@ -23,7 +20,7 @@ void LowRenderer::create(LowRenderer* api, LogicalDevice* device)
 #endif
 }
 
-void LowRenderer::destroy()
+void LowRenderer::terminateGraphicsAPI()
 {
 	vulkanDestroy();
 }

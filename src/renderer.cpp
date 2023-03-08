@@ -5,8 +5,7 @@
 
 void Renderer::destroyFloatingBufferObject(VertexBuffer& vbo)
 {
-	const VkDevice& device = ldevice.vkdevice;
-	vkDestroyBuffer(device, vbo.buffer, nullptr);
+	vkDestroyBuffer(device.vkdevice, vbo.buffer, nullptr);
 	VMAHelper::destroyBufferObjectMemory(allocator, vbo);
 }
 
@@ -55,27 +54,27 @@ void Renderer::createVertexBufferObject(uint32_t vertexNum, Vertex* vertices)
 		.commandBufferCount = 1,
 		.pCommandBuffers = &cbo.getVkBuffer()
 	};
-	ldevice.submitCommandToGraphicsQueue(submitInfo);
-	ldevice.waitGraphicsQueue();
+	device.submitCommandToGraphicsQueue(submitInfo);
+	device.waitGraphicsQueue();
 
 	commandPool.destroyFloatingCommandBuffer(cbo);
 	destroyFloatingBufferObject(stagingVBO);
 }
 
-void Renderer::create(LowRenderer* api, LogicalDevice* device)
+void Renderer::initRenderer()
 {
-	// create the rendering instance first using low.create()
-	ldevice.create(&low, nullptr);
-	commandPool.create(&low, &ldevice);
-	pipeline.create(&low, &ldevice);
+	// create the rendering instance first using api.initGraphicsAPI()
+	device.create(&api, nullptr);
+	commandPool.create(&api, &device);
+	pipeline.create(&api, &device);
 
-	VMAHelper::createAllocator(low, ldevice, allocator);
+	VMAHelper::createAllocator(api, device, allocator);
 
 	// default command buffer
 	commandPool.createCommandBuffer();
 }
 
-void Renderer::destroy()
+void Renderer::terminateRenderer()
 {
 	pipeline.destroy();
 	commandPool.destroy();
@@ -88,8 +87,9 @@ void Renderer::destroy()
 
 	VMAHelper::destroyAllocator(allocator);
 
-	ldevice.destroy();
-	low.destroy();
+	device.destroy();
+
+	api.terminateGraphicsAPI();
 }
 
 VertexBuffer Renderer::createFloatingBufferObject(uint32_t vertexNum,

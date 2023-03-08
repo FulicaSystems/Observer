@@ -27,22 +27,20 @@ Application::Application()
 
 	std::vector<const char*> requiredExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-	// give the extensions to the low renderer
-	rdr.low.loadExtensions(requiredExtensions);
-
+	// give the extensions to the low renderer (api instance)
 	// create the Vulkan instance first
-	rdr.low.create(nullptr, nullptr);
+	rdr.api.initGraphicsAPI(requiredExtensions);
 
 	// create a surface using the instance
-	if (glfwCreateWindowSurface(rdr.low.instance, window, nullptr, &rdr.low.surface) != VK_SUCCESS)
+	if (glfwCreateWindowSurface(rdr.api.instance, window, nullptr, &rdr.api.surface) != VK_SUCCESS)
 		throw std::exception("Failed to create window surface");
 
-	rdr.create(nullptr, nullptr);
+	rdr.initRenderer();
 }
 
 Application::~Application()
 {
-	rdr.destroy();
+	rdr.terminateRenderer();
 	CHKLK_EXIT_SNAP
 
 	glfwDestroyWindow(window);

@@ -2,8 +2,6 @@
 
 #include <unordered_map>
 
-#include "graphicsobject.hpp"
-
 #include "lowrenderer.hpp"
 
 #include "graphicsdevice.hpp"
@@ -16,7 +14,7 @@
 /**
  * High level renderer.
  */
-class Renderer : public IDerived<Renderer, IGraphicsObject>
+class Renderer
 {
 private:
 	// TODO : make the pipeline independant in order to make different pipelines
@@ -32,13 +30,13 @@ private:
 	std::unordered_map<int, VertexBuffer> vbos;
 
 public:
-	LowRenderer low;
-	LogicalDevice ldevice;
+	LowRenderer api;
+	LogicalDevice device;
 
 	CommandPool commandPool;
 
-	void create(LowRenderer* api, LogicalDevice* device) override;
-	void destroy() override;
+	void initRenderer();
+	void terminateRenderer();
 
 	// vertex buffer object
 
