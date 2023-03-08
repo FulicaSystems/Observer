@@ -10,8 +10,6 @@
 #include "graphicspipeline.hpp"
 #include "commandpool.hpp"
 
-#include "memoryallocator.hpp"
-
 #include "vertex.hpp"
 #include "vertexbuffer.hpp"
 
@@ -27,7 +25,7 @@ private:
 #if false
 	MemoryAllocator allocator;
 #else
-	VMAHelper vma;
+	VmaAllocator allocator;
 #endif
 
 	// every created buffer objects

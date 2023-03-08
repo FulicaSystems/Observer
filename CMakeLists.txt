@@ -30,6 +30,7 @@ set(HEADERS
     include/commandpool.hpp
 
     include/memoryallocator.hpp
+    include/vmahelper.hpp
 
     include/lowrenderer.hpp
     include/renderer.hpp
@@ -50,6 +51,7 @@ set(SOURCES
     src/commandpool.cpp
 
     src/memoryallocator.cpp
+    src/vmahelper.cpp
 
     src/lowrenderer.cpp
     src/renderer.cpp

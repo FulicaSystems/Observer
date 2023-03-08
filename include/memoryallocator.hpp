@@ -5,7 +5,6 @@
 #include <glad/vulkan.h>
 
 #include "graphicsobject.hpp"
-#include "graphicsdevice.hpp"
 
 struct VertexBuffer;
 
@@ -18,7 +17,6 @@ struct MemoryBlock
 };
 
 // TODO : improve custom allocator
-// temporary custom solution
 class MemoryAllocator : public IGraphicsObject
 {
 private:
@@ -37,30 +35,4 @@ public:
 	void destroy() override;
 
 	MemoryBlock& getAvailableBlock(size_t querySize, VkBuffer& buffer, VkMemoryPropertyFlags memProperties);
-};
-
-#include <vk_mem_alloc.h>
-
-class VMAHelper : public IGraphicsObject
-{
-private:
-	LowRenderer& low;
-	LogicalDevice& ldevice;
-
-	VmaAllocator allocator;
-
-public:
-	VMAHelper(LowRenderer& low, LogicalDevice& ldevice);
-
-	void create() override;
-	void destroy() override;
-
-	void allocateBufferObjectMemory(VkBufferCreateInfo& createInfo,
-		VertexBuffer& vbo,
-		bool mappable = false);
-
-	void destroyBufferObjectMemory(VertexBuffer& vbo);
-
-	void mapMemory(VmaAllocation& allocation, void** ppData);
-	void unmapMemory(VmaAllocation& allocation);
 };

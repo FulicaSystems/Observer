@@ -1,10 +1,12 @@
+#include "vmahelper.hpp"
+
 #include "renderer.hpp"
 
 void Renderer::destroyFloatingBufferObject(VertexBuffer& vbo)
 {
 	const VkDevice& device = ldevice.getVkLDevice();
 	vkDestroyBuffer(device, vbo.buffer, nullptr);
-	vma.destroyBufferObjectMemory(vbo);
+	VMAHelper::destroyBufferObjectMemory(allocator, vbo);
 }
 
 void Renderer::destroyBufferObject(int index)
@@ -60,7 +62,7 @@ void Renderer::createVertexBufferObject(uint32_t vertexNum, Vertex* vertices)
 }
 
 Renderer::Renderer()
-	: ldevice(low), commandPool(ldevice), pipeline(ldevice), vma(low, ldevice)
+	: ldevice(low), commandPool(ldevice), pipeline(ldevice)
 {
 }
 
@@ -71,7 +73,7 @@ void Renderer::create()
 	commandPool.create();
 	pipeline.create();
 
-	vma.create();
+	VMAHelper::createAllocator(low, ldevice, allocator);
 
 	// default command buffer
 	commandPool.createCommandBuffer();
@@ -88,7 +90,7 @@ void Renderer::destroy()
 	}
 	vbos.clear();
 
-	vma.destroy();
+	VMAHelper::destroyAllocator(allocator);
 
 	ldevice.destroy();
 	low.destroy();
@@ -105,11 +107,11 @@ VertexBuffer Renderer::createFloatingBufferObject(uint32_t vertexNum,
 	outVbo.vertexNum = vertexNum;
 
 	VkBufferCreateInfo createInfo = {
-	.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-	.flags = 0,
-	.size = (VkDeviceSize)outVbo.bufferSize,
-	.usage = usage,
-	.sharingMode = VK_SHARING_MODE_EXCLUSIVE
+		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+		.flags = 0,
+		.size = (VkDeviceSize)outVbo.bufferSize,
+		.usage = usage,
+		.sharingMode = VK_SHARING_MODE_EXCLUSIVE
 	};
 
 #if false
@@ -126,7 +128,7 @@ VertexBuffer Renderer::createFloatingBufferObject(uint32_t vertexNum,
 	block.usedSpace += outVbo.bufferSize;
 	outVbo.memoryBlock = &block;
 #else
-	vma.allocateBufferObjectMemory(createInfo, outVbo, true);
+	VMAHelper::allocateBufferObjectMemory(allocator, createInfo, outVbo, mappable);
 #endif
 
 	return outVbo;
@@ -144,10 +146,10 @@ VertexBuffer& Renderer::createBufferObject(uint32_t vertexNum,
 
 void Renderer::populateBufferObject(VertexBuffer& vbo, Vertex* vertices)
 {
+	// populating the VBO (using a CPU accessible memory)
 #if false
 	const VkDevice& device = ldevice.getVkLDevice();
 
-	// populating the VBO (using a CPU accessible memory)
 	vkMapMemory(device,
 		vbo.memoryBlock->memory,
 		(VkDeviceSize)vbo.memoryOffset,
@@ -155,7 +157,7 @@ void Renderer::populateBufferObject(VertexBuffer& vbo, Vertex* vertices)
 		0,
 		&vbo.vertices);
 #else
-	vma.mapMemory(vbo.allocation, &vbo.vertices);
+	VMAHelper::mapMemory(allocator, vbo.allocation, &vbo.vertices);
 #endif
 
 	// TODO : flush memory
@@ -165,7 +167,7 @@ void Renderer::populateBufferObject(VertexBuffer& vbo, Vertex* vertices)
 #if false
 	vkUnmapMemory(device, vbo.memoryBlock->memory);
 #else
-	vma.unmapMemory(vbo.allocation);
+	VMAHelper::unmapMemory(allocator, vbo.allocation);
 #endif
 }
 
