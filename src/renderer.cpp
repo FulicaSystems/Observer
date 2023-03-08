@@ -4,6 +4,7 @@ void Renderer::destroyFloatingBufferObject(VertexBuffer& vbo)
 {
 	const VkDevice& device = ldevice.getVkLDevice();
 	vkDestroyBuffer(device, vbo.buffer, nullptr);
+	vma.destroyBufferObjectMemory(vbo);
 }
 
 void Renderer::destroyBufferObject(int index)
@@ -17,7 +18,8 @@ void Renderer::createVertexBufferObject(uint32_t vertexNum, Vertex* vertices)
 	// this buffer is a CPU accessible buffer (temporary buffer to later load the data to the GPU)
 	VertexBuffer stagingVBO = createFloatingBufferObject(vertexNum,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,	// used for memory transfer operation
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		true);
 
 	// populating the CPU accessible buffer
 	populateBufferObject(stagingVBO, vertices);
@@ -58,7 +60,7 @@ void Renderer::createVertexBufferObject(uint32_t vertexNum, Vertex* vertices)
 }
 
 Renderer::Renderer()
-	: ldevice(low), commandPool(ldevice), pipeline(ldevice), allocator(ldevice)
+	: ldevice(low), commandPool(ldevice), pipeline(ldevice), vma(low, ldevice)
 {
 }
 
@@ -68,6 +70,8 @@ void Renderer::create()
 	ldevice.create();
 	commandPool.create();
 	pipeline.create();
+
+	vma.create();
 
 	// default command buffer
 	commandPool.createCommandBuffer();
@@ -84,28 +88,32 @@ void Renderer::destroy()
 	}
 	vbos.clear();
 
-	allocator.destroy();
+	vma.destroy();
 
 	ldevice.destroy();
 	low.destroy();
 }
 
-VertexBuffer Renderer::createFloatingBufferObject(uint32_t vertexNum, VkBufferUsageFlags usage, VkMemoryPropertyFlags memProperties)
+VertexBuffer Renderer::createFloatingBufferObject(uint32_t vertexNum,
+	VkBufferUsageFlags usage,
+	VkMemoryPropertyFlags memProperties,
+	bool mappable)
 {
 	// out buffer object
 	VertexBuffer outVbo;
 	outVbo.bufferSize = sizeof(Vertex) * (size_t)vertexNum;
 	outVbo.vertexNum = vertexNum;
 
-	const VkDevice& device = ldevice.getVkLDevice();
-
 	VkBufferCreateInfo createInfo = {
-		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-		.flags = 0,
-		.size = (VkDeviceSize)outVbo.bufferSize,
-		.usage = usage,
-		.sharingMode = VK_SHARING_MODE_EXCLUSIVE
+	.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+	.flags = 0,
+	.size = (VkDeviceSize)outVbo.bufferSize,
+	.usage = usage,
+	.sharingMode = VK_SHARING_MODE_EXCLUSIVE
 	};
+
+#if false
+	const VkDevice& device = ldevice.getVkLDevice();
 
 	if (vkCreateBuffer(device, &createInfo, nullptr, &outVbo.buffer) != VK_SUCCESS)
 		throw std::exception("Failed to create vertex buffer");
@@ -117,19 +125,26 @@ VertexBuffer Renderer::createFloatingBufferObject(uint32_t vertexNum, VkBufferUs
 	// marking space as taken
 	block.usedSpace += outVbo.bufferSize;
 	outVbo.memoryBlock = &block;
+#else
+	vma.allocateBufferObjectMemory(createInfo, outVbo, true);
+#endif
 
 	return outVbo;
 }
 
-VertexBuffer& Renderer::createBufferObject(uint32_t vertexNum, VkBufferUsageFlags usage, VkMemoryPropertyFlags memProperties)
+VertexBuffer& Renderer::createBufferObject(uint32_t vertexNum,
+	VkBufferUsageFlags usage,
+	VkMemoryPropertyFlags memProperties,
+	bool mappable)
 {	
 	int index = vbos.size();
-	vbos[index] = createFloatingBufferObject(vertexNum, usage, memProperties);
+	vbos[index] = createFloatingBufferObject(vertexNum, usage, memProperties, mappable);
 	return vbos[index];
 }
 
 void Renderer::populateBufferObject(VertexBuffer& vbo, Vertex* vertices)
 {
+#if false
 	const VkDevice& device = ldevice.getVkLDevice();
 
 	// populating the VBO (using a CPU accessible memory)
@@ -139,12 +154,19 @@ void Renderer::populateBufferObject(VertexBuffer& vbo, Vertex* vertices)
 		(VkDeviceSize)vbo.bufferSize,
 		0,
 		&vbo.vertices);
+#else
+	vma.mapMemory(vbo.allocation, &vbo.vertices);
+#endif
 
 	// TODO : flush memory
 	memcpy(vbo.vertices, vertices, vbo.bufferSize);
 	// TODO : invalidate memory before reading in the pipeline
 
+#if false
 	vkUnmapMemory(device, vbo.memoryBlock->memory);
+#else
+	vma.unmapMemory(vbo.allocation);
+#endif
 }
 
 void Renderer::render()

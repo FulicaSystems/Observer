@@ -24,7 +24,11 @@ private:
 	// TODO : make the pipeline independant in order to make different pipelines
 	GraphicsPipeline pipeline;
 
+#if false
 	MemoryAllocator allocator;
+#else
+	VMAHelper vma;
+#endif
 
 	// every created buffer objects
 	std::unordered_map<int, VertexBuffer> vbos;
@@ -44,10 +48,12 @@ public:
 
 	VertexBuffer createFloatingBufferObject(uint32_t vertexNum,
 		VkBufferUsageFlags usage,
-		VkMemoryPropertyFlags memProperties);
+		VkMemoryPropertyFlags memProperties,
+		bool mappable = false);
 	VertexBuffer& createBufferObject(uint32_t vertexNum,
 		VkBufferUsageFlags usage,
-		VkMemoryPropertyFlags memProperties);
+		VkMemoryPropertyFlags memProperties,
+		bool mappable = false);
 
 	void populateBufferObject(VertexBuffer& vbo, Vertex* vertices);
 

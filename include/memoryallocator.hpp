@@ -7,6 +7,8 @@
 #include "graphicsobject.hpp"
 #include "graphicsdevice.hpp"
 
+struct VertexBuffer;
+
 struct MemoryBlock
 {
 	// memory allocated on the GPU heap
@@ -31,15 +33,34 @@ private:
 public:
 	MemoryAllocator(LogicalDevice& ldevice);
 
-	void create() {}
-	void destroy();
+	void create() override {}
+	void destroy() override;
 
 	MemoryBlock& getAvailableBlock(size_t querySize, VkBuffer& buffer, VkMemoryPropertyFlags memProperties);
 };
 
 #include <vk_mem_alloc.h>
 
-class VulkanMemoryAllocator
+class VMAHelper : public IGraphicsObject
 {
+private:
+	LowRenderer& low;
+	LogicalDevice& ldevice;
 
+	VmaAllocator allocator;
+
+public:
+	VMAHelper(LowRenderer& low, LogicalDevice& ldevice);
+
+	void create() override;
+	void destroy() override;
+
+	void allocateBufferObjectMemory(VkBufferCreateInfo& createInfo,
+		VertexBuffer& vbo,
+		bool mappable = false);
+
+	void destroyBufferObjectMemory(VertexBuffer& vbo);
+
+	void mapMemory(VmaAllocation& allocation, void** ppData);
+	void unmapMemory(VmaAllocation& allocation);
 };
