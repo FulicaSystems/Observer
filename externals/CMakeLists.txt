@@ -33,4 +33,6 @@ set(SHADERC_SKIP_TESTS ON)
 add_subdirectory(shaderc)
 
 # vulkan memory allocator
+set(VMA_STATIC_VULKAN_FUNCTIONS OFF)
+set(VMA_DYNAMIC_VULKAN_FUNCTIONS ON)
 add_subdirectory(vulkanmemoryallocator)
