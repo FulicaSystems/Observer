@@ -16,3 +16,6 @@
 [submodule "externals/spirv-headers"]
 	path = externals/spirv-headers
 	url = https://github.com/KhronosGroup/SPIRV-Headers.git
+[submodule "externals/vulkanmemoryallocator"]
+	path = externals/vulkanmemoryallocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
