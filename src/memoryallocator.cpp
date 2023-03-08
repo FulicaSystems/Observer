@@ -48,5 +48,5 @@ void MemoryAllocator::destroy()
 	memBlocks.clear();
 }
 
-//#define VMA_IMPLEMENTATION
-//#include <vk_mem_alloc.h>
+#define VMA_IMPLEMENTATION
+#include <vk_mem_alloc.h>

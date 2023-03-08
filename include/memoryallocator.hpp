@@ -37,7 +37,7 @@ public:
 	MemoryBlock& getAvailableBlock(size_t querySize, VkBuffer& buffer, VkMemoryPropertyFlags memProperties);
 };
 
-//#include <vk_mem_alloc.h>
+#include <vk_mem_alloc.h>
 
 class VulkanMemoryAllocator
 {
