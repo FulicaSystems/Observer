@@ -5,7 +5,7 @@
 
 void Renderer::destroyFloatingBufferObject(VertexBuffer& vbo)
 {
-	const VkDevice& device = ldevice.getVkLDevice();
+	const VkDevice& device = ldevice.vkdevice;
 	vkDestroyBuffer(device, vbo.buffer, nullptr);
 	VMAHelper::destroyBufferObjectMemory(allocator, vbo);
 }

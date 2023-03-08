@@ -5,8 +5,8 @@
 
 void CommandPool::vulkanCommandPool()
 {
-	VkDevice vkdevice = device->getVkLDevice();
-	PhysicalDevice pdevice = device->getPDevice();
+	VkDevice vkdevice = device->vkdevice;
+	PhysicalDevice pdevice = device->pdevice.vkpdevice;
 
 	VkQueueFamilyIndices indices = pdevice.findQueueFamilies(api->surface);
 
@@ -22,7 +22,7 @@ void CommandPool::vulkanCommandPool()
 
 CommandBuffer CommandPool::createFloatingCommandBuffer()
 {
-	VkDevice ldevice = device->getVkLDevice();
+	VkDevice ldevice = device->vkdevice;
 
 	VkCommandBufferAllocateInfo allocInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -65,12 +65,12 @@ void CommandPool::destroy()
 	}
 	cbos.clear();
 
-	vkDestroyCommandPool(device->getVkLDevice(), commandPool, nullptr);
+	vkDestroyCommandPool(device->vkdevice, commandPool, nullptr);
 }
 
 void CommandPool::destroyFloatingCommandBuffer(CommandBuffer& cbo)
 {
-	vkFreeCommandBuffers(device->getVkLDevice(), commandPool, 1, &cbo.getVkBuffer());
+	vkFreeCommandBuffers(device->vkdevice, commandPool, 1, &cbo.getVkBuffer());
 }
 
 void CommandPool::destroyCommandBuffer(const int index)

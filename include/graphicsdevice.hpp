@@ -30,10 +30,9 @@ struct VkSwapchainSupportDetails
  */
 class PhysicalDevice
 {
-private:
+public:
 	VkPhysicalDevice vkpdevice = VK_NULL_HANDLE;
 
-public:
 	PhysicalDevice() = default;
 	PhysicalDevice(VkPhysicalDevice vk);
 
@@ -51,8 +50,6 @@ public:
 	bool isDeviceSuitable(const VkSurfaceKHR& surface);
 
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
-
-	const VkPhysicalDevice& getDevice() const;
 };
 
 /**
@@ -61,10 +58,6 @@ public:
 class LogicalDevice : public IDerived<LogicalDevice, IGraphicsObject>
 {
 private:
-	PhysicalDevice pdevice;
-
-	VkDevice vkdevice;
-
 	VkQueue graphicsQueue;
 	VkQueue presentQueue;
 
@@ -72,23 +65,11 @@ private:
 	void vulkanLogicalDevice();
 
 public:
+	PhysicalDevice pdevice;
+	VkDevice vkdevice;
+
 	void create(LowRenderer* api, LogicalDevice* device) override;
 	void destroy() override;
-
-	/**
-	 * Get the physical device custom class.
-	 */
-	const PhysicalDevice& getPDevice() const;
-
-	/**
-	 * Get the Vulkan physical device.
-	 */
-	const VkPhysicalDevice& getVkPDevice() const;
-
-	/**
-	 * Get the Vulkan logical device.
-	 */
-	const VkDevice& getVkLDevice() const;
 
 	void waitGraphicsQueue();
 

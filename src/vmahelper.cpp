@@ -4,12 +4,12 @@
 
 #include "vmahelper.hpp"
 
-void VMAHelper::createAllocator(LowRenderer& low, LogicalDevice& ldevice, VmaAllocator& allocator)
+void VMAHelper::createAllocator(LowRenderer& api, LogicalDevice& device, VmaAllocator& allocator)
 {
 	VmaAllocatorCreateInfo createInfo = {
-		.physicalDevice = ldevice.getVkPDevice(),
-		.device = ldevice.getVkLDevice(),
-		.instance = low.instance,
+		.physicalDevice = device.pdevice.vkpdevice,
+		.device = device.vkdevice,
+		.instance = api.instance,
 		.vulkanApiVersion = VK_API_VERSION_1_3
 	};
 

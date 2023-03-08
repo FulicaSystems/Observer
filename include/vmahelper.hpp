@@ -11,7 +11,7 @@ class VertexBuffer;
 static class VMAHelper
 {
 public:
-	static void createAllocator(LowRenderer& low, LogicalDevice& ldevice, VmaAllocator& allocator);
+	static void createAllocator(LowRenderer& api, LogicalDevice& device, VmaAllocator& allocator);
 	static void destroyAllocator(VmaAllocator& allocator);
 
 	static void allocateBufferObjectMemory(VmaAllocator& allocator,

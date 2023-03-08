@@ -14,7 +14,7 @@ MemoryBlock& MemoryAllocator::getAvailableBlock(size_t querySize, VkBuffer& buff
 			return memBlocks[i];
 	}
 
-	const VkDevice& vkdevice = device->getVkLDevice();
+	const VkDevice& vkdevice = device->vkdevice;
 
 	VkMemoryRequirements memReq;
 	vkGetBufferMemoryRequirements(vkdevice, buffer, &memReq);
@@ -23,7 +23,7 @@ MemoryBlock& MemoryAllocator::getAvailableBlock(size_t querySize, VkBuffer& buff
 	VkMemoryAllocateInfo allocInfo = {
 		.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
 		.allocationSize = blockSize,
-		.memoryTypeIndex = device->getPDevice().findMemoryType(memReq.memoryTypeBits, memProperties)
+		.memoryTypeIndex = device->pdevice.findMemoryType(memReq.memoryTypeBits, memProperties)
 	};
 
 	// adding a new memory block
@@ -41,7 +41,7 @@ void MemoryAllocator::destroy()
 {
 	for (int i = 0; i < memBlocks.size(); ++i)
 	{
-		vkFreeMemory(device->getVkLDevice(), memBlocks[i].memory, nullptr);
+		vkFreeMemory(device->vkdevice, memBlocks[i].memory, nullptr);
 	}
 	memBlocks.clear();
 }

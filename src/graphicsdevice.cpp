@@ -6,11 +6,6 @@
 #include "lowrenderer.hpp"
 #include "graphicsdevice.hpp"
 
-const VkPhysicalDevice& PhysicalDevice::getDevice() const
-{
-	return vkpdevice;
-}
-
 void LogicalDevice::create(LowRenderer* api, LogicalDevice* device)
 {
 	Super::create(api, nullptr);
@@ -22,21 +17,6 @@ void LogicalDevice::create(LowRenderer* api, LogicalDevice* device)
 void LogicalDevice::destroy()
 {
 	vkDestroyDevice(vkdevice, nullptr);
-}
-
-const PhysicalDevice& LogicalDevice::getPDevice() const
-{
-	return pdevice;
-}
-
-const VkPhysicalDevice& LogicalDevice::getVkPDevice() const
-{
-	return pdevice.getDevice();
-}
-
-const VkDevice& LogicalDevice::getVkLDevice() const
-{
-	return vkdevice;
 }
 
 void LogicalDevice::waitGraphicsQueue()
@@ -181,7 +161,7 @@ void LogicalDevice::vulkanPhysicalDevice()
 		}
 	}
 
-	VkPhysicalDevice d = pdevice.getDevice();
+	VkPhysicalDevice d = pdevice.vkpdevice;
 	if (d == VK_NULL_HANDLE)
 		throw std::exception("Failed to find a suitable GPU");
 	if (!gladLoaderLoadVulkan(instance, d, nullptr))
@@ -189,7 +169,7 @@ void LogicalDevice::vulkanPhysicalDevice()
 
 	// physical device limits
 	VkPhysicalDeviceProperties prop;
-	vkGetPhysicalDeviceProperties(pdevice.getDevice(), &prop);
+	vkGetPhysicalDeviceProperties(pdevice.vkpdevice, &prop);
 	VkPhysicalDeviceLimits limit = prop.limits;
 	std::cout << "Physical device max memory allocation count : " << limit.maxMemoryAllocationCount << std::endl;
 }
@@ -254,7 +234,7 @@ void LogicalDevice::vulkanLogicalDevice()
 		.ppEnabledExtensionNames = deviceExtensions.data()
 	};
 
-	VkPhysicalDevice d = pdevice.getDevice();
+	VkPhysicalDevice d = pdevice.vkpdevice;
 
 	if (vkCreateDevice(d, &createInfo, nullptr, &vkdevice) != VK_SUCCESS)
 		throw std::exception("Failed to create logical device");

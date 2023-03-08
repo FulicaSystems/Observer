@@ -31,7 +31,7 @@ void GraphicsPipeline::create(LowRenderer* api, LogicalDevice* device)
 
 void GraphicsPipeline::destroy()
 {
-	const VkDevice& vkdevice = device->getVkLDevice();
+	const VkDevice& vkdevice = device->vkdevice;
 	vkDeviceWaitIdle(vkdevice);
 
 	vkDestroySemaphore(vkdevice, renderReadySemaphore, nullptr);
@@ -102,8 +102,8 @@ VkExtent2D GraphicsPipeline::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& ca
 
 void GraphicsPipeline::vulkanSwapchain()
 {
-	VkDevice vkdevice = device->getVkLDevice();
-	PhysicalDevice vkpdevice = device->getPDevice();
+	VkDevice vkdevice = device->vkdevice;
+	PhysicalDevice vkpdevice = device->pdevice.vkpdevice;
 
 	VkSwapchainSupportDetails support = vkpdevice.querySwapchainSupport(api->surface);
 
@@ -187,7 +187,7 @@ void GraphicsPipeline::vulkanImageViews()
 			}
 		};
 
-		VkDevice vkdevice = device->getVkLDevice();
+		VkDevice vkdevice = device->vkdevice;
 		if (vkCreateImageView(vkdevice, &createInfo, nullptr, &swapchainImageViews[i]) != VK_SUCCESS)
 			throw std::exception("Failed to create an image view");
 	}
@@ -329,7 +329,7 @@ void GraphicsPipeline::vulkanGraphicsPipeline()
 		.pPushConstantRanges = nullptr
 	};
 
-	VkDevice vkdevice = device->getVkLDevice();
+	VkDevice vkdevice = device->vkdevice;
 
 	if (vkCreatePipelineLayout(vkdevice, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
 		throw std::exception("Failed to create pipeline layout");
@@ -372,7 +372,7 @@ VkShaderModule GraphicsPipeline::createShaderModule(const std::vector<char>& cod
 		.pCode = reinterpret_cast<const uint32_t*>(code.data())
 	};
 
-	VkDevice vkdevice = device->getVkLDevice();
+	VkDevice vkdevice = device->vkdevice;
 	VkShaderModule shaderModule;
 	if (vkCreateShaderModule(vkdevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
 		throw std::exception("Failed to create shader module");
@@ -422,14 +422,14 @@ void GraphicsPipeline::vulkanRenderPass()
 		.pDependencies = &dependency
 	};
 
-	VkDevice vkdevice = device->getVkLDevice();
+	VkDevice vkdevice = device->vkdevice;
 	if (vkCreateRenderPass(vkdevice, &createInfo, nullptr, &renderPass) != VK_SUCCESS)
 		throw std::exception("Failed to create render pass");
 }
 
 void GraphicsPipeline::vulkanFramebuffers()
 {
-	VkDevice vkdevice = device->getVkLDevice();
+	VkDevice vkdevice = device->vkdevice;
 	swapchainFramebuffers.resize(swapchainImageViews.size());
 
 	for (size_t i = 0; i < swapchainImageViews.size(); ++i)
@@ -513,7 +513,7 @@ void GraphicsPipeline::recordImageCommandBuffer(CommandBuffer& cb,
 
 void GraphicsPipeline::drawFrame(CommandBuffer& cb, const std::unordered_map<int, VertexBuffer>& vbos)
 {
-	VkDevice vkdevice = device->getVkLDevice();
+	VkDevice vkdevice = device->vkdevice;
 
 	vkWaitForFences(vkdevice, 1, &renderOnceFence, VK_TRUE, UINT64_MAX);
 	vkResetFences(vkdevice, 1, &renderOnceFence);
@@ -564,7 +564,7 @@ void GraphicsPipeline::vulkanMultithreadObjects()
 		.flags = VK_FENCE_CREATE_SIGNALED_BIT
 	};
 
-	VkDevice vkdevice = device->getVkLDevice();
+	VkDevice vkdevice = device->vkdevice;
 
 	if (vkCreateSemaphore(vkdevice, &semaphoreCreateInfo, nullptr, &renderReadySemaphore) != VK_SUCCESS)
 		throw std::exception("Failed to create semaphore");
