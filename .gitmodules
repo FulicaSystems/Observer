@@ -19,3 +19,6 @@
 [submodule "externals/vulkanmemoryallocator"]
 	path = externals/vulkanmemoryallocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "externals/glad"]
+	path = externals/glad
+	url = https://github.com/Dav1dde/glad.git

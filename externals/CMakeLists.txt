@@ -1,16 +1,10 @@
 # glad
-add_library(glad INTERFACE)
-target_sources(glad INTERFACE
-	#vulkan
-	glad/include/vk_platform.h
-	glad/include/glad/vulkan.h
-	glad/src/vulkan.c
-	#opengl
-	glad/include/glad/gl.h
-	glad/include/KHR/khrplatform.h
-	glad/src/gl.c
+add_subdirectory(glad/cmake)
+# glad settings for vulkan
+glad_add_library(glad_vk_13
+	API vulkan=1.3
+	EXTENSIONS VK_EXT_debug_utils,VK_KHR_surface,VK_KHR_swapchain
 )
-target_include_directories(glad INTERFACE glad/include)
 
 # glfw
 add_subdirectory(glfw)
