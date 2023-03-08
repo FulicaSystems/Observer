@@ -2,6 +2,7 @@
 add_subdirectory(glad/cmake)
 # glad settings for vulkan
 glad_add_library(glad_vk_13
+	LOADER
 	API vulkan=1.3
 	EXTENSIONS VK_EXT_debug_utils,VK_KHR_surface,VK_KHR_swapchain
 )
