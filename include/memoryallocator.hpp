@@ -15,6 +15,8 @@ struct MemoryBlock
 	size_t usedSpace = 0;
 };
 
+// TODO : improve custom allocator
+// temporary custom solution
 class MemoryAllocator : public IGraphicsObject
 {
 private:
@@ -33,4 +35,11 @@ public:
 	void destroy();
 
 	MemoryBlock& getAvailableBlock(size_t querySize, VkBuffer& buffer, VkMemoryPropertyFlags memProperties);
+};
+
+//#include <vk_mem_alloc.h>
+
+class VulkanMemoryAllocator
+{
+
 };

@@ -61,4 +61,5 @@ target_link_libraries(renderer
     PUBLIC glad
     PUBLIC glfw
     PUBLIC libraries
+    PUBLIC VulkanMemoryAllocator
 )
