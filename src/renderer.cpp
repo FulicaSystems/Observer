@@ -1,4 +1,5 @@
 #include "vmahelper.hpp"
+#include "commandbuffer.hpp"
 
 #include "renderer.hpp"
 
@@ -61,17 +62,12 @@ void Renderer::createVertexBufferObject(uint32_t vertexNum, Vertex* vertices)
 	destroyFloatingBufferObject(stagingVBO);
 }
 
-Renderer::Renderer()
-	: ldevice(low), commandPool(ldevice), pipeline(ldevice)
-{
-}
-
-void Renderer::create()
+void Renderer::create(LowRenderer* api, LogicalDevice* device)
 {
 	// create the rendering instance first using low.create()
-	ldevice.create();
-	commandPool.create();
-	pipeline.create();
+	ldevice.create(&low, nullptr);
+	commandPool.create(&low, &ldevice);
+	pipeline.create(&low, &ldevice);
 
 	VMAHelper::createAllocator(low, ldevice, allocator);
 

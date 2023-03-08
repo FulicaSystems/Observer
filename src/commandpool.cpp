@@ -1,14 +1,14 @@
-#include "commandpool.hpp"
 #include "graphicsdevice.hpp"
+#include "lowrenderer.hpp"
 
 #include "commandpool.hpp"
 
 void CommandPool::vulkanCommandPool()
 {
-	VkDevice ldevice = device.getVkLDevice();
-	PhysicalDevice pdevice = device.getPDevice();
+	VkDevice vkdevice = device->getVkLDevice();
+	PhysicalDevice pdevice = device->getPDevice();
 
-	VkQueueFamilyIndices indices = pdevice.findQueueFamilies(device.low.surface);
+	VkQueueFamilyIndices indices = pdevice.findQueueFamilies(api->surface);
 
 	VkCommandPoolCreateInfo createInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -16,13 +16,13 @@ void CommandPool::vulkanCommandPool()
 		.queueFamilyIndex = indices.graphicsFamily.value()
 	};
 
-	if (vkCreateCommandPool(ldevice, &createInfo, nullptr, &commandPool) != VK_SUCCESS)
+	if (vkCreateCommandPool(vkdevice, &createInfo, nullptr, &commandPool) != VK_SUCCESS)
 		throw std::exception("Failed to create command pool");
 }
 
 CommandBuffer CommandPool::createFloatingCommandBuffer()
 {
-	VkDevice ldevice = device.getVkLDevice();
+	VkDevice ldevice = device->getVkLDevice();
 
 	VkCommandBufferAllocateInfo allocInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -50,13 +50,10 @@ CommandBuffer& CommandPool::getCmdBufferByIndex(const int index)
 	return cbos[index];
 }
 
-CommandPool::CommandPool(LogicalDevice& device)
-	: device(device)
+void CommandPool::create(LowRenderer* api, LogicalDevice* device)
 {
-}
+	Super::create(api, device);
 
-void CommandPool::create()
-{
 	vulkanCommandPool();
 }
 
@@ -68,12 +65,12 @@ void CommandPool::destroy()
 	}
 	cbos.clear();
 
-	vkDestroyCommandPool(device.getVkLDevice(), commandPool, nullptr);
+	vkDestroyCommandPool(device->getVkLDevice(), commandPool, nullptr);
 }
 
 void CommandPool::destroyFloatingCommandBuffer(CommandBuffer& cbo)
 {
-	vkFreeCommandBuffers(device.getVkLDevice(), commandPool, 1, &cbo.getVkBuffer());
+	vkFreeCommandBuffers(device->getVkLDevice(), commandPool, 1, &cbo.getVkBuffer());
 }
 
 void CommandPool::destroyCommandBuffer(const int index)

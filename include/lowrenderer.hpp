@@ -16,10 +16,12 @@ const std::vector<const char*> deviceExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
+class LogicalDevice;
+
 /**
  * Low level rendering instance.
  */
-class LowRenderer : public IGraphicsObject
+class LowRenderer : public IDerived<LowRenderer, IGraphicsObject>
 {
 private:
 	// some extensions are required
@@ -48,6 +50,6 @@ public:
 
 	void loadExtensions(std::vector<const char*>& additionalExtensions);
 
-	void create() override;
+	void create(LowRenderer* api, LogicalDevice* device) override;
 	void destroy() override;
 };

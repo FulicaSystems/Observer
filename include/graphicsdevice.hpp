@@ -7,8 +7,6 @@
 
 #include "graphicsobject.hpp"
 
-#include "lowrenderer.hpp"
-
 using VkQueueFamilyIndex = std::optional<uint32_t>;
 struct VkQueueFamilyIndices
 {
@@ -33,7 +31,7 @@ struct VkSwapchainSupportDetails
 class PhysicalDevice
 {
 private:
-	VkPhysicalDevice vkDevice = VK_NULL_HANDLE;
+	VkPhysicalDevice vkpdevice = VK_NULL_HANDLE;
 
 public:
 	PhysicalDevice() = default;
@@ -60,12 +58,12 @@ public:
 /**
  * Logical device.
  */
-class LogicalDevice : public IGraphicsObject
+class LogicalDevice : public IDerived<LogicalDevice, IGraphicsObject>
 {
 private:
 	PhysicalDevice pdevice;
 
-	VkDevice device;
+	VkDevice vkdevice;
 
 	VkQueue graphicsQueue;
 	VkQueue presentQueue;
@@ -74,11 +72,7 @@ private:
 	void vulkanLogicalDevice();
 
 public:
-	LowRenderer& low;
-
-	LogicalDevice(LowRenderer& low);
-
-	void create() override;
+	void create(LowRenderer* api, LogicalDevice* device) override;
 	void destroy() override;
 
 	/**

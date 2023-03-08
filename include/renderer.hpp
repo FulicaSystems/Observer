@@ -16,7 +16,7 @@
 /**
  * High level renderer.
  */
-class Renderer : public IGraphicsObject
+class Renderer : public IDerived<Renderer, IGraphicsObject>
 {
 private:
 	// TODO : make the pipeline independant in order to make different pipelines
@@ -33,13 +33,11 @@ private:
 
 public:
 	LowRenderer low;
-
 	LogicalDevice ldevice;
+
 	CommandPool commandPool;
 
-	Renderer();
-
-	void create() override;
+	void create(LowRenderer* api, LogicalDevice* device) override;
 	void destroy() override;
 
 	// vertex buffer object

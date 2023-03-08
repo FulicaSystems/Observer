@@ -8,8 +8,8 @@
 
 #include "graphicsobject.hpp"
 
-#include "vertexbuffer.hpp"
 #include "commandbuffer.hpp"
+#include "vertexbuffer.hpp"
 
 static std::vector<char> readBinaryFile(const std::string& filename)
 {
@@ -30,12 +30,9 @@ static std::vector<char> readBinaryFile(const std::string& filename)
 /**
  * Rendering pipeline using a specific logical device.
  */
-class GraphicsPipeline : public IGraphicsObject
+class GraphicsPipeline : public IDerived<GraphicsPipeline, IGraphicsObject>
 {
 private:
-	// device used by this pipeline
-	LogicalDevice& device;
-
 	// swapchain
 	VkSwapchainKHR swapchain;
 	std::vector<VkImage> swapchainImages;
@@ -71,9 +68,7 @@ private:
 		const std::unordered_map<int, VertexBuffer>& vbos);
 
 public:
-	GraphicsPipeline(LogicalDevice& device);
-
-	void create() override;
+	void create(LowRenderer* api, LogicalDevice* device) override;
 	void destroy() override;
 
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);

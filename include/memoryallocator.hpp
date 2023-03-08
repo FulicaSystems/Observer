@@ -17,21 +17,15 @@ struct MemoryBlock
 };
 
 // TODO : improve custom allocator
-class MemoryAllocator : public IGraphicsObject
+class MemoryAllocator : public IDerived<MemoryAllocator, IGraphicsObject>
 {
 private:
-	// logical device used by this memory allocator
-	LogicalDevice& ldevice;
-
 	// default block size
 	size_t blockSize = 1024;
 
 	std::unordered_map<int, MemoryBlock> memBlocks;
 
 public:
-	MemoryAllocator(LogicalDevice& ldevice);
-
-	void create() override {}
 	void destroy() override;
 
 	MemoryBlock& getAvailableBlock(size_t querySize, VkBuffer& buffer, VkMemoryPropertyFlags memProperties);

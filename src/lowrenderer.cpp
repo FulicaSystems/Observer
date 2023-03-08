@@ -7,7 +7,7 @@ void LowRenderer::loadExtensions(std::vector<const char*>& additionalExtensions)
 	this->additionalExtensions = additionalExtensions;
 }
 
-void LowRenderer::create()
+void LowRenderer::create(LowRenderer* api, LogicalDevice* device)
 {
 	if (!gladLoaderLoadVulkan(nullptr, nullptr, nullptr))
 		throw std::exception("Unable to load Vulkan symbols");

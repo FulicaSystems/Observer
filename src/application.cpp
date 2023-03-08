@@ -31,13 +31,13 @@ Application::Application()
 	rdr.low.loadExtensions(requiredExtensions);
 
 	// create the Vulkan instance first
-	rdr.low.create();
+	rdr.low.create(nullptr, nullptr);
 
 	// create a surface using the instance
 	if (glfwCreateWindowSurface(rdr.low.instance, window, nullptr, &rdr.low.surface) != VK_SUCCESS)
 		throw std::exception("Failed to create window surface");
 
-	rdr.create();
+	rdr.create(nullptr, nullptr);
 }
 
 Application::~Application()

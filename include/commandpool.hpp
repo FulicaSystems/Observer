@@ -5,24 +5,21 @@
 #include <glad/vulkan.h>
 
 #include "graphicsobject.hpp"
-#include "commandbuffer.hpp"
-#include "graphicsdevice.hpp"
 
-class CommandPool : public IGraphicsObject
+#include "commandbuffer.hpp"
+
+class LowRenderer;
+
+class CommandPool : public IDerived<CommandPool, IGraphicsObject>
 {
 private:
-	// logical device used by this command pool
-	LogicalDevice& device;
-
 	VkCommandPool commandPool;
 	std::unordered_map<int, CommandBuffer> cbos;
 
 	void vulkanCommandPool();
 
 public:
-	CommandPool(LogicalDevice& device);
-
-	void create() override;
+	void create(LowRenderer* api, LogicalDevice* device) override;
 	void destroy() override;
 
 	CommandBuffer createFloatingCommandBuffer();

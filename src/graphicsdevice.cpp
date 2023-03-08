@@ -8,23 +8,20 @@
 
 const VkPhysicalDevice& PhysicalDevice::getDevice() const
 {
-	return vkDevice;
+	return vkpdevice;
 }
 
-LogicalDevice::LogicalDevice(LowRenderer& low)
-	: low(low)
+void LogicalDevice::create(LowRenderer* api, LogicalDevice* device)
 {
-}
+	Super::create(api, nullptr);
 
-void LogicalDevice::create()
-{
 	vulkanPhysicalDevice();
 	vulkanLogicalDevice();
 }
 
 void LogicalDevice::destroy()
 {
-	vkDestroyDevice(device, nullptr);
+	vkDestroyDevice(vkdevice, nullptr);
 }
 
 const PhysicalDevice& LogicalDevice::getPDevice() const
@@ -39,7 +36,7 @@ const VkPhysicalDevice& LogicalDevice::getVkPDevice() const
 
 const VkDevice& LogicalDevice::getVkLDevice() const
 {
-	return device;
+	return vkdevice;
 }
 
 void LogicalDevice::waitGraphicsQueue()
@@ -61,9 +58,9 @@ void LogicalDevice::present(VkPresentInfoKHR& presentInfo)
 bool PhysicalDevice::checkDeviceExtensionSupport()
 {
 	uint32_t extensionCount = 0;
-	vkEnumerateDeviceExtensionProperties(vkDevice, nullptr, &extensionCount, nullptr);
+	vkEnumerateDeviceExtensionProperties(vkpdevice, nullptr, &extensionCount, nullptr);
 	std::vector<VkExtensionProperties> extensions(extensionCount);
-	vkEnumerateDeviceExtensionProperties(vkDevice, nullptr, &extensionCount, extensions.data());
+	vkEnumerateDeviceExtensionProperties(vkpdevice, nullptr, &extensionCount, extensions.data());
 	std::cout << "available device extensions : " << extensionCount << '\n';
 	for (const auto& extension : extensions)
 		std::cout << '\t' << extension.extensionName << '\n';
@@ -82,29 +79,29 @@ bool PhysicalDevice::checkDeviceExtensionSupport()
 
 PhysicalDevice::PhysicalDevice(VkPhysicalDevice vk)
 {
-	vkDevice = vk;
+	vkpdevice = vk;
 }
 
 VkSwapchainSupportDetails PhysicalDevice::querySwapchainSupport(const VkSurfaceKHR& surface)
 {
 	VkSwapchainSupportDetails details;
 
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkDevice, surface, &details.capabilities);
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkpdevice, surface, &details.capabilities);
 
 	uint32_t formatCount;
-	vkGetPhysicalDeviceSurfaceFormatsKHR(vkDevice, surface, &formatCount, nullptr);
+	vkGetPhysicalDeviceSurfaceFormatsKHR(vkpdevice, surface, &formatCount, nullptr);
 	if (formatCount != 0)
 	{
 		details.formats.resize(formatCount);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(vkDevice, surface, &formatCount, details.formats.data());
+		vkGetPhysicalDeviceSurfaceFormatsKHR(vkpdevice, surface, &formatCount, details.formats.data());
 	}
 
 	uint32_t modeCount;
-	vkGetPhysicalDeviceSurfacePresentModesKHR(vkDevice, surface, &modeCount, nullptr);
+	vkGetPhysicalDeviceSurfacePresentModesKHR(vkpdevice, surface, &modeCount, nullptr);
 	if (modeCount != 0)
 	{
 		details.presentModes.resize(modeCount);
-		vkGetPhysicalDeviceSurfacePresentModesKHR(vkDevice, surface, &modeCount, details.presentModes.data());
+		vkGetPhysicalDeviceSurfacePresentModesKHR(vkpdevice, surface, &modeCount, details.presentModes.data());
 	}
 
 	return details;
@@ -139,7 +136,7 @@ bool PhysicalDevice::isDeviceSuitable(const VkSurfaceKHR& surface)
 uint32_t PhysicalDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const
 {
 	VkPhysicalDeviceMemoryProperties memProp;
-	vkGetPhysicalDeviceMemoryProperties(vkDevice, &memProp);
+	vkGetPhysicalDeviceMemoryProperties(vkpdevice, &memProp);
 
 	for (uint32_t i = 0; i < memProp.memoryTypeCount; ++i)
 	{
@@ -154,8 +151,8 @@ uint32_t PhysicalDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
 
 void LogicalDevice::vulkanPhysicalDevice()
 {
-	VkInstance instance = low.instance;
-	VkSurfaceKHR surface = low.surface;
+	VkInstance instance = api->instance;
+	VkSurfaceKHR surface = api->surface;
 
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -202,9 +199,9 @@ VkQueueFamilyIndices PhysicalDevice::findQueueFamilies(const VkSurfaceKHR& surfa
 	VkQueueFamilyIndices indices;
 
 	uint32_t queueFamilyCount = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(vkDevice, &queueFamilyCount, nullptr);
+	vkGetPhysicalDeviceQueueFamilyProperties(vkpdevice, &queueFamilyCount, nullptr);
 	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-	vkGetPhysicalDeviceQueueFamilyProperties(vkDevice, &queueFamilyCount, queueFamilies.data());
+	vkGetPhysicalDeviceQueueFamilyProperties(vkpdevice, &queueFamilyCount, queueFamilies.data());
 	for (uint32_t i = 0; i < queueFamilies.size(); ++i)
 	{
 		//graphics family
@@ -213,7 +210,7 @@ VkQueueFamilyIndices PhysicalDevice::findQueueFamilies(const VkSurfaceKHR& surfa
 
 		//presentation family
 		VkBool32 presentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(vkDevice, i, surface, &presentSupport);
+		vkGetPhysicalDeviceSurfaceSupportKHR(vkpdevice, i, surface, &presentSupport);
 		if (presentSupport)
 			indices.presentFamily = i;
 	}
@@ -223,8 +220,8 @@ VkQueueFamilyIndices PhysicalDevice::findQueueFamilies(const VkSurfaceKHR& surfa
 
 void LogicalDevice::vulkanLogicalDevice()
 {
-	VkInstance instance = low.instance;
-	VkSurfaceKHR surface = low.surface;
+	VkInstance instance = api->instance;
+	VkSurfaceKHR surface = api->surface;
 
 	VkQueueFamilyIndices indices = pdevice.findQueueFamilies(surface);
 
@@ -259,11 +256,11 @@ void LogicalDevice::vulkanLogicalDevice()
 
 	VkPhysicalDevice d = pdevice.getDevice();
 
-	if (vkCreateDevice(d, &createInfo, nullptr, &device) != VK_SUCCESS)
+	if (vkCreateDevice(d, &createInfo, nullptr, &vkdevice) != VK_SUCCESS)
 		throw std::exception("Failed to create logical device");
-	if (!gladLoaderLoadVulkan(instance, d, device))
+	if (!gladLoaderLoadVulkan(instance, d, vkdevice))
 		throw std::exception("Unable to reload Vulkan symbols with logical device");
 
-	vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
-	vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
+	vkGetDeviceQueue(vkdevice, indices.graphicsFamily.value(), 0, &graphicsQueue);
+	vkGetDeviceQueue(vkdevice, indices.presentFamily.value(), 0, &presentQueue);
 }
