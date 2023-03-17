@@ -12,7 +12,7 @@ void Renderer::destroyFloatingBufferObject(VertexBuffer& vbo)
 void Renderer::destroyBufferObject(int index)
 {
 	destroyFloatingBufferObject(vbos[index]);
-	vbos.erase(index);
+	vbos.erase(vbos.begin() + index);
 }
 
 void Renderer::createVertexBufferObject(uint32_t vertexNum, Vertex* vertices)
@@ -135,9 +135,7 @@ VertexBuffer& Renderer::createBufferObject(uint32_t vertexNum,
 	VkMemoryPropertyFlags memProperties,
 	bool mappable)
 {	
-	int index = vbos.size();
-	vbos[index] = createFloatingBufferObject(vertexNum, usage, memProperties, mappable);
-	return vbos[index];
+	return vbos.emplace_back(createFloatingBufferObject(vertexNum, usage, memProperties, mappable));
 }
 
 void Renderer::populateBufferObject(VertexBuffer& vbo, Vertex* vertices)

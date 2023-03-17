@@ -451,7 +451,7 @@ void GraphicsPipeline::vulkanFramebuffers()
 
 void GraphicsPipeline::recordImageCommandBuffer(CommandBuffer& cb,
 	uint32_t imageIndex,
-	const std::unordered_map<int, VertexBuffer>& vbos)
+	const std::deque<VertexBuffer>& vbos)
 {
 	cb.reset();
 	cb.beginRecord();
@@ -511,7 +511,7 @@ void GraphicsPipeline::recordImageCommandBuffer(CommandBuffer& cb,
 	cb.endRecord();
 }
 
-void GraphicsPipeline::drawFrame(CommandBuffer& cb, const std::unordered_map<int, VertexBuffer>& vbos)
+void GraphicsPipeline::drawFrame(CommandBuffer& cb, const std::deque<VertexBuffer>& vbos)
 {
 	VkDevice vkdevice = device->vkdevice;
 

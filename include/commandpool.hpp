@@ -1,6 +1,6 @@
 #pragma once
 
-#include <unordered_map>
+#include <deque>
 
 #include <glad/vulkan.h>
 
@@ -14,7 +14,7 @@ class CommandPool : public IDerived<CommandPool, IGraphicsObject>
 {
 private:
 	VkCommandPool commandPool;
-	std::unordered_map<int, CommandBuffer> cbos;
+	std::deque<CommandBuffer> cbos;
 
 	void vulkanCommandPool();
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <unordered_map>
+#include <deque>
 
 #include <glad/vulkan.h>
 
@@ -23,7 +23,7 @@ private:
 	// default block size
 	size_t blockSize = 1024;
 
-	std::unordered_map<int, MemoryBlock> memBlocks;
+	std::deque<MemoryBlock> memBlocks;
 
 public:
 	void destroy() override;

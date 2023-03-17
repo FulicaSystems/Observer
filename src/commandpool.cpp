@@ -40,9 +40,7 @@ CommandBuffer CommandPool::createFloatingCommandBuffer()
 
 CommandBuffer& CommandPool::createCommandBuffer()
 {
-	int index = cbos.size();
-	cbos[index] = createFloatingCommandBuffer();
-	return cbos[index];
+	return cbos.emplace_back(createFloatingCommandBuffer());
 }
 
 CommandBuffer& CommandPool::getCmdBufferByIndex(const int index)
@@ -76,5 +74,5 @@ void CommandPool::destroyFloatingCommandBuffer(CommandBuffer& cbo)
 void CommandPool::destroyCommandBuffer(const int index)
 {
 	destroyFloatingCommandBuffer(cbos[index]);
-	cbos.erase(index);
+	cbos.erase(cbos.begin() + index);
 }

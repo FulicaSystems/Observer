@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <unordered_map>
+#include <deque>
 #include <fstream>
 
 #include <glad/vulkan.h>
@@ -65,7 +65,7 @@ private:
 
 	void recordImageCommandBuffer(CommandBuffer& cb,
 		uint32_t imageIndex,
-		const std::unordered_map<int, VertexBuffer>& vbos);
+		const std::deque<VertexBuffer>& vbos);
 
 public:
 	void create(LowRenderer* api, LogicalDevice* device) override;
@@ -77,5 +77,5 @@ public:
 
 	VkShaderModule createShaderModule(const std::vector<char>& code);
 
-	void drawFrame(CommandBuffer& cb, const std::unordered_map<int, VertexBuffer>& vbos);
+	void drawFrame(CommandBuffer& cb, const std::deque<VertexBuffer>& vbos);
 };

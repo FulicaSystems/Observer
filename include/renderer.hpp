@@ -1,6 +1,6 @@
 #pragma once
 
-#include <unordered_map>
+#include <deque>
 
 #include "lowrenderer.hpp"
 
@@ -27,7 +27,7 @@ private:
 #endif
 
 	// every created buffer objects
-	std::unordered_map<int, VertexBuffer> vbos;
+	std::deque<VertexBuffer> vbos;
 
 public:
 	LowRenderer api;

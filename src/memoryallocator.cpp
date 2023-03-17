@@ -32,9 +32,7 @@ MemoryBlock& MemoryAllocator::getAvailableBlock(size_t querySize, VkBuffer& buff
 	if (vkAllocateMemory(vkdevice, &allocInfo, nullptr, &newBlock.memory) != VK_SUCCESS)
 		throw std::exception("Failed to allocate vertex buffer memory");
 
-	int index = memBlocks.size();
-	memBlocks[index] = newBlock;
-	return memBlocks[index];
+	return memBlocks.emplace_back(newBlock);
 }
 
 void MemoryAllocator::destroy()
