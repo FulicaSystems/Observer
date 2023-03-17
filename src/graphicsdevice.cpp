@@ -217,7 +217,7 @@ void LogicalDevice::vulkanLogicalDevice()
 			.queueCount = 1,
 			.pQueuePriorities = &queuePriority
 		};
-		queueCreateInfos.push_back(queueCreateInfo);
+		queueCreateInfos.emplace_back(queueCreateInfo);
 	}
 
 	VkDeviceCreateInfo createInfo = {

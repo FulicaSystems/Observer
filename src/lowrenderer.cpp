@@ -53,7 +53,7 @@ void LowRenderer::vulkanCreate()
 	};
 
 #ifndef NDEBUG
-	additionalExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+	additionalExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
 	VkInstanceCreateInfo createInfo = {
