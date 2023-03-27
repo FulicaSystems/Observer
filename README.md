@@ -1,4 +1,4 @@
-# **Vulkan-tutorial**
+# **Project O**
 
 Vulkan renderer, based on [this repository](https://github.com/sjarod/vulkan-tutorial).
 
