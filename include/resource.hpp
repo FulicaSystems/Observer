@@ -8,7 +8,7 @@ class IResource
 {
 private:
     // This resource on the graphics device (GPU)
-    // The GPU resource may not be host accessible
+    // It may not be host accessible (CPU)
     IGPUResource* local = nullptr;
 
 public:
