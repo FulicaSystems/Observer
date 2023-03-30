@@ -57,7 +57,7 @@ public:
 	/**
 	 * Create a vertex buffer and store it to the vertex buffer container.
 	 */
-	void createVertexBufferObject(uint32_t vertexNum, Vertex* vertices);
+	VertexBuffer& createVertexBufferObject(uint32_t vertexNum, Vertex* vertices);
 
 
 	// rendering

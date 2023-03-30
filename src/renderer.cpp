@@ -59,6 +59,8 @@ void Renderer::createVertexBufferObject(uint32_t vertexNum, Vertex* vertices)
 
 	commandPool.destroyFloatingCommandBuffer(cbo);
 	destroyFloatingBufferObject(stagingVBO);
+
+	return vbo;
 }
 
 void Renderer::initRenderer()
