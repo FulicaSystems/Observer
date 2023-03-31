@@ -61,18 +61,12 @@ void Application::windowInit()
 void Application::loop()
 {
 	// TODO : store vbos in a scene
-	Vertex vertices[] = {
-		{ { 0.0f, -0.5f}, Color::red },
-		{ { 0.5f,  0.5f}, Color::green },
-		{ {-0.5f,  0.5f}, Color::blue }
-	};
 	Vertex vertices2[] = {
 		{ { 0.0f,  0.5f}, Color::white },
 		{ {-0.5f, -0.5f}, Color::maroon },
 		{ { 0.5f, -0.5f}, Color::lime }
 	};
 
-	rdr.createVertexBufferObject(3, vertices);
 	rdr.createVertexBufferObject(3, vertices2);
 
 	while (!glfwWindowShouldClose(window))

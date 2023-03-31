@@ -6,7 +6,19 @@
 
 struct MemoryBlock;
 
-struct VertexBuffer
+// TODO : rename to VertexBuffer
+struct temp
+{
+	// CPU accessible data
+	void* vertices;
+	uint32_t vertexNum = 0;
+
+	// buffer size
+	size_t bufferSize = 0;
+};
+
+// TODO : rename to VertexBufferVk
+struct VertexBuffer : public temp
 {
 #if false
 	// binded memory block
@@ -16,12 +28,6 @@ struct VertexBuffer
 	VmaAllocation allocation;
 #endif
 
-	// CPU accessible data
-	void* vertices;
-	uint32_t vertexNum = 0;
-
-	// buffer size
-	size_t bufferSize = 0;
 	// vertex buffer object
 	VkBuffer buffer;
 };

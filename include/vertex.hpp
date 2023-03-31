@@ -13,8 +13,8 @@ struct Vertex
 	Color color;
 
 	// binding the data to the vertex shader
-	static VkVertexInputBindingDescription getBindingDescription();
+	static struct VkVertexInputBindingDescription getBindingDescription();
 
 	// 2 attributes descripction
-	static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescription();
+	static std::array<struct VkVertexInputAttributeDescription, 2> getAttributeDescription();
 };

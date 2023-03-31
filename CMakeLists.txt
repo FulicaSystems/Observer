@@ -34,6 +34,10 @@ set(HEADERS
 
     include/lowrenderer.hpp
     include/renderer.hpp
+
+    include/resource.hpp
+    include/resourcesmanager.hpp
+    include/mesh.hpp
 )
 
 set(SOURCES
@@ -55,6 +59,8 @@ set(SOURCES
 
     src/lowrenderer.cpp
     src/renderer.cpp
+
+    src/mesh.cpp
 )
 
 add_executable(renderer ${HEADERS} ${SOURCES})

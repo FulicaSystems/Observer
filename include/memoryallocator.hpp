@@ -6,8 +6,6 @@
 
 #include "graphicsobject.hpp"
 
-struct VertexBuffer;
-
 struct MemoryBlock
 {
 	// memory allocated on the GPU heap

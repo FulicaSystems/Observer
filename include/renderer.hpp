@@ -40,11 +40,11 @@ public:
 
 	// vertex buffer object
 
-	VertexBuffer createFloatingBufferObject(uint32_t vertexNum,
+	[[nodiscard]] VertexBuffer createFloatingBufferObject(uint32_t vertexNum,
 		VkBufferUsageFlags usage,
 		VkMemoryPropertyFlags memProperties,
 		bool mappable = false);
-	VertexBuffer& createBufferObject(uint32_t vertexNum,
+	[[nodiscard]] VertexBuffer& createBufferObject(uint32_t vertexNum,
 		VkBufferUsageFlags usage,
 		VkMemoryPropertyFlags memProperties,
 		bool mappable = false);
