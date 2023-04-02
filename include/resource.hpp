@@ -1,13 +1,13 @@
 #pragma once
 
+// resources used for rendering with GPU
 class IGPUResource
 {
 protected:
-	class Renderer* rdr = nullptr;
+	class Renderer& rdr;
 
 public:
-	// do not forget to declare the constructor in the derived class
-	IGPUResource(class Renderer* rdr) : rdr(rdr) {}
+	IGPUResource(class Renderer& rdr) : rdr(rdr) {}
 
 	virtual void create(class IResource* host) = 0;
 	virtual void destroy(class IResource* host) = 0;
@@ -21,21 +21,12 @@ protected:
 	IGPUResource* local = nullptr;
 
 public:
-	virtual void cpuLoad() = 0;
-	virtual void gpuLoad()
-	{
-		if (!local)
-			return;
+	IResource(IGPUResource* local) : local(local) {}
+	~IResource() { if (local) delete local; }
 
-		local->create(this);
-	}
+	virtual void cpuLoad() = 0;
+	virtual void gpuLoad() { if (local) local->create(this); }
 
 	virtual void cpuUnload() = 0;
-	virtual void gpuUnload()
-	{
-		if (!local)
-			return;
-
-		local->destroy(this);
-	}
+	virtual void gpuUnload() { if (local) local->destroy(this); }
 };

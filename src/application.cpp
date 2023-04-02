@@ -63,15 +63,8 @@ void Application::windowInit()
 void Application::loop()
 {
 	// TODO : store vbos in a scene
-	Vertex vertices2[] = {
-		{ { 0.0f,  0.5f}, Color::white },
-		{ {-0.5f, -0.5f}, Color::maroon },
-		{ { 0.5f, -0.5f}, Color::lime }
-	};
 
-	rdr.createVertexBufferObject(3, vertices2);
-
-	Mesh mesh(&rdr);
+	Mesh mesh(new MeshRenderer(rdr));
 	mesh.cpuLoad();
 	mesh.gpuLoad();
 

@@ -2,11 +2,6 @@
 
 #include "mesh.hpp"
 
-Mesh::Mesh(Renderer* rdr)
-{
-	local = new GPUMesh(rdr);
-}
-
 void Mesh::cpuLoad()
 {
 	vertices = {
@@ -16,12 +11,17 @@ void Mesh::cpuLoad()
 	};
 }
 
+void Mesh::cpuUnload()
+{
+	vertices.clear();
+}
+
 const Vertex* Mesh::data() const
 {
 	return vertices.data();
 }
 
-void GPUMesh::create(IResource* host)
+void MeshRenderer::create(IResource* host)
 {
-	rdr->createVertexBufferObject(3, ((Mesh*)host)->data());
+	vbo = &rdr.createVertexBufferObject(3, ((Mesh*)host)->data());
 }
