@@ -58,6 +58,8 @@ void Application::windowInit()
 #include "vertex.hpp"
 #include "vertexbuffer.hpp"
 
+#include "mesh.hpp"
+
 void Application::loop()
 {
 	// TODO : store vbos in a scene
@@ -68,6 +70,10 @@ void Application::loop()
 	};
 
 	rdr.createVertexBufferObject(3, vertices2);
+
+	Mesh mesh(&rdr);
+	mesh.cpuLoad();
+	mesh.gpuLoad();
 
 	while (!glfwWindowShouldClose(window))
 	{

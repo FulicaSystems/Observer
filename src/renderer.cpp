@@ -15,7 +15,7 @@ void Renderer::destroyBufferObject(int index)
 	vbos.erase(vbos.begin() + index);
 }
 
-VertexBuffer& Renderer::createVertexBufferObject(uint32_t vertexNum, Vertex* vertices)
+VertexBuffer& Renderer::createVertexBufferObject(uint32_t vertexNum, const Vertex* vertices)
 {
 	// this buffer is a CPU accessible buffer (temporary buffer to later load the data to the GPU)
 	VertexBuffer stagingVBO = createFloatingBufferObject(vertexNum,
@@ -140,7 +140,7 @@ void Renderer::terminateRenderer()
 	return vbos.emplace_back(createFloatingBufferObject(vertexNum, usage, memProperties, mappable));
 }
 
-void Renderer::populateBufferObject(VertexBuffer& vbo, Vertex* vertices)
+void Renderer::populateBufferObject(VertexBuffer& vbo, const Vertex* vertices)
 {
 	// populating the VBO (using a CPU accessible memory)
 #if false

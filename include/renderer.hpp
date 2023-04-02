@@ -49,7 +49,7 @@ public:
 		VkMemoryPropertyFlags memProperties,
 		bool mappable = false);
 
-	void populateBufferObject(VertexBuffer& vbo, Vertex* vertices);
+	void populateBufferObject(VertexBuffer& vbo, const Vertex* vertices);
 
 	void destroyFloatingBufferObject(VertexBuffer& vbo);
 	void destroyBufferObject(int index);
@@ -57,7 +57,7 @@ public:
 	/**
 	 * Create a vertex buffer and store it to the vertex buffer container.
 	 */
-	VertexBuffer& createVertexBufferObject(uint32_t vertexNum, Vertex* vertices);
+	VertexBuffer& createVertexBufferObject(uint32_t vertexNum, const Vertex* vertices);
 
 
 	// rendering

@@ -2,15 +2,15 @@
 
 class IGPUResource
 {
-private:
+protected:
 	class Renderer* rdr = nullptr;
 
 public:
 	// do not forget to declare the constructor in the derived class
 	IGPUResource(class Renderer* rdr) : rdr(rdr) {}
 
-	virtual void create() = 0;
-	virtual void destroy() = 0;
+	virtual void create(class IResource* host) = 0;
+	virtual void destroy(class IResource* host) = 0;
 };
 
 class IResource
@@ -27,7 +27,7 @@ public:
 		if (!local)
 			return;
 
-		local->create();
+		local->create(this);
 	}
 
 	virtual void cpuUnload() = 0;
@@ -36,6 +36,6 @@ public:
 		if (!local)
 			return;
 
-		local->destroy();
+		local->destroy(this);
 	}
 };

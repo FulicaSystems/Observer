@@ -15,8 +15,8 @@ private:
 public:
 	GPUMesh(class Renderer* rdr) : ctor(rdr) {}
 
-	void create() override {}
-	void destroy() override {}
+	void create(class IResource* host) override;
+	void destroy(class IResource* host) override {}
 };
 
 class Mesh : public IResource
@@ -28,4 +28,7 @@ public:
 	Mesh(class Renderer* rdr);
 
 	void cpuLoad() override;
+	void cpuUnload() override {}
+
+	const Vertex* data() const;
 };
