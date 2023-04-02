@@ -5,8 +5,6 @@
 #include "format.hpp"
 #include "lowrenderer.hpp"
 
-#include "utils/checkleak.hpp"
-
 #include "application.hpp"
 
 Application::Application()
@@ -14,7 +12,6 @@ Application::Application()
 	glfwInit();
 	windowInit();
 
-	CHKLK_ENTRY_SNAP
 	// init GLFW for Vulkan
 	if (!glfwVulkanSupported())
 		throw std::exception("GLFW failed to find the Vulkan loader");
@@ -41,7 +38,6 @@ Application::Application()
 Application::~Application()
 {
 	rdr.terminateRenderer();
-	CHKLK_EXIT_SNAP
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -64,7 +60,7 @@ void Application::loop()
 {
 	// TODO : store vbos in a scene
 
-	Mesh mesh(new MeshRenderer(rdr));
+	Mesh mesh("triangle", "", new MeshRenderer(rdr));
 	mesh.cpuLoad();
 	mesh.gpuLoad();
 

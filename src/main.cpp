@@ -9,19 +9,23 @@
 int main()
 {
 	CHKLK_INIT
-	Application app;
 
-	try
+	CHKLK_ENTRY_SNAP
 	{
-		app.loop();
-	}
-	catch (const std::exception& ex)
-	{
-		std::cerr << ex.what() << std::endl;
-		return EXIT_FAILURE;
-	}
+		Application app;
 
-	CHKLK_DIFF_SNAP
+		try
+		{
+			app.loop();
+		}
+		catch (const std::exception& ex)
+		{
+			std::cerr << ex.what() << std::endl;
+			return EXIT_FAILURE;
+		}
+	}
+	CHKLK_EXIT_DIFF
+
 	//CHKLK_APP
 	return EXIT_SUCCESS;
 }

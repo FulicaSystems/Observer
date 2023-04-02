@@ -27,6 +27,8 @@ private:
 	std::vector<Vertex> vertices;
 
 public:
+	~Mesh() { cpuUnload(); }
+
 	void cpuLoad() override;
 	void cpuUnload() override;
 
