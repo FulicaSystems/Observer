@@ -7,21 +7,21 @@
 #include "vertex.hpp"
 #include "resource.hpp"
 
-class MeshRenderer : public IGPUResource
+class MeshRenderer : public ILocalResource
 {
-	SUPER(IGPUResource)
+	SUPER(ILocalResource)
 
 private:
 	struct VertexBuffer* vbo = nullptr;
 
 public:
-	void create(class IResource* host) override;
-	void destroy(class IResource* host) override {}
+	void create(class IHostResource* host) override;
+	void destroy(class IHostResource* host) override {}
 };
 
-class Mesh : public IResource
+class Mesh : public IHostResource
 {
-	SUPER(IResource)
+	SUPER(IHostResource)
 
 private:
 	std::vector<Vertex> vertices;

@@ -3,19 +3,23 @@
 #include <filesystem>
 
 // resources used for rendering with GPU
-class IGPUResource
+// GPU device local
+class ILocalResource
 {
 protected:
 	class Renderer& rdr;
 
 public:
-	IGPUResource(class Renderer& rdr) : rdr(rdr) {}
+	ILocalResource(class Renderer& rdr) : rdr(rdr) {}
 
-	virtual void create(class IResource* host) = 0;
-	virtual void destroy(class IResource* host) = 0;
+	virtual void create(class IHostResource* host) = 0;
+	virtual void destroy(class IHostResource* host) = 0;
 };
 
-class IResource
+
+// host accessible resource
+// CPU host
+class IHostResource
 {
 private:
 	const char* name = "";
@@ -24,15 +28,15 @@ private:
 protected:
 	// representation of this resource on the graphics device (GPU)
 	// it may not be host accessible (CPU)
-	IGPUResource* local = nullptr;
+	ILocalResource* local = nullptr;
 
 public:
-	IResource(const char*&& name,
+	IHostResource(const char*&& name,
 		const char*&& filepath,
-		IGPUResource* local)
+		ILocalResource* local)
 		: name(name), filepath(filepath), local(local) {}
 
-	virtual ~IResource()
+	virtual ~IHostResource()
 	{
 		gpuUnload();
 		if (local) delete local;

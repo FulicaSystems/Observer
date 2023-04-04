@@ -21,7 +21,7 @@ const Vertex* Mesh::data() const
 	return vertices.data();
 }
 
-void MeshRenderer::create(IResource* host)
+void MeshRenderer::create(IHostResource* host)
 {
 	vbo = &rdr.createVertexBufferObject(3, ((Mesh*)host)->data());
 }

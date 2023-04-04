@@ -9,19 +9,19 @@
 class ResourcesManager
 {
 private:
-    std::unordered_map<const char*, std::shared_ptr<IResource>> resources;
+    std::unordered_map<const char*, std::shared_ptr<IHostResource>> resources;
 
 public:
-    template<class TR, typename... TArg>
-        requires std::constructible_from<TR, const char*&&, TArg...>
-    inline std::shared_ptr<IResource> load(const char*&& name, TArg&&... ctorArgs);
+    template<class TResource, typename... TArg>
+        requires std::constructible_from<TResource, const char*&&, TArg...>
+    inline std::shared_ptr<IHostResource> load(const char*&& name, TArg&&... ctorArgs);
 };
 
-template<class TR, typename... TArg>
-    requires std::constructible_from<TR, const char*&&, TArg...>
-inline std::shared_ptr<IResource> ResourcesManager::load(const char*&& name, TArg&&... ctorArgs)
+template<class TResource, typename... TArg>
+    requires std::constructible_from<TResource, const char*&&, TArg...>
+inline std::shared_ptr<IHostResource> ResourcesManager::load(const char*&& name, TArg&&... ctorArgs)
 {
-    std::shared_ptr<IResource> rsrc = std::make_shared<TR>(std::move(name), std::forward<TArg>(ctorArgs)...);
+    std::shared_ptr<IHostResource> rsrc = std::make_shared<TResource>(std::move(name), std::forward<TArg>(ctorArgs)...);
 
     resources[name] = rsrc;
 
