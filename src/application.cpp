@@ -51,19 +51,14 @@ void Application::windowInit()
 	glfwGetFramebufferSize(window, &Format::framebufferHeight, &Format::framebufferWidth);
 }
 
-#include "vertex.hpp"
-#include "vertexbuffer.hpp"
-
+#include "resourcesmanager.hpp"
 #include "mesh.hpp"
 
 void Application::loop()
 {
 	// TODO : store vbos in a scene
 
-	rmgr.load<Mesh>("triangle", "", new MeshRenderer(rdr));
-	//Mesh mesh("triangle", "", new MeshRenderer(rdr));
-	//mesh.cpuLoad();
-	//mesh.gpuLoad();
+	ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
 
 	while (!glfwWindowShouldClose(window))
 	{
