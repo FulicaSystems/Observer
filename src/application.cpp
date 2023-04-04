@@ -60,9 +60,10 @@ void Application::loop()
 {
 	// TODO : store vbos in a scene
 
-	Mesh mesh("triangle", "", new MeshRenderer(rdr));
-	mesh.cpuLoad();
-	mesh.gpuLoad();
+	rmgr.load<Mesh>("triangle", "", new MeshRenderer(rdr));
+	//Mesh mesh("triangle", "", new MeshRenderer(rdr));
+	//mesh.cpuLoad();
+	//mesh.gpuLoad();
 
 	while (!glfwWindowShouldClose(window))
 	{
