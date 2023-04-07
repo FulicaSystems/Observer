@@ -2,6 +2,8 @@
 #include <vector>
 #include <iostream>
 
+#include "utils/multithread/globalthreadpool.hpp"
+
 #include "format.hpp"
 #include "lowrenderer.hpp"
 
@@ -59,10 +61,15 @@ void Application::loop()
 	// TODO : store vbos in a scene
 
 	ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
+	ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
+	ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
+	ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
+	ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
 
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
+		Utils::GlobalThreadPool::pollMainQueue();
 
 		//draw frame
 		rdr.render();

@@ -1,4 +1,5 @@
 #include "renderer.hpp"
+#include "utils/multithread/globalthreadpool.hpp"
 
 #include "mesh.hpp"
 
@@ -23,5 +24,7 @@ const Vertex* Mesh::data() const
 
 void MeshRenderer::create(IHostResource* host)
 {
-	vbo = &rdr.createVertexBufferObject(3, ((Mesh*)host)->data());
+	Utils::GlobalThreadPool::addTask([&]() {
+		vbo = &rdr.createVertexBufferObject(3, ((Mesh*)host)->data());
+		}, false);
 }
