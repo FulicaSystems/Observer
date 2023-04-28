@@ -49,7 +49,7 @@ void LowRenderer::vulkanCreate()
 		.pApplicationName = "renderer",
 		.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
 		.engineVersion = VK_MAKE_VERSION(1, 0, 0),
-		.apiVersion = VK_API_VERSION_1_0
+		.apiVersion = VK_API_VERSION_1_3
 	};
 
 #ifndef NDEBUG
