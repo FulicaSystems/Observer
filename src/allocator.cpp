@@ -1,9 +1,11 @@
+#include <algorithm>
+
 #include "vertexbuffer.hpp"
 #include "graphicsdevice.hpp"
 
 #include "allocator.hpp"
 
-MyAllocator::MemoryBlock& MyAllocator::getAvailableBlock(size_t querySize, VkBuffer& buffer, VkMemoryPropertyFlags memProperties)
+MyAllocator::MemoryBlock& MyAllocator::findFirstAvailableBlock(size_t querySize, VkBuffer& buffer, VkMemoryPropertyFlags memProperties)
 {
 	// using an existing memory block if possible
 
@@ -52,7 +54,7 @@ void MyAllocator::allocateBufferObjectMemory(VkBufferCreateInfo& createInfo, Ver
 	MyAlloc* alloc = (MyAlloc*)vbo.alloc;
 
 	// binding memory block
-	MemoryBlock& block = getAvailableBlock(vbo.bufferSize, vbo.buffer, memoryFlags);
+	MemoryBlock& block = findFirstAvailableBlock(vbo.bufferSize, vbo.buffer, memoryFlags);
 	alloc->memoryOffset = block.usedSpace;
 	vkBindBufferMemory(device->vkdevice, vbo.buffer, block.memory, block.usedSpace);
 
@@ -63,6 +65,13 @@ void MyAllocator::allocateBufferObjectMemory(VkBufferCreateInfo& createInfo, Ver
 
 void MyAllocator::destroyBufferObjectMemory(VertexBuffer& vbo)
 {
+	MemoryBlock* currentBlock = ((MyAlloc*)vbo.alloc)->memoryBlock;
+	currentBlock->usedSpace -= vbo.bufferSize;
+	if (currentBlock->usedSpace <= 0)
+	{
+		vkFreeMemory(device->vkdevice, currentBlock->memory, nullptr);
+		memBlocks.erase(std::remove(memBlocks.begin(), memBlocks.end(), *currentBlock));
+	}
 }
 
 void MyAllocator::mapMemory(IAllocation* allocation, void** ppData)

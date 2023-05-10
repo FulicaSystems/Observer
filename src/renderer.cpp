@@ -12,24 +12,24 @@ void Renderer::destroyFloatingBufferObject(VertexBuffer& vbo)
 
 void Renderer::destroyBufferObject(int index)
 {
-	destroyFloatingBufferObject(vbos[index]);
+	destroyFloatingBufferObject(*vbos[index]);
 	vbos.erase(vbos.begin() + index);
 }
 
 VertexBuffer& Renderer::createVertexBufferObject(uint32_t vertexNum, const Vertex* vertices)
 {
 	// this buffer is a CPU accessible buffer (temporary buffer to later load the data to the GPU)
-	VertexBuffer stagingVBO = createFloatingBufferObject(vertexNum,
+	std::shared_ptr<VertexBuffer> stagingVBO = createFloatingBufferObject(vertexNum,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,	// used for memory transfer operation
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 		true);
 
 	// populating the CPU accessible buffer
-	populateBufferObject(stagingVBO, vertices);
+	populateBufferObject(*stagingVBO, vertices);
 
 	// creating a device (GPU) local buffer (on the specific device of the renderer)
 	// store this vertex buffer to keep a reference
-	VertexBuffer& vbo = createBufferObject(vertexNum,
+	std::shared_ptr<VertexBuffer>& vbo = createBufferObject(vertexNum,
 		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,	// memory transfer operation
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
@@ -41,12 +41,12 @@ VertexBuffer& Renderer::createVertexBufferObject(uint32_t vertexNum, const Verte
 	// copy the staging buffer (CPU accessible) into the GPU buffer (GPU memory)
 	cbo.beginRecord(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
-		VkBufferCopy copyRegion = {
-			.srcOffset = 0,
-			.dstOffset = 0,
-			.size = stagingVBO.bufferSize
-		};
-		vkCmdCopyBuffer(cbo.getVkBuffer(), stagingVBO.buffer, vbo.buffer, 1, &copyRegion);
+	VkBufferCopy copyRegion = {
+		.srcOffset = 0,
+		.dstOffset = 0,
+		.size = stagingVBO->bufferSize
+	};
+	vkCmdCopyBuffer(cbo.getVkBuffer(), stagingVBO->buffer, vbo->buffer, 1, &copyRegion);
 
 	cbo.endRecord();
 
@@ -59,9 +59,9 @@ VertexBuffer& Renderer::createVertexBufferObject(uint32_t vertexNum, const Verte
 	device.waitGraphicsQueue();
 
 	commandPool.destroyFloatingCommandBuffer(cbo);
-	destroyFloatingBufferObject(stagingVBO);
+	destroyFloatingBufferObject(*stagingVBO);
 
-	return vbo;
+	return *vbo;
 }
 
 void Renderer::initRenderer()
@@ -71,7 +71,7 @@ void Renderer::initRenderer()
 	commandPool.create(&api, &device);
 	pipeline.create(&api, &device);
 
-	allocator = new VMAHelperAllocator();
+	allocator = new MyAllocator();
 	allocator->create(&api, &device);
 
 	// default command buffer
@@ -85,7 +85,7 @@ void Renderer::terminateRenderer()
 
 	for (int i = 0; i < vbos.size(); ++i)
 	{
-		destroyFloatingBufferObject(vbos[i]);
+		destroyFloatingBufferObject(*vbos[i]);
 	}
 	vbos.clear();
 
@@ -97,35 +97,36 @@ void Renderer::terminateRenderer()
 	api.terminateGraphicsAPI();
 }
 
-[[nodiscard]] VertexBuffer Renderer::createFloatingBufferObject(uint32_t vertexNum,
+[[nodiscard]] std::shared_ptr<VertexBuffer> Renderer::createFloatingBufferObject(uint32_t vertexNum,
 	VkBufferUsageFlags usage,
 	VkMemoryPropertyFlags memProperties,
 	bool mappable)
 {
 	// out buffer object
-	VertexBuffer outVbo = VertexBuffer::createNew();
-	outVbo.bufferSize = sizeof(Vertex) * (size_t)vertexNum;
-	outVbo.vertexNum = vertexNum;
+	std::shared_ptr<VertexBuffer> outVbo = VertexBuffer::createNew();
+	outVbo->bufferSize = sizeof(Vertex) * (size_t)vertexNum;
+	outVbo->vertexNum = vertexNum;
 
 	VkBufferCreateInfo createInfo = {
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
 		.flags = 0,
-		.size = (VkDeviceSize)outVbo.bufferSize,
+		.size = (VkDeviceSize)outVbo->bufferSize,
 		.usage = usage,
 		.sharingMode = VK_SHARING_MODE_EXCLUSIVE
 	};
 
-	allocator->allocateBufferObjectMemory(createInfo, outVbo, memProperties, mappable);
+	allocator->allocateBufferObjectMemory(createInfo, *outVbo, memProperties, mappable);
 
 	return outVbo;
 }
 
-[[nodiscard]] VertexBuffer& Renderer::createBufferObject(uint32_t vertexNum,
+[[nodiscard]] std::shared_ptr<VertexBuffer>& Renderer::createBufferObject(uint32_t vertexNum,
 	VkBufferUsageFlags usage,
 	VkMemoryPropertyFlags memProperties,
 	bool mappable)
-{	
-	return vbos.emplace_back(createFloatingBufferObject(vertexNum, usage, memProperties, mappable));
+{
+	std::shared_ptr<VertexBuffer> newVBO = createFloatingBufferObject(vertexNum, usage, memProperties, mappable);
+	return vbos.emplace_back(newVBO);
 }
 
 void Renderer::populateBufferObject(VertexBuffer& vbo, const Vertex* vertices)

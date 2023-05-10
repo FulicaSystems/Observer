@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <glad/vulkan.h>
 
 #include "allocator.hpp"
@@ -20,19 +22,17 @@ public:
 // TODO : rename to VertexBufferVk
 class VertexBuffer : public temp
 {
-private:
-	VertexBuffer(class IAllocation* allocation) : alloc(allocation) {}
-
 public:
 	class IAllocation* alloc;
 
 	// vertex buffer object
 	VkBuffer buffer;
 
+	explicit VertexBuffer(class IAllocation* allocation) : alloc(allocation) {}
 	~VertexBuffer() { delete alloc; }
 
-	static inline VertexBuffer createNew()
+	[[nodiscard]] static inline std::shared_ptr<VertexBuffer> createNew()
 	{
-		return VertexBuffer(new VMAHelperAlloc());
+		return std::make_shared<VertexBuffer>(new MyAlloc());
 	}
 };

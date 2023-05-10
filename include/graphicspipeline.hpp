@@ -65,7 +65,7 @@ private:
 
 	void recordImageCommandBuffer(CommandBuffer& cb,
 		uint32_t imageIndex,
-		const std::deque<VertexBuffer>& vbos);
+		const std::deque<std::shared_ptr<VertexBuffer>>& vbos);
 
 public:
 	void create(LowRenderer* api, LogicalDevice* device) override;
@@ -77,5 +77,5 @@ public:
 
 	VkShaderModule createShaderModule(const std::vector<char>& code);
 
-	void drawFrame(CommandBuffer& cb, const std::deque<VertexBuffer>& vbos);
+	void drawFrame(CommandBuffer& cb, const std::deque<std::shared_ptr<VertexBuffer>>& vbos);
 };

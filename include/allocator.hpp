@@ -16,6 +16,11 @@ public:
 		VkDeviceMemory memory;
 
 		size_t usedSpace = 0;
+
+		bool operator==(MemoryBlock& other) const
+		{
+			return memory == other.memory && usedSpace == other.usedSpace;
+		}
 	};
 
 private:
@@ -23,7 +28,7 @@ private:
 	size_t blockSize = 1024;
 	std::deque<MemoryBlock> memBlocks;
 
-	MemoryBlock& getAvailableBlock(size_t querySize, VkBuffer& buffer, VkMemoryPropertyFlags memProperties);
+	MemoryBlock& findFirstAvailableBlock(size_t querySize, VkBuffer& buffer, VkMemoryPropertyFlags memProperties);
 
 protected:
 	void createAllocatorInstance() override {}
@@ -33,7 +38,7 @@ public:
 	void allocateBufferObjectMemory(VkBufferCreateInfo& createInfo,
 		class VertexBuffer& vbo,
 		uint32_t memoryFlags = 0,
-		bool mappable = false);
+		bool mappable = false) override;
 	void destroyBufferObjectMemory(class VertexBuffer& vbo) override;
 
 	void mapMemory(IAllocation* allocation, void** ppData) override;

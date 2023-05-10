@@ -451,7 +451,7 @@ void GraphicsPipeline::vulkanFramebuffers()
 
 void GraphicsPipeline::recordImageCommandBuffer(CommandBuffer& cb,
 	uint32_t imageIndex,
-	const std::deque<VertexBuffer>& vbos)
+	const std::deque<std::shared_ptr<VertexBuffer>>& vbos)
 {
 	cb.reset();
 	cb.beginRecord();
@@ -498,7 +498,7 @@ void GraphicsPipeline::recordImageCommandBuffer(CommandBuffer& cb,
 	// bind VBOs
 	for (int i = 0; i < vbos.size(); ++i)
 	{
-		const VertexBuffer& vbo = vbos.at(i);
+		const VertexBuffer& vbo = *vbos.at(i);
 
 		VkBuffer buffers[] = { vbo.buffer };
 		VkDeviceSize offsets[] = { 0 };
@@ -511,7 +511,7 @@ void GraphicsPipeline::recordImageCommandBuffer(CommandBuffer& cb,
 	cb.endRecord();
 }
 
-void GraphicsPipeline::drawFrame(CommandBuffer& cb, const std::deque<VertexBuffer>& vbos)
+void GraphicsPipeline::drawFrame(CommandBuffer& cb, const std::deque<std::shared_ptr<VertexBuffer>>& vbos)
 {
 	VkDevice vkdevice = device->vkdevice;
 

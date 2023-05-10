@@ -23,7 +23,7 @@ private:
 	class IMemoryAllocator* allocator;
 
 	// every created buffer objects
-	std::deque<VertexBuffer> vbos;
+	std::deque<std::shared_ptr<VertexBuffer>> vbos;
 
 public:
 	LowRenderer api;
@@ -36,11 +36,11 @@ public:
 
 	// vertex buffer object
 
-	[[nodiscard]] VertexBuffer createFloatingBufferObject(uint32_t vertexNum,
+	[[nodiscard]] std::shared_ptr<VertexBuffer> createFloatingBufferObject(uint32_t vertexNum,
 		VkBufferUsageFlags usage,
 		VkMemoryPropertyFlags memProperties,
 		bool mappable = false);
-	[[nodiscard]] VertexBuffer& createBufferObject(uint32_t vertexNum,
+	[[nodiscard]] std::shared_ptr<VertexBuffer>& createBufferObject(uint32_t vertexNum,
 		VkBufferUsageFlags usage,
 		VkMemoryPropertyFlags memProperties,
 		bool mappable = false);
