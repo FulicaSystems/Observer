@@ -1,4 +1,5 @@
 #include "vmahelper.hpp"
+#include "allocator.hpp"
 #include "commandbuffer.hpp"
 
 #include "renderer.hpp"
@@ -6,7 +7,7 @@
 void Renderer::destroyFloatingBufferObject(VertexBuffer& vbo)
 {
 	vkDestroyBuffer(device.vkdevice, vbo.buffer, nullptr);
-	VMAHelper::destroyBufferObjectMemory(allocator, vbo);
+	allocator->destroyBufferObjectMemory(vbo);
 }
 
 void Renderer::destroyBufferObject(int index)
@@ -70,7 +71,8 @@ void Renderer::initRenderer()
 	commandPool.create(&api, &device);
 	pipeline.create(&api, &device);
 
-	VMAHelper::createAllocator(api, device, allocator);
+	allocator = new VMAHelperAllocator();
+	allocator->create(&api, &device);
 
 	// default command buffer
 	commandPool.createCommandBuffer();
@@ -87,7 +89,8 @@ void Renderer::terminateRenderer()
 	}
 	vbos.clear();
 
-	VMAHelper::destroyAllocator(allocator);
+	allocator->destroy();
+	delete allocator;
 
 	device.destroy();
 
@@ -100,7 +103,7 @@ void Renderer::terminateRenderer()
 	bool mappable)
 {
 	// out buffer object
-	VertexBuffer outVbo;
+	VertexBuffer outVbo = VertexBuffer::createNew();
 	outVbo.bufferSize = sizeof(Vertex) * (size_t)vertexNum;
 	outVbo.vertexNum = vertexNum;
 
@@ -112,22 +115,7 @@ void Renderer::terminateRenderer()
 		.sharingMode = VK_SHARING_MODE_EXCLUSIVE
 	};
 
-#if false
-	const VkDevice& device = ldevice.getVkLDevice();
-
-	if (vkCreateBuffer(device, &createInfo, nullptr, &outVbo.buffer) != VK_SUCCESS)
-		throw std::exception("Failed to create vertex buffer");
-
-	// binding memory block
-	MemoryBlock& block = allocator.getAvailableBlock(outVbo.bufferSize, outVbo.buffer, memProperties);
-	outVbo.memoryOffset = block.usedSpace;
-	vkBindBufferMemory(device, outVbo.buffer, block.memory, block.usedSpace);
-	// marking space as taken
-	block.usedSpace += outVbo.bufferSize;
-	outVbo.memoryBlock = &block;
-#else
-	VMAHelper::allocateBufferObjectMemory(allocator, createInfo, outVbo, mappable);
-#endif
+	allocator->allocateBufferObjectMemory(createInfo, outVbo, memProperties, mappable);
 
 	return outVbo;
 }
@@ -143,28 +131,13 @@ void Renderer::terminateRenderer()
 void Renderer::populateBufferObject(VertexBuffer& vbo, const Vertex* vertices)
 {
 	// populating the VBO (using a CPU accessible memory)
-#if false
-	const VkDevice& device = ldevice.getVkLDevice();
-
-	vkMapMemory(device,
-		vbo.memoryBlock->memory,
-		(VkDeviceSize)vbo.memoryOffset,
-		(VkDeviceSize)vbo.bufferSize,
-		0,
-		&vbo.vertices);
-#else
-	VMAHelper::mapMemory(allocator, vbo.allocation, &vbo.vertices);
-#endif
+	allocator->mapMemory(vbo.alloc, &vbo.vertices);
 
 	// TODO : flush memory
 	memcpy(vbo.vertices, vertices, vbo.bufferSize);
 	// TODO : invalidate memory before reading in the pipeline
 
-#if false
-	vkUnmapMemory(device, vbo.memoryBlock->memory);
-#else
-	VMAHelper::unmapMemory(allocator, vbo.allocation);
-#endif
+	allocator->unmapMemory(vbo.alloc);
 }
 
 void Renderer::render()

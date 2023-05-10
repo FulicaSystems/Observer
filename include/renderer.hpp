@@ -20,11 +20,7 @@ private:
 	// TODO : make the pipeline independant in order to make different pipelines
 	GraphicsPipeline pipeline;
 
-#if false
-	MemoryAllocator allocator;
-#else
-	VmaAllocator allocator;
-#endif
+	class IMemoryAllocator* allocator;
 
 	// every created buffer objects
 	std::deque<VertexBuffer> vbos;

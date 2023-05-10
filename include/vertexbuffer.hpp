@@ -2,13 +2,13 @@
 
 #include <glad/vulkan.h>
 
-#include <vk_mem_alloc.h>
-
-struct MemoryBlock;
+#include "allocator.hpp"
+#include "vmahelper.hpp"
 
 // TODO : rename to VertexBuffer
-struct temp
+class temp
 {
+public:
 	// CPU accessible data
 	void* vertices;
 	uint32_t vertexNum = 0;
@@ -18,16 +18,21 @@ struct temp
 };
 
 // TODO : rename to VertexBufferVk
-struct VertexBuffer : public temp
+class VertexBuffer : public temp
 {
-#if false
-	// binded memory block
-	MemoryBlock* memoryBlock = nullptr;
-	size_t memoryOffset = 0;
-#else
-	VmaAllocation allocation;
-#endif
+private:
+	VertexBuffer(class IAllocation* allocation) : alloc(allocation) {}
+
+public:
+	class IAllocation* alloc;
 
 	// vertex buffer object
 	VkBuffer buffer;
+
+	~VertexBuffer() { delete alloc; }
+
+	static inline VertexBuffer createNew()
+	{
+		return VertexBuffer(new VMAHelperAlloc());
+	}
 };

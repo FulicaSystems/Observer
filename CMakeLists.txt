@@ -29,7 +29,8 @@ set(HEADERS
     include/commandbuffer.hpp
     include/commandpool.hpp
 
-    include/memoryallocator.hpp
+    include/memorymanager.hpp
+    include/allocator.hpp
     include/vmahelper.hpp
 
     include/lowrenderer.hpp
@@ -54,7 +55,7 @@ set(SOURCES
     src/commandbuffer.cpp
     src/commandpool.cpp
 
-    src/memoryallocator.cpp
+    src/allocator.cpp
     src/vmahelper.cpp
 
     src/lowrenderer.cpp
