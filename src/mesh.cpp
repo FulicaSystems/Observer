@@ -16,6 +16,11 @@ void Mesh::cpuUnload()
 	vertices.clear();
 }
 
+const int Mesh::getVertexNum() const
+{
+	return vertices.size();
+}
+
 const Vertex* Mesh::getRawData() const
 {
 	return vertices.data();
@@ -23,7 +28,9 @@ const Vertex* Mesh::getRawData() const
 
 void MeshRenderer::create(IHostResource* host)
 {
-	Utils::GlobalThreadPool::addTask([&]() {
-		vbo = &rdr.createVertexBufferObject(3, ((Mesh*)host)->getRawData());
+	Mesh* hostResource = (Mesh*)host;
+
+	Utils::GlobalThreadPool::addTask([this, hostResource]() {
+			vbo = &rdr.createVertexBufferObject(hostResource->getVertexNum(), hostResource->getRawData());
 		}, false);
 }
