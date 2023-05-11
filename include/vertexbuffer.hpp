@@ -12,7 +12,7 @@ class temp
 {
 public:
 	// CPU accessible data
-	void* vertices;
+	void* vertices = 0;
 	uint32_t vertexNum = 0;
 
 	// buffer size

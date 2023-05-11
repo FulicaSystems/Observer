@@ -32,5 +32,5 @@ public:
 	void cpuLoad() override;
 	void cpuUnload() override;
 
-	const Vertex* data() const;
+	const Vertex* getRawData() const;
 };

@@ -134,6 +134,8 @@ void Renderer::populateBufferObject(VertexBuffer& vbo, const Vertex* vertices)
 	// populating the VBO (using a CPU accessible memory)
 	allocator->mapMemory(vbo.alloc, &vbo.vertices);
 
+	// TODO : vertices is considered null when compiled with g++
+	
 	// TODO : flush memory
 	memcpy(vbo.vertices, vertices, vbo.bufferSize);
 	// TODO : invalidate memory before reading in the pipeline

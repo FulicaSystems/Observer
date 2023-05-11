@@ -1,4 +1,5 @@
 #include <limits>
+#include <stdexcept>
 
 #include "mathematics.hpp"
 #include "format.hpp"
@@ -151,7 +152,7 @@ void GraphicsPipeline::vulkanSwapchain()
 	}
 
 	if (vkCreateSwapchainKHR(vkdevice, &createInfo, nullptr, &swapchain) != VK_SUCCESS)
-		throw std::exception("Failed to create swapchain");
+		throw std::runtime_error("Failed to create swapchain");
 
 	vkGetSwapchainImagesKHR(vkdevice, swapchain, &imageCount, nullptr);
 	swapchainImages.resize(imageCount);
@@ -189,7 +190,7 @@ void GraphicsPipeline::vulkanImageViews()
 
 		VkDevice vkdevice = device->vkdevice;
 		if (vkCreateImageView(vkdevice, &createInfo, nullptr, &swapchainImageViews[i]) != VK_SUCCESS)
-			throw std::exception("Failed to create an image view");
+			throw std::runtime_error("Failed to create an image view");
 	}
 }
 
@@ -332,7 +333,7 @@ void GraphicsPipeline::vulkanGraphicsPipeline()
 	VkDevice vkdevice = device->vkdevice;
 
 	if (vkCreatePipelineLayout(vkdevice, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
-		throw std::exception("Failed to create pipeline layout");
+		throw std::runtime_error("Failed to create pipeline layout");
 
 	VkGraphicsPipelineCreateInfo pipelineCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -358,7 +359,7 @@ void GraphicsPipeline::vulkanGraphicsPipeline()
 	};
 
 	if (vkCreateGraphicsPipelines(vkdevice, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
-		throw std::exception("Failed to create graphics pipeline");
+		throw std::runtime_error("Failed to create graphics pipeline");
 
 	vkDestroyShaderModule(vkdevice, vsModule, nullptr);
 	vkDestroyShaderModule(vkdevice, fsModule, nullptr);
@@ -375,7 +376,7 @@ VkShaderModule GraphicsPipeline::createShaderModule(const std::vector<char>& cod
 	VkDevice vkdevice = device->vkdevice;
 	VkShaderModule shaderModule;
 	if (vkCreateShaderModule(vkdevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
-		throw std::exception("Failed to create shader module");
+		throw std::runtime_error("Failed to create shader module");
 	return shaderModule;
 }
 
@@ -424,7 +425,7 @@ void GraphicsPipeline::vulkanRenderPass()
 
 	VkDevice vkdevice = device->vkdevice;
 	if (vkCreateRenderPass(vkdevice, &createInfo, nullptr, &renderPass) != VK_SUCCESS)
-		throw std::exception("Failed to create render pass");
+		throw std::runtime_error("Failed to create render pass");
 }
 
 void GraphicsPipeline::vulkanFramebuffers()
@@ -445,7 +446,7 @@ void GraphicsPipeline::vulkanFramebuffers()
 		};
 
 		if (vkCreateFramebuffer(vkdevice, &createInfo, nullptr, &swapchainFramebuffers[i]) != VK_SUCCESS)
-			throw std::exception("Failed to create framebuffer");
+			throw std::runtime_error("Failed to create framebuffer");
 	}
 }
 
@@ -567,9 +568,9 @@ void GraphicsPipeline::vulkanMultithreadObjects()
 	VkDevice vkdevice = device->vkdevice;
 
 	if (vkCreateSemaphore(vkdevice, &semaphoreCreateInfo, nullptr, &renderReadySemaphore) != VK_SUCCESS)
-		throw std::exception("Failed to create semaphore");
+		throw std::runtime_error("Failed to create semaphore");
 	if (vkCreateSemaphore(vkdevice, &semaphoreCreateInfo, nullptr, &renderDoneSemaphore) != VK_SUCCESS)
-		throw std::exception("Failed to create semaphore");
+		throw std::runtime_error("Failed to create semaphore");
 	if (vkCreateFence(vkdevice, &fenceCreateInfo, nullptr, &renderOnceFence) != VK_SUCCESS)
-		throw std::exception("Failed to create fence");
+		throw std::runtime_error("Failed to create fence");
 }

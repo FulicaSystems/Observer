@@ -2,6 +2,7 @@
 #include <string>
 #include <set>
 #include <iostream>
+#include <stdexcept>
 
 #include "lowrenderer.hpp"
 #include "graphicsdevice.hpp"
@@ -27,7 +28,7 @@ void LogicalDevice::waitGraphicsQueue()
 void LogicalDevice::submitCommandToGraphicsQueue(VkSubmitInfo& submitInfo, VkFence fence)
 {
 	if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, fence) != VK_SUCCESS)
-		throw std::exception("Failed to submit draw command buffer");
+		throw std::runtime_error("Failed to submit draw command buffer");
 }
 
 void LogicalDevice::present(VkPresentInfoKHR& presentInfo)
@@ -126,7 +127,7 @@ uint32_t PhysicalDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
 			return i;
 	}
 
-	throw std::exception("Failed to find suitable memory type");
+	throw std::runtime_error("Failed to find suitable memory type");
 }
 
 void LogicalDevice::vulkanPhysicalDevice()
@@ -137,7 +138,7 @@ void LogicalDevice::vulkanPhysicalDevice()
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 	if (deviceCount == 0)
-		throw std::exception("Failed to find GPUs with Vulkan support");
+		throw std::runtime_error("Failed to find GPUs with Vulkan support");
 
 	std::vector<VkPhysicalDevice> devices(deviceCount);
 	vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
@@ -163,9 +164,9 @@ void LogicalDevice::vulkanPhysicalDevice()
 
 	VkPhysicalDevice d = pdevice.vkpdevice;
 	if (d == VK_NULL_HANDLE)
-		throw std::exception("Failed to find a suitable GPU");
+		throw std::runtime_error("Failed to find a suitable GPU");
 	if (!gladLoaderLoadVulkan(instance, d, nullptr))
-		throw std::exception("Unable to reload Vulkan symbols with physical device");
+		throw std::runtime_error("Unable to reload Vulkan symbols with physical device");
 
 	// physical device limits
 	VkPhysicalDeviceProperties prop;
@@ -237,9 +238,9 @@ void LogicalDevice::vulkanLogicalDevice()
 	VkPhysicalDevice d = pdevice.vkpdevice;
 
 	if (vkCreateDevice(d, &createInfo, nullptr, &vkdevice) != VK_SUCCESS)
-		throw std::exception("Failed to create logical device");
+		throw std::runtime_error("Failed to create logical device");
 	if (!gladLoaderLoadVulkan(instance, d, vkdevice))
-		throw std::exception("Unable to reload Vulkan symbols with logical device");
+		throw std::runtime_error("Unable to reload Vulkan symbols with logical device");
 
 	vkGetDeviceQueue(vkdevice, indices.graphicsFamily.value(), 0, &graphicsQueue);
 	vkGetDeviceQueue(vkdevice, indices.presentFamily.value(), 0, &presentQueue);

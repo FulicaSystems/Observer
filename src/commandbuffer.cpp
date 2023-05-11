@@ -1,4 +1,4 @@
-#include <exception>
+#include <stdexcept>
 
 #include "commandbuffer.hpp"
 
@@ -16,13 +16,13 @@ void CommandBuffer::beginRecord(VkCommandBufferUsageFlags flags)
 	};
 
 	if (vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo) != VK_SUCCESS)
-		throw std::exception("Failed to begin recording command buffer");
+		throw std::runtime_error("Failed to begin recording command buffer");
 }
 
 void CommandBuffer::endRecord()
 {
 	if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-		throw std::exception("Failed to record command buffer");
+		throw std::runtime_error("Failed to record command buffer");
 }
 
 VkCommandBuffer& CommandBuffer::getVkBuffer()

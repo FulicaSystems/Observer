@@ -6,7 +6,7 @@
 
 #include "memorymanager.hpp"
 
-static class VMAHelper
+class VMAHelper
 {
 public:
 	static void createAllocator(LowRenderer& api, LogicalDevice& device, VmaAllocator& allocator);

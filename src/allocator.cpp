@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <stdexcept>
 
 #include "vertexbuffer.hpp"
 #include "graphicsdevice.hpp"
@@ -32,7 +33,7 @@ MyAllocator::MemoryBlock& MyAllocator::findFirstAvailableBlock(size_t querySize,
 
 	MemoryBlock newBlock;
 	if (vkAllocateMemory(vkdevice, &allocInfo, nullptr, &newBlock.memory) != VK_SUCCESS)
-		throw std::exception("Failed to allocate vertex buffer memory");
+		throw std::runtime_error("Failed to allocate vertex buffer memory");
 
 	return memBlocks.emplace_back(newBlock);
 }
@@ -49,7 +50,7 @@ void MyAllocator::destroyAllocatorInstance()
 void MyAllocator::allocateBufferObjectMemory(VkBufferCreateInfo& createInfo, VertexBuffer& vbo, uint32_t memoryFlags, bool mappable)
 {
 	if (vkCreateBuffer(device->vkdevice, &createInfo, nullptr, &vbo.buffer) != VK_SUCCESS)
-		throw std::exception("Failed to create vertex buffer");
+		throw std::runtime_error("Failed to create vertex buffer");
 
 	MyAlloc* alloc = (MyAlloc*)vbo.alloc;
 

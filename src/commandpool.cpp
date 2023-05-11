@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "graphicsdevice.hpp"
 #include "lowrenderer.hpp"
 
@@ -17,7 +19,7 @@ void CommandPool::vulkanCommandPool()
 	};
 
 	if (vkCreateCommandPool(vkdevice, &createInfo, nullptr, &commandPool) != VK_SUCCESS)
-		throw std::exception("Failed to create command pool");
+		throw std::runtime_error("Failed to create command pool");
 }
 
 CommandBuffer CommandPool::createFloatingCommandBuffer()
@@ -33,7 +35,7 @@ CommandBuffer CommandPool::createFloatingCommandBuffer()
 
 	CommandBuffer outCbo;
 	if (vkAllocateCommandBuffers(ldevice, &allocInfo, &outCbo.getVkBuffer()) != VK_SUCCESS)
-		throw std::exception("Failed to allocate command buffers");
+		throw std::runtime_error("Failed to allocate command buffers");
 
 	return outCbo;
 }

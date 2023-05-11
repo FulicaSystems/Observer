@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdexcept>
 
 #include "lowrenderer.hpp"
 
@@ -7,7 +8,7 @@ void LowRenderer::initGraphicsAPI(std::vector<const char*>& additionalExtensions
 	this->additionalExtensions = additionalExtensions;
 
 	if (!gladLoaderLoadVulkan(nullptr, nullptr, nullptr))
-		throw std::exception("Unable to load Vulkan symbols");
+		throw std::runtime_error("Unable to load Vulkan symbols");
 
 	// check extensions and layers
 	vulkanExtensions();
@@ -70,10 +71,10 @@ void LowRenderer::vulkanCreate()
 	};
 
 	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
-		throw std::exception("Failed to create Vulkan instance");
+		throw std::runtime_error("Failed to create Vulkan instance");
 
 	if (!gladLoaderLoadVulkan(instance, nullptr, nullptr))
-		throw std::exception("Unable to reload Vulkan symbols with Vulkan instance");
+		throw std::runtime_error("Unable to reload Vulkan symbols with Vulkan instance");
 }
 
 void LowRenderer::vulkanDebugMessenger()
@@ -95,7 +96,7 @@ void LowRenderer::vulkanDebugMessenger()
 	};
 
 	if (vkCreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
-		throw std::exception("Failed to set up debug messenger");
+		throw std::runtime_error("Failed to set up debug messenger");
 }
 
 void LowRenderer::vulkanExtensions()

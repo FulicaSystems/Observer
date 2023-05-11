@@ -5,11 +5,10 @@
 
 void Mesh::cpuLoad()
 {
-	vertices = {
-	{ { 0.0f, -0.5f}, Color::red },
-	{ { 0.5f,  0.5f}, Color::green },
-	{ {-0.5f,  0.5f}, Color::blue }
-	};
+	vertices.reserve(3);
+	vertices.push_back(Vertex({{  0.0f, -0.5f, 0.f }, Color::red}));
+	vertices.push_back(Vertex({{  0.5f,  0.5f, 0.f }, Color::green}));
+	vertices.push_back(Vertex({{ -0.5f,  0.5f, 0.f }, Color::blue}));
 }
 
 void Mesh::cpuUnload()
@@ -17,7 +16,7 @@ void Mesh::cpuUnload()
 	vertices.clear();
 }
 
-const Vertex* Mesh::data() const
+const Vertex* Mesh::getRawData() const
 {
 	return vertices.data();
 }
@@ -25,6 +24,6 @@ const Vertex* Mesh::data() const
 void MeshRenderer::create(IHostResource* host)
 {
 	Utils::GlobalThreadPool::addTask([&]() {
-		vbo = &rdr.createVertexBufferObject(3, ((Mesh*)host)->data());
+		vbo = &rdr.createVertexBufferObject(3, ((Mesh*)host)->getRawData());
 		}, false);
 }

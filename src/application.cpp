@@ -1,6 +1,7 @@
 #include <exception>
 #include <vector>
 #include <iostream>
+#include <stdexcept>
 
 #include "utils/multithread/globalthreadpool.hpp"
 
@@ -16,7 +17,7 @@ Application::Application()
 
 	// init GLFW for Vulkan
 	if (!glfwVulkanSupported())
-		throw std::exception("GLFW failed to find the Vulkan loader");
+		throw std::runtime_error("GLFW failed to find the Vulkan loader");
 
 	// gather Vulkan extensions required by GLFW
 	uint32_t glfwExtensionCount = 0;
@@ -32,7 +33,7 @@ Application::Application()
 
 	// create a surface using the instance
 	if (glfwCreateWindowSurface(rdr.api.instance, window, nullptr, &rdr.api.surface) != VK_SUCCESS)
-		throw std::exception("Failed to create window surface");
+		throw std::runtime_error("Failed to create window surface");
 
 	rdr.initRenderer();
 }
@@ -61,10 +62,10 @@ void Application::loop()
 	// TODO : store vbos in a scene
 
 	ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
-	ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
-	ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
-	ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
-	ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
+	//ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
+	//ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
+	//ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
+	//ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
 
 	while (!glfwWindowShouldClose(window))
 	{
