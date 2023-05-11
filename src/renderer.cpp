@@ -1,8 +1,12 @@
-#include "vmahelper.hpp"
-#include "allocator.hpp"
 #include "commandbuffer.hpp"
 
 #include "renderer.hpp"
+
+#ifdef USE_VMA
+#include "vmahelper.hpp"
+#else
+#include "allocator.hpp"
+#endif
 
 void Renderer::destroyFloatingBufferObject(VertexBuffer& vbo)
 {
@@ -71,7 +75,12 @@ void Renderer::initRenderer()
 	commandPool.create(&api, &device);
 	pipeline.create(&api, &device);
 
+	// TODO : no naked new (clean allocator creation)
+#ifdef USE_VMA
+	allocator = new VMAHelperAllocator();
+#else
 	allocator = new MyAllocator();
+#endif
 	allocator->create(&api, &device);
 
 	// default command buffer

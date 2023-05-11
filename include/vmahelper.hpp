@@ -1,10 +1,12 @@
 #pragma once
 
+#include "memorymanager.hpp"
+
+#ifdef USE_VMA
+
 #include <glad/vulkan.h>
 
 #include <vk_mem_alloc.h>
-
-#include "memorymanager.hpp"
 
 class VMAHelper
 {
@@ -46,3 +48,5 @@ public:
 	void mapMemory(IAllocation* allocation, void** ppData) override;
 	void unmapMemory(IAllocation* allocation) override;
 };
+
+#endif

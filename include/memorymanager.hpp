@@ -2,12 +2,17 @@
 
 #include "graphicsobject.hpp"
 
+// comment this macro definition to use a custom memory allocator
+#define USE_VMA // define this macro to use Vulkan Memory Allocator
+
 class IAllocation
 {
 };
 
-class IMemoryAllocator : public IDerived<IMemoryAllocator, IGraphicsObject>
+class IMemoryAllocator : public IGraphicsObject
 {
+	SUPER(IGraphicsObject)
+
 protected:
 	virtual void createAllocatorInstance() = 0;
 	virtual void destroyAllocatorInstance() = 0;
@@ -16,7 +21,7 @@ public:
 	void create(LowRenderer* api, LogicalDevice* device) override { Super::create(api, device); createAllocatorInstance(); };
 	void destroy() override { destroyAllocatorInstance(); };
 
-	virtual void allocateBufferObjectMemory(VkBufferCreateInfo& createInfo,
+	virtual void allocateBufferObjectMemory(class VkBufferCreateInfo& createInfo,
 		class VertexBuffer& vbo,
 		uint32_t memoryFlags = 0,
 		bool mappable = false) = 0;

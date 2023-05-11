@@ -1,8 +1,10 @@
+#include "vmahelper.hpp"
+
+#ifdef USE_VMA
+
 #include "lowrenderer.hpp"
 #include "graphicsdevice.hpp"
 #include "vertexbuffer.hpp"
-
-#include "vmahelper.hpp"
 
 void VMAHelper::createAllocator(LowRenderer& api, LogicalDevice& device, VmaAllocator& allocator)
 {
@@ -82,3 +84,5 @@ void VMAHelperAllocator::unmapMemory(IAllocation* allocation)
 {
 	VMAHelper::unmapMemory(allocator, ((VMAHelperAlloc*)allocation)->allocation);
 }
+
+#endif

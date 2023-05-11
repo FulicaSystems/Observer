@@ -4,8 +4,13 @@
 
 #include <glad/vulkan.h>
 
-#include "allocator.hpp"
+#include "memorymanager.hpp"
+
+#ifdef USE_VMA
 #include "vmahelper.hpp"
+#else
+#include "allocator.hpp"
+#endif
 
 // TODO : rename to VertexBuffer
 class temp
@@ -33,6 +38,10 @@ public:
 
 	[[nodiscard]] static inline std::shared_ptr<VertexBuffer> createNew()
 	{
+#ifdef USE_VMA
+		return std::make_shared<VertexBuffer>(new VMAHelperAlloc());
+#else
 		return std::make_shared<VertexBuffer>(new MyAlloc());
+#endif
 	}
 };
