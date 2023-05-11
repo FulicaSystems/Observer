@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "graphicsobject.hpp"
 
 // comment this macro definition to use a custom memory allocator
