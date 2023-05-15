@@ -2,16 +2,16 @@
 
 #ifdef USE_VMA
 
-#include "lowrenderer.hpp"
-#include "graphicsdevice.hpp"
+#include "lowrenderer_vk.hpp"
+#include "graphicsdevice_vk.hpp"
 #include "vertexbuffer.hpp"
 
-void VMAHelper::createAllocator(LowRenderer& api, LogicalDevice& device, VmaAllocator& allocator)
+void VMAHelper::createAllocator(ILowRenderer& api, ILogicalDevice& device, VmaAllocator& allocator)
 {
 	VmaAllocatorCreateInfo createInfo = {
-		.physicalDevice = device.pdevice.vkpdevice,
-		.device = device.vkdevice,
-		.instance = api.instance,
+		.physicalDevice = ((LogicalDevice_Vk&)device).pdevice.vkpdevice,
+		.device = ((LogicalDevice_Vk&)device).vkdevice,
+		.instance = ((LowRenderer_Vk&)api).instance,
 		.vulkanApiVersion = VK_API_VERSION_1_3
 	};
 
@@ -33,15 +33,15 @@ void VMAHelper::allocateBufferObjectMemory(VmaAllocator& allocator,
 		.usage = VMA_MEMORY_USAGE_AUTO,
 	};
 
-	VkVertexBufferDesc* desc = (VkVertexBufferDesc*)vbo.localDesc;
-	vmaCreateBuffer(allocator, &createInfo, &allocInfo, &desc->buffer, &((VMAHelperAlloc*)desc->alloc)->allocation, nullptr);
+	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
+	vmaCreateBuffer(allocator, &createInfo, &allocInfo, &desc->buffer, &((Alloc_VMA*)desc->alloc)->allocation, nullptr);
 }
 
 void VMAHelper::destroyBufferObjectMemory(VmaAllocator& allocator, VertexBuffer& vbo)
 {
-	VkVertexBufferDesc* desc = (VkVertexBufferDesc*)vbo.localDesc;
-	//vmaDestroyBuffer(allocator, vbo.buffer, ((VMAHelperAlloc*)desc->alloc)->allocation);
-	vmaDestroyBuffer(allocator, VK_NULL_HANDLE, ((VMAHelperAlloc*)desc->alloc)->allocation);
+	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
+	//vmaDestroyBuffer(allocator, vbo.buffer, ((Alloc_VMA*)desc->alloc)->allocation);
+	vmaDestroyBuffer(allocator, VK_NULL_HANDLE, ((Alloc_VMA*)desc->alloc)->allocation);
 }
 
 void VMAHelper::mapMemory(VmaAllocator& allocator, VmaAllocation& allocation, void** ppData)
@@ -57,34 +57,34 @@ void VMAHelper::unmapMemory(VmaAllocator& allocator, VmaAllocation& allocation)
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>
 
-void VMAHelperAllocator::createAllocatorInstance()
+void Allocator_VMA::createAllocatorInstance()
 {
 	VMAHelper::createAllocator(*api, *device, allocator);
 }
 
-void VMAHelperAllocator::destroyAllocatorInstance()
+void Allocator_VMA::destroyAllocatorInstance()
 {
 	VMAHelper::destroyAllocator(allocator);
 }
 
-void VMAHelperAllocator::allocateBufferObjectMemory(VkBufferCreateInfo& createInfo, VertexBuffer& vbo, uint32_t memoryFlags, bool mappable)
+void Allocator_VMA::allocateBufferObjectMemory(VkBufferCreateInfo& createInfo, VertexBuffer& vbo, uint32_t memoryFlags, bool mappable)
 {
 	VMAHelper::allocateBufferObjectMemory(allocator, createInfo, vbo, mappable);
 }
 
-void VMAHelperAllocator::destroyBufferObjectMemory(VertexBuffer& vbo)
+void Allocator_VMA::destroyBufferObjectMemory(VertexBuffer& vbo)
 {
 	VMAHelper::destroyBufferObjectMemory(allocator, vbo);
 }
 
-void VMAHelperAllocator::mapMemory(IAllocation* allocation, void** ppData)
+void Allocator_VMA::mapMemory(IAllocation* allocation, void** ppData)
 {
-	VMAHelper::mapMemory(allocator, ((VMAHelperAlloc*)allocation)->allocation, ppData);
+	VMAHelper::mapMemory(allocator, ((Alloc_VMA*)allocation)->allocation, ppData);
 }
 
-void VMAHelperAllocator::unmapMemory(IAllocation* allocation)
+void Allocator_VMA::unmapMemory(IAllocation* allocation)
 {
-	VMAHelper::unmapMemory(allocator, ((VMAHelperAlloc*)allocation)->allocation);
+	VMAHelper::unmapMemory(allocator, ((Alloc_VMA*)allocation)->allocation);
 }
 
 #endif

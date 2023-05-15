@@ -7,7 +7,7 @@
  */
 class Format : public Utils::Singleton<Format>
 {
-	friend class Utils::Singleton<Format>;
+	SINGLETON(Format)
 
 public:
 	static int height;

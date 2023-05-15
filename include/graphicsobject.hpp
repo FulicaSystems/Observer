@@ -1,21 +1,18 @@
 #pragma once
 
-class LowRenderer;
-class LogicalDevice;
-
 // Graphics object that can be created (initialized) and destroyed
 class IGraphicsObject
 {
 protected:
 	// graphics API
-	LowRenderer* api = nullptr;
-	LogicalDevice* device = nullptr;
+	class ILowRenderer* api = nullptr;
+	class ILogicalDevice* device = nullptr;
 
 public:
 	/**
 	 * Create the graphics object.
 	 */
-	virtual void create(LowRenderer* api, LogicalDevice* device)
+	virtual void create(class ILowRenderer* api, class ILogicalDevice* device)
 	{
 		this->api = api;
 		this->device = device;
@@ -26,5 +23,3 @@ public:
 	 */
 	virtual void destroy() = 0;
 };
-
-#include "utils/derived.hpp"

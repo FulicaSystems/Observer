@@ -1,17 +1,21 @@
-#include "commandbuffer.hpp"
+#include "commandbuffer_vk.hpp"
+#include "commandpool_vk.hpp"
+#include "graphicsdevice_vk.hpp"
+#include "graphicspipeline_vk.hpp"
+#include "lowrenderer_vk.hpp"
 
 #include "renderer.hpp"
 
 #ifdef USE_VMA
 #include "vmahelper.hpp"
 #else
-#include "allocator.hpp"
+#include "allocator_vk.hpp"
 #endif
 
 void Renderer::destroyFloatingBufferObject(VertexBuffer& vbo)
 {
-	VkVertexBufferDesc* desc = (VkVertexBufferDesc*)vbo.localDesc;
-	vkDestroyBuffer(device.vkdevice, desc->buffer, nullptr);
+	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
+	vkDestroyBuffer(((LogicalDevice_Vk*)device)->vkdevice, desc->buffer, nullptr);
 	allocator->destroyBufferObjectMemory(vbo);
 }
 
@@ -41,7 +45,7 @@ VertexBuffer& Renderer::createVertexBufferObject(uint32_t vertexNum, const Verte
 	// copying the staging buffer data into the device local buffer
 
 	// using a command buffer to transfer the data
-	CommandBuffer cbo = commandPool.createFloatingCommandBuffer();
+	CommandBuffer_Vk cbo = ((CommandPool_Vk*)commandPool)->createFloatingCommandBuffer();
 
 	// copy the staging buffer (CPU accessible) into the GPU buffer (GPU memory)
 	cbo.beginRecord(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
@@ -51,49 +55,66 @@ VertexBuffer& Renderer::createVertexBufferObject(uint32_t vertexNum, const Verte
 		.dstOffset = 0,
 		.size = stagingVBO->bufferSize
 	};
-	VkVertexBufferDesc* stagingDesc = (VkVertexBufferDesc*)stagingVBO->localDesc;
-	VkVertexBufferDesc* desc = (VkVertexBufferDesc*)vbo->localDesc;
-	vkCmdCopyBuffer(cbo.getVkBuffer(), stagingDesc->buffer, desc->buffer, 1, &copyRegion);
+	VertexBufferDesc_Vk* stagingDesc = (VertexBufferDesc_Vk*)stagingVBO->localDesc;
+	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo->localDesc;
+	vkCmdCopyBuffer(cbo.get(), stagingDesc->buffer, desc->buffer, 1, &copyRegion);
 
 	cbo.endRecord();
 
 	VkSubmitInfo submitInfo = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		.commandBufferCount = 1,
-		.pCommandBuffers = &cbo.getVkBuffer()
+		.pCommandBuffers = &cbo.get()
 	};
-	device.submitCommandToGraphicsQueue(submitInfo);
-	device.waitGraphicsQueue();
+	((LogicalDevice_Vk*)device)->submitCommandToGraphicsQueue(submitInfo);
+	((LogicalDevice_Vk*)device)->waitGraphicsQueue();
 
-	commandPool.destroyFloatingCommandBuffer(cbo);
+	((CommandPool_Vk*)commandPool)->destroyFloatingCommandBuffer(cbo);
 	destroyFloatingBufferObject(*stagingVBO);
 
 	return *vbo;
 }
 
+Renderer::Renderer()
+{
+	// TODO : no naked new (clean creation)
+	pipeline = new GraphicsPipeline_Vk();
+#ifdef USE_VMA
+	allocator = new Allocator_VMA();
+#else
+	allocator = new MyAllocator_Vk();
+#endif
+	api = new LowRenderer_Vk();
+	device = new LogicalDevice_Vk();
+	commandPool = new CommandPool_Vk();
+}
+
+Renderer::~Renderer()
+{
+	delete pipeline;
+	delete allocator;
+	delete api;
+	delete device;
+	delete commandPool;
+}
+
 void Renderer::initRenderer()
 {
 	// create the rendering instance first using api.initGraphicsAPI()
-	device.create(&api, nullptr);
-	commandPool.create(&api, &device);
-	pipeline.create(&api, &device);
+	((LogicalDevice_Vk*)device)->create(api, nullptr);
+	((CommandPool_Vk*)commandPool)->create(api, device);
+	((GraphicsPipeline_Vk*)pipeline)->create(api, device);
 
-	// TODO : no naked new (clean allocator creation)
-#ifdef USE_VMA
-	allocator = new VMAHelperAllocator();
-#else
-	allocator = new MyAllocator();
-#endif
-	allocator->create(&api, &device);
+	allocator->create(api, device);
 
 	// default command buffer
-	commandPool.createCommandBuffer();
+	((CommandPool_Vk*)commandPool)->createCommandBuffer();
 }
 
 void Renderer::terminateRenderer()
 {
-	pipeline.destroy();
-	commandPool.destroy();
+	((GraphicsPipeline_Vk*)pipeline)->destroy();
+	((CommandPool_Vk*)commandPool)->destroy();
 
 	for (int i = 0; i < vbos.size(); ++i)
 	{
@@ -102,11 +123,10 @@ void Renderer::terminateRenderer()
 	vbos.clear();
 
 	allocator->destroy();
-	delete allocator;
 
-	device.destroy();
+	((LogicalDevice_Vk*)device)->destroy();
 
-	api.terminateGraphicsAPI();
+	((LowRenderer_Vk*)api)->terminateGraphicsAPI();
 }
 
 [[nodiscard]] std::shared_ptr<VertexBuffer> Renderer::createFloatingBufferObject(uint32_t vertexNum,
@@ -143,7 +163,7 @@ void Renderer::terminateRenderer()
 
 void Renderer::populateBufferObject(VertexBuffer& vbo, const Vertex* vertices)
 {
-	VkVertexBufferDesc* desc = (VkVertexBufferDesc*)vbo.localDesc;
+	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
 
 	// populating the VBO (using a CPU accessible memory)
 	allocator->mapMemory(desc->alloc, &vbo.vertices);
@@ -157,5 +177,5 @@ void Renderer::populateBufferObject(VertexBuffer& vbo, const Vertex* vertices)
 
 void Renderer::render()
 {
-	pipeline.drawFrame(commandPool.getCmdBufferByIndex(0), vbos);
+	((GraphicsPipeline_Vk*)pipeline)->drawFrame(((CommandPool_Vk*)commandPool)->getCmdBufferByIndex(0), vbos);
 }

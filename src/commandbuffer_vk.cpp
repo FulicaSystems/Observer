@@ -1,13 +1,13 @@
 #include <stdexcept>
 
-#include "commandbuffer.hpp"
+#include "commandbuffer_vk.hpp"
 
-void CommandBuffer::reset()
+void CommandBuffer_Vk::reset()
 {
 	vkResetCommandBuffer(commandBuffer, 0);
 }
 
-void CommandBuffer::beginRecord(VkCommandBufferUsageFlags flags)
+void CommandBuffer_Vk::beginRecord(VkCommandBufferUsageFlags flags)
 {
 	VkCommandBufferBeginInfo commandBufferBeginInfo = {
 	.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -19,13 +19,13 @@ void CommandBuffer::beginRecord(VkCommandBufferUsageFlags flags)
 		throw std::runtime_error("Failed to begin recording command buffer");
 }
 
-void CommandBuffer::endRecord()
+void CommandBuffer_Vk::endRecord()
 {
 	if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
 		throw std::runtime_error("Failed to record command buffer");
 }
 
-VkCommandBuffer& CommandBuffer::getVkBuffer()
+VkCommandBuffer& CommandBuffer_Vk::get()
 {
 	return commandBuffer;
 }

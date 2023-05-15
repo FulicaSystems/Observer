@@ -1,9 +1,9 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "lowrenderer.hpp"
+#include "lowrenderer_vk.hpp"
 
-void LowRenderer::initGraphicsAPI(std::vector<const char*>& additionalExtensions)
+void LowRenderer_Vk::initGraphicsAPI(std::vector<const char*>& additionalExtensions)
 {
 	this->additionalExtensions = additionalExtensions;
 
@@ -21,12 +21,12 @@ void LowRenderer::initGraphicsAPI(std::vector<const char*>& additionalExtensions
 #endif
 }
 
-void LowRenderer::terminateGraphicsAPI()
+void LowRenderer_Vk::terminateGraphicsAPI()
 {
 	vulkanDestroy();
 }
 
-VKAPI_ATTR VkBool32 VKAPI_CALL LowRenderer::debugCallback(
+VKAPI_ATTR VkBool32 VKAPI_CALL LowRenderer_Vk::debugCallback(
 	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 	VkDebugUtilsMessageTypeFlagsEXT messageType,
 	const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
@@ -36,14 +36,14 @@ VKAPI_ATTR VkBool32 VKAPI_CALL LowRenderer::debugCallback(
 	return VK_FALSE;
 }
 
-void LowRenderer::vulkanDestroy()
+void LowRenderer_Vk::vulkanDestroy()
 {
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	vkDestroyInstance(instance, nullptr);
 }
 
-void LowRenderer::vulkanCreate()
+void LowRenderer_Vk::vulkanCreate()
 {
 	VkApplicationInfo appInfo = {
 		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -77,7 +77,7 @@ void LowRenderer::vulkanCreate()
 		throw std::runtime_error("Unable to reload Vulkan symbols with Vulkan instance");
 }
 
-void LowRenderer::vulkanDebugMessenger()
+void LowRenderer_Vk::vulkanDebugMessenger()
 {
 	VkDebugUtilsMessengerCreateInfoEXT createInfo = {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
@@ -99,7 +99,7 @@ void LowRenderer::vulkanDebugMessenger()
 		throw std::runtime_error("Failed to set up debug messenger");
 }
 
-void LowRenderer::vulkanExtensions()
+void LowRenderer_Vk::vulkanExtensions()
 {
 	uint32_t extensionCount = 0;
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -110,7 +110,7 @@ void LowRenderer::vulkanExtensions()
 		std::cout << '\t' << extension.extensionName << '\n';
 }
 
-void LowRenderer::vulkanLayers()
+void LowRenderer_Vk::vulkanLayers()
 {
 	uint32_t layerCount = 0;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);

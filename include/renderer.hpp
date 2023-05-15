@@ -2,12 +2,6 @@
 
 #include <deque>
 
-#include "lowrenderer.hpp"
-
-#include "graphicsdevice.hpp"
-#include "graphicspipeline.hpp"
-#include "commandpool.hpp"
-
 #include "vertex.hpp"
 #include "vertexbuffer.hpp"
 
@@ -18,18 +12,21 @@ class Renderer
 {
 private:
 	// TODO : make the pipeline independant in order to make different pipelines
-	GraphicsPipeline pipeline;
+	class IGraphicsPipeline* pipeline = nullptr;
 
-	class IMemoryAllocator* allocator;
+	class IMemoryAllocator* allocator = nullptr;
 
 	// every created buffer objects
 	std::deque<std::shared_ptr<VertexBuffer>> vbos;
 
 public:
-	LowRenderer api;
-	LogicalDevice device;
+	class ILowRenderer* api = nullptr;
+	class ILogicalDevice* device = nullptr;
 
-	CommandPool commandPool;
+	class ICommandPool* commandPool = nullptr;
+
+	Renderer();
+	~Renderer();
 
 	void initRenderer();
 	void terminateRenderer();

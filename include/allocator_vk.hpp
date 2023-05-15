@@ -7,7 +7,7 @@
 #include "memorymanager.hpp"
 
 // TODO : improve custom allocator
-class MyAllocator : public IMemoryAllocator
+class MyAllocator_Vk : public IMemoryAllocator
 {
 public:
 	struct MemoryBlock
@@ -45,10 +45,10 @@ public:
 	void unmapMemory(IAllocation* allocation) override;
 };
 
-class MyAlloc : public IAllocation
+class MyAlloc_Vk : public IAllocation
 {
 public:
 	// binded memory block
-	struct MyAllocator::MemoryBlock* memoryBlock = nullptr;
+	struct MyAllocator_Vk::MemoryBlock* memoryBlock = nullptr;
 	size_t memoryOffset = 0;
 };

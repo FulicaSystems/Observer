@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "vkvertexbufferdesc.hpp"
+#include "vertexbufferdesc_vk.hpp"
 
 // TODO : rename to VertexBuffer
 class VertexBuffer
@@ -22,6 +22,6 @@ public:
 
 	[[nodiscard]] static inline std::shared_ptr<VertexBuffer> createNew()
 	{
-		return std::make_shared<VertexBuffer>(new VkVertexBufferDesc());
+		return std::make_shared<VertexBuffer>(new VertexBufferDesc_Vk());
 	}
 };

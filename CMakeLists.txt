@@ -16,52 +16,46 @@ project(Project_O)
 add_subdirectory(externals)
 
 set(HEADERS
-    include/format.hpp
+    include/allocator_vk.hpp
     include/application.hpp
-
-    include/graphicsobject.hpp
-    include/graphicsdevice.hpp
-    include/graphicspipeline.hpp
-
-    include/vertex.hpp
-    include/vertexbuffer.hpp
-
-    include/commandbuffer.hpp
+    include/commandbuffer_vk.hpp
     include/commandpool.hpp
-
-    include/memorymanager.hpp
-    include/allocator.hpp
-    include/vmahelper.hpp
-
+    include/commandpool_vk.hpp
+    include/format.hpp
+    include/graphicsdevice.hpp
+    include/graphicsdevice_vk.hpp
+    include/graphicsobject.hpp
+    include/graphicspipeline.hpp
+    include/graphicspipeline_vk.hpp
     include/lowrenderer.hpp
+    include/lowrenderer_vk.hpp
+    include/memorymanager.hpp
+    include/mesh.hpp
     include/renderer.hpp
-
     include/resource.hpp
     include/resourcesmanager.hpp
-    include/mesh.hpp
+    include/scene.hpp
+    include/vertex.hpp
+    include/vertexbuffer.hpp
+    include/vertexbufferdesc_vk.hpp
+    include/vertexbufferlocaldesc.hpp
+    include/vmahelper.hpp
 )
 
 set(SOURCES
-    src/main.cpp
-
-    src/format.cpp
+    src/allocator_vk.cpp
     src/application.cpp
-
-    src/graphicsdevice.cpp
-    src/graphicspipeline.cpp
-
-    src/vertex.cpp
-
-    src/commandbuffer.cpp
-    src/commandpool.cpp
-
-    src/allocator.cpp
-    src/vmahelper.cpp
-
-    src/lowrenderer.cpp
-    src/renderer.cpp
-
+    src/commandbuffer_vk.cpp
+    src/commandpool_vk.cpp
+    src/format.cpp
+    src/graphicsdevice_vk.cpp
+    src/graphicspipeline_vk.cpp
+    src/lowrenderer_vk.cpp
+    src/main.cpp
     src/mesh.cpp
+    src/renderer.cpp
+    src/vertex.cpp
+    src/vmahelper.cpp
 )
 
 add_executable(renderer ${HEADERS} ${SOURCES})

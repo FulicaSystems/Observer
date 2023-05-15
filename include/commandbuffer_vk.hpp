@@ -2,7 +2,7 @@
 
 #include <glad/vulkan.h>
 
-class CommandBuffer
+class CommandBuffer_Vk
 {
 private:
 	VkCommandBuffer commandBuffer;
@@ -13,5 +13,5 @@ public:
 	void beginRecord(VkCommandBufferUsageFlags flags = 0);
 	void endRecord();
 
-	VkCommandBuffer& getVkBuffer();
+	VkCommandBuffer& get();
 };

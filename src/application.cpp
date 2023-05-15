@@ -6,7 +6,7 @@
 #include "utils/multithread/globalthreadpool.hpp"
 
 #include "format.hpp"
-#include "lowrenderer.hpp"
+#include "lowrenderer_vk.hpp"
 
 #include "application.hpp"
 
@@ -27,12 +27,13 @@ Application::Application()
 
 	std::vector<const char*> requiredExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
+	LowRenderer_Vk* api = (LowRenderer_Vk*)rdr.api;
 	// give the extensions to the low renderer (api instance)
 	// create the Vulkan instance first
-	rdr.api.initGraphicsAPI(requiredExtensions);
+	api->initGraphicsAPI(requiredExtensions);
 
 	// create a surface using the instance
-	if (glfwCreateWindowSurface(rdr.api.instance, window, nullptr, &rdr.api.surface) != VK_SUCCESS)
+	if (glfwCreateWindowSurface(api->instance, window, nullptr, &api->surface) != VK_SUCCESS)
 		throw std::runtime_error("Failed to create window surface");
 
 	rdr.initRenderer();

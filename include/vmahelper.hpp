@@ -11,7 +11,7 @@
 class VMAHelper
 {
 public:
-	static void createAllocator(LowRenderer& api, LogicalDevice& device, VmaAllocator& allocator);
+	static void createAllocator(ILowRenderer& api, ILogicalDevice& device, VmaAllocator& allocator);
 	static void destroyAllocator(VmaAllocator& allocator);
 
 	static void allocateBufferObjectMemory(VmaAllocator& allocator,
@@ -24,13 +24,13 @@ public:
 	static void unmapMemory(VmaAllocator& allocator, VmaAllocation& allocation);
 };
 
-class VMAHelperAlloc : public IAllocation
+class Alloc_VMA : public IAllocation
 {
 public:
 	VmaAllocation allocation;
 };
 
-class VMAHelperAllocator : public IMemoryAllocator
+class Allocator_VMA : public IMemoryAllocator
 {
 private:
 	VmaAllocator allocator;

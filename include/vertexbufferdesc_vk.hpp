@@ -8,10 +8,10 @@
 #ifdef USE_VMA
 #include "vmahelper.hpp"
 #else
-#include "allocator.hpp"
+#include "allocator_vk.hpp"
 #endif
 
-class VkVertexBufferDesc : public IVertexBufferLocalDesc
+class VertexBufferDesc_Vk : public IVertexBufferLocalDesc
 {
 public:
 	class IAllocation* alloc;
@@ -19,13 +19,13 @@ public:
 	// vertex buffer object
 	VkBuffer buffer;
 
-	VkVertexBufferDesc()
+	VertexBufferDesc_Vk()
 	{
 #ifdef USE_VMA
-		alloc = new VMAHelperAlloc();
+		alloc = new Alloc_VMA();
 #else
-		alloc = new MyAlloc();
+		alloc = new MyAlloc_Vk();
 #endif
 	}
-	~VkVertexBufferDesc() { delete alloc; }
+	~VertexBufferDesc_Vk() { delete alloc; }
 };

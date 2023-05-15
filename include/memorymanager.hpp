@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "utils/derived.hpp"
 #include "graphicsobject.hpp"
 
 // comment this macro definition to use a custom memory allocator
@@ -20,7 +21,7 @@ protected:
 	virtual void destroyAllocatorInstance() = 0;
 
 public:
-	void create(LowRenderer* api, LogicalDevice* device) override { Super::create(api, device); createAllocatorInstance(); };
+	void create(ILowRenderer* api, ILogicalDevice* device) override { Super::create(api, device); createAllocatorInstance(); };
 	void destroy() override { destroyAllocatorInstance(); };
 
 	virtual void allocateBufferObjectMemory(class VkBufferCreateInfo& createInfo,

@@ -4,10 +4,10 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "lowrenderer.hpp"
-#include "graphicsdevice.hpp"
+#include "lowrenderer_vk.hpp"
+#include "graphicsdevice_vk.hpp"
 
-void LogicalDevice::create(LowRenderer* api, LogicalDevice* device)
+void LogicalDevice_Vk::create(ILowRenderer* api, ILogicalDevice* device)
 {
 	Super::create(api, nullptr);
 
@@ -15,23 +15,23 @@ void LogicalDevice::create(LowRenderer* api, LogicalDevice* device)
 	vulkanLogicalDevice();
 }
 
-void LogicalDevice::destroy()
+void LogicalDevice_Vk::destroy()
 {
 	vkDestroyDevice(vkdevice, nullptr);
 }
 
-void LogicalDevice::waitGraphicsQueue()
+void LogicalDevice_Vk::waitGraphicsQueue()
 {
 	vkQueueWaitIdle(graphicsQueue);
 }
 
-void LogicalDevice::submitCommandToGraphicsQueue(VkSubmitInfo& submitInfo, VkFence fence)
+void LogicalDevice_Vk::submitCommandToGraphicsQueue(VkSubmitInfo& submitInfo, VkFence fence)
 {
 	if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, fence) != VK_SUCCESS)
 		throw std::runtime_error("Failed to submit draw command buffer");
 }
 
-void LogicalDevice::present(VkPresentInfoKHR& presentInfo)
+void LogicalDevice_Vk::present(VkPresentInfoKHR& presentInfo)
 {
 	vkQueuePresentKHR(presentQueue, &presentInfo);
 }
@@ -130,10 +130,10 @@ uint32_t PhysicalDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
 	throw std::runtime_error("Failed to find suitable memory type");
 }
 
-void LogicalDevice::vulkanPhysicalDevice()
+void LogicalDevice_Vk::vulkanPhysicalDevice()
 {
-	VkInstance instance = api->instance;
-	VkSurfaceKHR surface = api->surface;
+	VkInstance instance = ((LowRenderer_Vk*)api)->instance;
+	VkSurfaceKHR surface = ((LowRenderer_Vk*)api)->surface;
 
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -199,10 +199,10 @@ VkQueueFamilyIndices PhysicalDevice::findQueueFamilies(const VkSurfaceKHR& surfa
 	return indices;
 }
 
-void LogicalDevice::vulkanLogicalDevice()
+void LogicalDevice_Vk::vulkanLogicalDevice()
 {
-	VkInstance instance = api->instance;
-	VkSurfaceKHR surface = api->surface;
+	VkInstance instance = ((LowRenderer_Vk*)api)->instance;
+	VkSurfaceKHR surface = ((LowRenderer_Vk*)api)->surface;
 
 	VkQueueFamilyIndices indices = pdevice.findQueueFamilies(surface);
 
