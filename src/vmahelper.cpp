@@ -33,13 +33,15 @@ void VMAHelper::allocateBufferObjectMemory(VmaAllocator& allocator,
 		.usage = VMA_MEMORY_USAGE_AUTO,
 	};
 
-	vmaCreateBuffer(allocator, &createInfo, &allocInfo, &vbo.buffer, &((VMAHelperAlloc*)vbo.alloc)->allocation, nullptr);
+	VkVertexBufferDesc* desc = (VkVertexBufferDesc*)vbo.localDesc;
+	vmaCreateBuffer(allocator, &createInfo, &allocInfo, &desc->buffer, &((VMAHelperAlloc*)desc->alloc)->allocation, nullptr);
 }
 
 void VMAHelper::destroyBufferObjectMemory(VmaAllocator& allocator, VertexBuffer& vbo)
 {
-	//vmaDestroyBuffer(allocator, vbo.buffer, ((VMAHelperAlloc*)vbo.alloc)->allocation);
-	vmaDestroyBuffer(allocator, VK_NULL_HANDLE, ((VMAHelperAlloc*)vbo.alloc)->allocation);
+	VkVertexBufferDesc* desc = (VkVertexBufferDesc*)vbo.localDesc;
+	//vmaDestroyBuffer(allocator, vbo.buffer, ((VMAHelperAlloc*)desc->alloc)->allocation);
+	vmaDestroyBuffer(allocator, VK_NULL_HANDLE, ((VMAHelperAlloc*)desc->alloc)->allocation);
 }
 
 void VMAHelper::mapMemory(VmaAllocator& allocator, VmaAllocation& allocation, void** ppData)

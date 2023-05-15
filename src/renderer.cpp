@@ -10,7 +10,8 @@
 
 void Renderer::destroyFloatingBufferObject(VertexBuffer& vbo)
 {
-	vkDestroyBuffer(device.vkdevice, vbo.buffer, nullptr);
+	VkVertexBufferDesc* desc = (VkVertexBufferDesc*)vbo.localDesc;
+	vkDestroyBuffer(device.vkdevice, desc->buffer, nullptr);
 	allocator->destroyBufferObjectMemory(vbo);
 }
 
@@ -50,7 +51,9 @@ VertexBuffer& Renderer::createVertexBufferObject(uint32_t vertexNum, const Verte
 		.dstOffset = 0,
 		.size = stagingVBO->bufferSize
 	};
-	vkCmdCopyBuffer(cbo.getVkBuffer(), stagingVBO->buffer, vbo->buffer, 1, &copyRegion);
+	VkVertexBufferDesc* stagingDesc = (VkVertexBufferDesc*)stagingVBO->localDesc;
+	VkVertexBufferDesc* desc = (VkVertexBufferDesc*)vbo->localDesc;
+	vkCmdCopyBuffer(cbo.getVkBuffer(), stagingDesc->buffer, desc->buffer, 1, &copyRegion);
 
 	cbo.endRecord();
 
@@ -140,14 +143,16 @@ void Renderer::terminateRenderer()
 
 void Renderer::populateBufferObject(VertexBuffer& vbo, const Vertex* vertices)
 {
+	VkVertexBufferDesc* desc = (VkVertexBufferDesc*)vbo.localDesc;
+
 	// populating the VBO (using a CPU accessible memory)
-	allocator->mapMemory(vbo.alloc, &vbo.vertices);
+	allocator->mapMemory(desc->alloc, &vbo.vertices);
 
 	// TODO : flush memory
 	memcpy(vbo.vertices, vertices, vbo.bufferSize);
 	// TODO : invalidate memory before reading in the pipeline
 
-	allocator->unmapMemory(vbo.alloc);
+	allocator->unmapMemory(desc->alloc);
 }
 
 void Renderer::render()

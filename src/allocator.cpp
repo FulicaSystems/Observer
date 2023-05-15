@@ -49,15 +49,17 @@ void MyAllocator::destroyAllocatorInstance()
 
 void MyAllocator::allocateBufferObjectMemory(VkBufferCreateInfo& createInfo, VertexBuffer& vbo, uint32_t memoryFlags, bool mappable)
 {
-	if (vkCreateBuffer(device->vkdevice, &createInfo, nullptr, &vbo.buffer) != VK_SUCCESS)
+	VkVertexBufferDesc* desc = (VkVertexBufferDesc*)vbo.localDesc;
+
+	if (vkCreateBuffer(device->vkdevice, &createInfo, nullptr, &desc->buffer) != VK_SUCCESS)
 		throw std::runtime_error("Failed to create vertex buffer");
 
-	MyAlloc* alloc = (MyAlloc*)vbo.alloc;
+	MyAlloc* alloc = (MyAlloc*)desc->alloc;
 
 	// binding memory block
-	MemoryBlock& block = findFirstAvailableBlock(vbo.bufferSize, vbo.buffer, memoryFlags);
+	MemoryBlock& block = findFirstAvailableBlock(vbo.bufferSize, desc->buffer, memoryFlags);
 	alloc->memoryOffset = block.usedSpace;
-	vkBindBufferMemory(device->vkdevice, vbo.buffer, block.memory, block.usedSpace);
+	vkBindBufferMemory(device->vkdevice, desc->buffer, block.memory, block.usedSpace);
 
 	// marking space as taken
 	block.usedSpace += vbo.bufferSize;
@@ -66,7 +68,8 @@ void MyAllocator::allocateBufferObjectMemory(VkBufferCreateInfo& createInfo, Ver
 
 void MyAllocator::destroyBufferObjectMemory(VertexBuffer& vbo)
 {
-	MemoryBlock* currentBlock = ((MyAlloc*)vbo.alloc)->memoryBlock;
+	VkVertexBufferDesc* desc = (VkVertexBufferDesc*)vbo.localDesc;
+	MemoryBlock* currentBlock = ((MyAlloc*)desc->alloc)->memoryBlock;
 	currentBlock->usedSpace -= vbo.bufferSize;
 	if (currentBlock->usedSpace <= 0)
 	{

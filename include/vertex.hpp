@@ -12,6 +12,8 @@ struct Vertex
 	//vec3 normal;
 	Color color;
 
+	// TODO : move those functions to a Vulkan specific file
+
 	// binding the data to the vertex shader
 	static struct VkVertexInputBindingDescription getBindingDescription();
 
