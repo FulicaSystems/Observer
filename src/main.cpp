@@ -42,12 +42,11 @@ int main(int argc, char** argv)
 
 	CHKLK_INIT
 
-		CHKLK_ENTRY_SNAP
+	CHKLK_ENTRY_SNAP
 	{
-		Application app((EGraphicsAPI)api);
-
 		try
 		{
+			Application app(api >= 0 ? (EGraphicsAPI)api : EGraphicsAPI::VULKAN);
 			app.loop();
 		}
 		catch (const std::exception& ex)
