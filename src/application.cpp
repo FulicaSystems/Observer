@@ -10,31 +10,46 @@
 
 #include "application.hpp"
 
-Application::Application()
+Application::Application(const EGraphicsAPI graphicsApi)
+	: rdr(graphicsApi)
 {
 	glfwInit();
 	windowInit();
 
-	// init GLFW for Vulkan
-	if (!glfwVulkanSupported())
-		throw std::runtime_error("GLFW failed to find the Vulkan loader");
+	switch (rdr.graphicsApi)
+	{
+	case EGraphicsAPI::OPENGL:
+	{
+		break;
+	}
+	case EGraphicsAPI::VULKAN:
+	{
+		// init GLFW for Vulkan
+		if (!glfwVulkanSupported())
+			throw std::runtime_error("GLFW failed to find the Vulkan loader");
 
-	// gather Vulkan extensions required by GLFW
-	uint32_t glfwExtensionCount = 0;
-	const char** glfwExtensions;
+		// gather Vulkan extensions required by GLFW
+		uint32_t glfwExtensionCount = 0;
+		const char** glfwExtensions;
 
-	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-	std::vector<const char*> requiredExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+		std::vector<const char*> requiredExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-	LowRenderer_Vk* api = (LowRenderer_Vk*)rdr.api;
-	// give the extensions to the low renderer (api instance)
-	// create the Vulkan instance first
-	api->initGraphicsAPI(requiredExtensions);
+		LowRenderer_Vk* api = (LowRenderer_Vk*)rdr.api;
+		// give the extensions to the low renderer (api instance)
+		// create the Vulkan instance first
+		api->initGraphicsAPI(requiredExtensions);
 
-	// create a surface using the instance
-	if (glfwCreateWindowSurface(api->instance, window, nullptr, &api->surface) != VK_SUCCESS)
-		throw std::runtime_error("Failed to create window surface");
+		// create a surface using the instance
+		if (glfwCreateWindowSurface(api->instance, window, nullptr, &api->surface) != VK_SUCCESS)
+			throw std::runtime_error("Failed to create window surface");
+
+		break;
+	}
+	default:
+		throw std::runtime_error("Invalid specified graphics API");
+	}
 
 	rdr.initRenderer();
 }
@@ -51,8 +66,20 @@ void Application::windowInit()
 {
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-	window = glfwCreateWindow(Format::height, Format::width, "Vulkan window", nullptr, nullptr);
+
+	if (rdr.graphicsApi == EGraphicsAPI::OPENGL)
+	{
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	}
+
+	window = glfwCreateWindow(Format::height, Format::width, "Renderer", nullptr, nullptr);
 	glfwGetFramebufferSize(window, &Format::framebufferHeight, &Format::framebufferWidth);
+
+	if (rdr.graphicsApi == EGraphicsAPI::OPENGL)
+		glfwMakeContextCurrent(window);
 }
 
 #include "resourcesmanager.hpp"

@@ -5,6 +5,12 @@
 #include "vertex.hpp"
 #include "vertexbuffer.hpp"
 
+enum class EGraphicsAPI
+{
+	OPENGL = 0,
+	VULKAN = 1
+};
+
 /**
  * High level renderer.
  */
@@ -20,12 +26,14 @@ private:
 	std::deque<std::shared_ptr<VertexBuffer>> vbos;
 
 public:
+	EGraphicsAPI graphicsApi;
+
 	class ILowRenderer* api = nullptr;
 	class ILogicalDevice* device = nullptr;
 
 	class ICommandPool* commandPool = nullptr;
 
-	Renderer();
+	Renderer(const EGraphicsAPI graphicsApi = EGraphicsAPI::VULKAN);
 	~Renderer();
 
 	void initRenderer();

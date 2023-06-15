@@ -75,7 +75,8 @@ VertexBuffer& Renderer::createVertexBufferObject(uint32_t vertexNum, const Verte
 	return *vbo;
 }
 
-Renderer::Renderer()
+Renderer::Renderer(const EGraphicsAPI graphicsApi)
+	: graphicsApi(graphicsApi)
 {
 	// TODO : no naked new (clean creation)
 	pipeline = new GraphicsPipeline_Vk();
@@ -100,15 +101,29 @@ Renderer::~Renderer()
 
 void Renderer::initRenderer()
 {
-	// create the rendering instance first using api.initGraphicsAPI()
-	((LogicalDevice_Vk*)device)->create(api, nullptr);
-	((CommandPool_Vk*)commandPool)->create(api, device);
-	((GraphicsPipeline_Vk*)pipeline)->create(api, device);
+	switch (graphicsApi)
+	{
+	case EGraphicsAPI::OPENGL:
+	{
+		break;
+	}
+	case EGraphicsAPI::VULKAN:
+	{
+		// create the rendering instance first using api.initGraphicsAPI()
+		((LogicalDevice_Vk*)device)->create(api, nullptr);
+		((CommandPool_Vk*)commandPool)->create(api, device);
+		((GraphicsPipeline_Vk*)pipeline)->create(api, device);
 
-	allocator->create(api, device);
+		allocator->create(api, device);
 
-	// default command buffer
-	((CommandPool_Vk*)commandPool)->createCommandBuffer();
+		// default command buffer
+		((CommandPool_Vk*)commandPool)->createCommandBuffer();
+
+		break;
+	}
+	default:
+		throw std::runtime_error("Invalid graphics API");
+	}
 }
 
 void Renderer::terminateRenderer()

@@ -16,7 +16,7 @@ private:
 	void windowInit();
 
 public:
-	Application();
+	Application(const EGraphicsAPI graphicsApi = EGraphicsAPI::VULKAN);
 	~Application();
 
 	void loop();

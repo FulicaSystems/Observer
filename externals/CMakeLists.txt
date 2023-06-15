@@ -5,6 +5,11 @@ glad_add_library(glad_vk_13
 	LOADER
 	API vulkan=1.3
 )
+glad_add_library(glad_gl_core_46
+	LOADER
+	API gl:core=4.6
+	EXTENSIONS GL_NV_command_list
+)
 
 # glfw
 add_subdirectory(glfw)

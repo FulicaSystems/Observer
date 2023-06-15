@@ -62,7 +62,7 @@ add_executable(renderer ${HEADERS} ${SOURCES})
 target_include_directories(renderer PRIVATE include)
 target_link_libraries(renderer
     PUBLIC glad_vk_13
-    #PUBLIC glad_gl_core_46
+    PUBLIC glad_gl_core_46
     PUBLIC glfw
     PUBLIC libraries
     PUBLIC VulkanMemoryAllocator
