@@ -47,30 +47,31 @@ void MyAllocator_Vk::destroyAllocatorInstance()
 	memBlocks.clear();
 }
 
-void MyAllocator_Vk::allocateBufferObjectMemory(VkBufferCreateInfo& createInfo, VertexBuffer& vbo, uint32_t memoryFlags, bool mappable)
+void MyAllocator_Vk::allocateBufferObjectMemory(VkBufferCreateInfo& createInfo, size_t bufferSize, IVertexBufferLocalDesc* desc, uint32_t memoryFlags, bool mappable)
 {
-	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
+	VertexBufferDesc_Vk* localDesc = (VertexBufferDesc_Vk*)desc;
 
-	if (vkCreateBuffer(((LogicalDevice_Vk*)device)->vkdevice, &createInfo, nullptr, &desc->buffer) != VK_SUCCESS)
+	if (vkCreateBuffer(((LogicalDevice_Vk*)device)->vkdevice, &createInfo, nullptr, &localDesc->buffer) != VK_SUCCESS)
 		throw std::runtime_error("Failed to create vertex buffer");
 
-	MyAlloc_Vk* alloc = (MyAlloc_Vk*)desc->alloc;
+	MyAlloc_Vk* alloc = (MyAlloc_Vk*)localDesc->alloc;
 
 	// binding memory block
-	MemoryBlock& block = findFirstAvailableBlock(vbo.bufferSize, desc->buffer, memoryFlags);
+	MemoryBlock& block = findFirstAvailableBlock(bufferSize, localDesc->buffer, memoryFlags);
 	alloc->memoryOffset = block.usedSpace;
-	vkBindBufferMemory(((LogicalDevice_Vk*)device)->vkdevice, desc->buffer, block.memory, block.usedSpace);
+	vkBindBufferMemory(((LogicalDevice_Vk*)device)->vkdevice, localDesc->buffer, block.memory, block.usedSpace);
 
 	// marking space as taken
-	block.usedSpace += vbo.bufferSize;
+	block.usedSpace += bufferSize;
 	alloc->memoryBlock = &block;
 }
 
-void MyAllocator_Vk::destroyBufferObjectMemory(VertexBuffer& vbo)
+void MyAllocator_Vk::destroyBufferObjectMemory(IVertexBufferLocalDesc* desc, size_t bufferSize)
 {
-	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
-	MemoryBlock* currentBlock = ((MyAlloc_Vk*)desc->alloc)->memoryBlock;
-	currentBlock->usedSpace -= vbo.bufferSize;
+	VertexBufferDesc_Vk* localDesc = (VertexBufferDesc_Vk*)desc;
+
+	MemoryBlock* currentBlock = ((MyAlloc_Vk*)localDesc->alloc)->memoryBlock;
+	currentBlock->usedSpace -= bufferSize;
 	if (currentBlock->usedSpace <= 0)
 	{
 		vkFreeMemory(((LogicalDevice_Vk*)device)->vkdevice, currentBlock->memory, nullptr);

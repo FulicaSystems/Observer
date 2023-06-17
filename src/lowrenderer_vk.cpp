@@ -1,11 +1,24 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "lowrenderer_vk.hpp"
+#ifdef USE_VMA
+#include "vmahelper.hpp"
+#else
+#include "allocator_vk.hpp"
+#endif
 
-void LowRenderer_Vk::initGraphicsAPI(std::vector<const char*>& additionalExtensions)
+#include "renderer.hpp"
+
+#include "commandpool_vk.hpp"
+#include "commandbuffer_vk.hpp"
+
+#include "lowrenderer_vk.hpp"
+#include "graphicsdevice_vk.hpp"
+
+// args[0] should be additionalExtensions
+void LowRenderer_Vk::initGraphicsAPI_Impl(std::span<void*> args)
 {
-	this->additionalExtensions = additionalExtensions;
+	this->additionalExtensions = *(std::vector<const char*>*)args[0];
 
 	if (!gladLoaderLoadVulkan(nullptr, nullptr, nullptr))
 		throw std::runtime_error("Unable to load Vulkan symbols");
@@ -119,4 +132,105 @@ void LowRenderer_Vk::vulkanLayers()
 	std::cout << "available layers : " << layerCount << '\n';
 	for (const auto& layer : layers)
 		std::cout << '\t' << layer.layerName << '\n';
+}
+
+
+// vertex buffer object
+
+std::shared_ptr<VertexBuffer> LowRenderer_Vk::createVertexBuffer_Impl(uint32_t vertexNum, const Vertex* vertices)
+{
+	// this buffer is a CPU accessible buffer (temporary buffer to later load the data to the GPU)
+	std::shared_ptr<VertexBuffer> stagingVBO = createBufferObject(vertexNum,
+		true,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,	// used for memory transfer operation
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	// populating the CPU accessible buffer
+	populateBufferObject(*stagingVBO, vertices);
+
+	// creating a device (GPU) local buffer (on the specific device of the renderer)
+	// store this vertex buffer to keep a reference
+	std::shared_ptr<VertexBuffer> vbo = createBufferObject(vertexNum,
+		false,
+		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,	// memory transfer operation
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+	// copying the staging buffer data into the device local buffer
+
+	// using a command buffer to transfer the data
+	CommandBuffer_Vk cbo = ((CommandPool_Vk*)highRenderer->commandPool)->createFloatingCommandBuffer();
+
+	// copy the staging buffer (CPU accessible) into the GPU buffer (GPU memory)
+	cbo.beginRecord(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+	VkBufferCopy copyRegion = {
+		.srcOffset = 0,
+		.dstOffset = 0,
+		.size = stagingVBO->bufferSize
+	};
+	VertexBufferDesc_Vk* stagingDesc = (VertexBufferDesc_Vk*)stagingVBO->localDesc;
+	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo->localDesc;
+	vkCmdCopyBuffer(cbo.get(), stagingDesc->buffer, desc->buffer, 1, &copyRegion);
+
+	cbo.endRecord();
+
+	VkSubmitInfo submitInfo = {
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		.commandBufferCount = 1,
+		.pCommandBuffers = &cbo.get()
+	};
+	((LogicalDevice_Vk*)highRenderer->device)->submitCommandToGraphicsQueue(submitInfo);
+	((LogicalDevice_Vk*)highRenderer->device)->waitGraphicsQueue();
+
+	((CommandPool_Vk*)highRenderer->commandPool)->destroyFloatingCommandBuffer(cbo);
+	destroyBufferObject(*stagingVBO);
+
+	return vbo;
+}
+
+// additionalArgs[0] must be "VkBufferUsageFlags usage"
+// additionalArgs[1] must be "VkMemoryPropertyFlags memProperties"
+[[nodiscard]] std::shared_ptr<class VertexBuffer> LowRenderer_Vk::createBufferObject_Impl(uint32_t vertexNum,
+	bool mappable,
+	std::span<uint32_t> additionalArgs)
+{
+	VkBufferUsageFlags usage = additionalArgs[0];
+	VkMemoryPropertyFlags memProperties = additionalArgs[1];
+
+	// out buffer object
+	std::shared_ptr<VertexBuffer> outVbo = VertexBuffer::createNew(vertexNum, EGraphicsAPI::VULKAN);
+
+	VkBufferCreateInfo createInfo = {
+		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+		.flags = 0,
+		.size = (VkDeviceSize)outVbo->bufferSize,
+		.usage = usage,
+		.sharingMode = VK_SHARING_MODE_EXCLUSIVE
+	};
+
+	highRenderer->allocator->allocateBufferObjectMemory(createInfo, outVbo->bufferSize, outVbo->localDesc, memProperties, mappable);
+
+	return outVbo;
+}
+
+void LowRenderer_Vk::populateBufferObject(VertexBuffer& vbo, const Vertex* vertices)
+{
+	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
+
+	// populating the VBO (using a CPU accessible memory)
+	highRenderer->allocator->mapMemory(desc->alloc, &vbo.vertices);
+
+	// TODO : flush memory
+	memcpy(vbo.vertices, vertices, vbo.bufferSize);
+	// TODO : invalidate memory before reading in the pipeline
+
+	highRenderer->allocator->unmapMemory(desc->alloc);
+}
+
+void LowRenderer_Vk::destroyBufferObject(VertexBuffer& vbo)
+{
+	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
+
+	vkDestroyBuffer(((LogicalDevice_Vk*)highRenderer->device)->vkdevice, desc->buffer, nullptr);
+	highRenderer->allocator->destroyBufferObjectMemory(desc, vbo.bufferSize);
 }

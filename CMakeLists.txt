@@ -22,12 +22,14 @@ set(HEADERS
     include/commandpool.hpp
     include/commandpool_vk.hpp
     include/format.hpp
+    include/graphicsapi.hpp
     include/graphicsdevice.hpp
     include/graphicsdevice_vk.hpp
     include/graphicsobject.hpp
     include/graphicspipeline.hpp
     include/graphicspipeline_vk.hpp
     include/lowrenderer.hpp
+    include/lowrenderer_gl.hpp
     include/lowrenderer_vk.hpp
     include/memorymanager.hpp
     include/mesh.hpp
@@ -37,6 +39,7 @@ set(HEADERS
     include/scene.hpp
     include/vertex.hpp
     include/vertexbuffer.hpp
+    include/vertexbufferdesc_gl.hpp
     include/vertexbufferdesc_vk.hpp
     include/vertexbufferlocaldesc.hpp
     include/vmahelper.hpp
@@ -50,6 +53,7 @@ set(SOURCES
     src/format.cpp
     src/graphicsdevice_vk.cpp
     src/graphicspipeline_vk.cpp
+    src/lowrenderer_gl.cpp
     src/lowrenderer_vk.cpp
     src/main.cpp
     src/mesh.cpp

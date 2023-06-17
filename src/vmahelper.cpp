@@ -25,7 +25,7 @@ void VMAHelper::destroyAllocator(VmaAllocator& allocator)
 
 void VMAHelper::allocateBufferObjectMemory(VmaAllocator& allocator,
 	VkBufferCreateInfo& createInfo,
-	VertexBuffer& vbo,
+	VertexBufferDesc_Vk* desc,
 	bool mappable)
 {
 	VmaAllocationCreateInfo allocInfo = {
@@ -33,13 +33,11 @@ void VMAHelper::allocateBufferObjectMemory(VmaAllocator& allocator,
 		.usage = VMA_MEMORY_USAGE_AUTO,
 	};
 
-	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
 	vmaCreateBuffer(allocator, &createInfo, &allocInfo, &desc->buffer, &((Alloc_VMA*)desc->alloc)->allocation, nullptr);
 }
 
-void VMAHelper::destroyBufferObjectMemory(VmaAllocator& allocator, VertexBuffer& vbo)
+void VMAHelper::destroyBufferObjectMemory(VmaAllocator& allocator, VertexBufferDesc_Vk* desc)
 {
-	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
 	//vmaDestroyBuffer(allocator, vbo.buffer, ((Alloc_VMA*)desc->alloc)->allocation);
 	vmaDestroyBuffer(allocator, VK_NULL_HANDLE, ((Alloc_VMA*)desc->alloc)->allocation);
 }
@@ -67,14 +65,14 @@ void Allocator_VMA::destroyAllocatorInstance()
 	VMAHelper::destroyAllocator(allocator);
 }
 
-void Allocator_VMA::allocateBufferObjectMemory(VkBufferCreateInfo& createInfo, VertexBuffer& vbo, uint32_t memoryFlags, bool mappable)
+void Allocator_VMA::allocateBufferObjectMemory(VkBufferCreateInfo& createInfo, size_t bufferSize, IVertexBufferLocalDesc* desc, uint32_t memoryFlags, bool mappable)
 {
-	VMAHelper::allocateBufferObjectMemory(allocator, createInfo, vbo, mappable);
+	VMAHelper::allocateBufferObjectMemory(allocator, createInfo, (VertexBufferDesc_Vk*)desc, mappable);
 }
 
-void Allocator_VMA::destroyBufferObjectMemory(VertexBuffer& vbo)
+void Allocator_VMA::destroyBufferObjectMemory(IVertexBufferLocalDesc* desc, size_t bufferSize)
 {
-	VMAHelper::destroyBufferObjectMemory(allocator, vbo);
+	VMAHelper::destroyBufferObjectMemory(allocator, (VertexBufferDesc_Vk*)desc);
 }
 
 void Allocator_VMA::mapMemory(IAllocation* allocation, void** ppData)

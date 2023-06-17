@@ -25,10 +25,11 @@ public:
 	void destroy() override { destroyAllocatorInstance(); };
 
 	virtual void allocateBufferObjectMemory(class VkBufferCreateInfo& createInfo,
-		class VertexBuffer& vbo,
+		size_t bufferSize,
+		class IVertexBufferLocalDesc* desc,
 		uint32_t memoryFlags = 0,
 		bool mappable = false) = 0;
-	virtual void destroyBufferObjectMemory(class VertexBuffer& vbo) = 0;
+	virtual void destroyBufferObjectMemory(class IVertexBufferLocalDesc* desc, size_t bufferSize) = 0;
 
 	virtual void mapMemory(IAllocation* allocation, void** ppData) = 0;
 	virtual void unmapMemory(IAllocation* allocation) = 0;

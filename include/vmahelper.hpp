@@ -16,9 +16,9 @@ public:
 
 	static void allocateBufferObjectMemory(VmaAllocator& allocator,
 		VkBufferCreateInfo& createInfo,
-		VertexBuffer& vbo,
+		class VertexBufferDesc_Vk* desc,
 		bool mappable = false);
-	static void destroyBufferObjectMemory(VmaAllocator& allocator, VertexBuffer& vbo);
+	static void destroyBufferObjectMemory(VmaAllocator& allocator, class VertexBufferDesc_Vk* desc);
 
 	static void mapMemory(VmaAllocator& allocator, VmaAllocation& allocation, void** ppData);
 	static void unmapMemory(VmaAllocator& allocator, VmaAllocation& allocation);
@@ -40,10 +40,11 @@ private:
 
 public:
 	void allocateBufferObjectMemory(VkBufferCreateInfo& createInfo,
-		VertexBuffer& vbo,
+		size_t bufferSize,
+		class IVertexBufferLocalDesc* desc,
 		uint32_t memoryFlags = 0,
 		bool mappable = false) override;
-	void destroyBufferObjectMemory(VertexBuffer& vbo) override;
+	void destroyBufferObjectMemory(class IVertexBufferLocalDesc* desc, size_t bufferSize) override;
 
 	void mapMemory(IAllocation* allocation, void** ppData) override;
 	void unmapMemory(IAllocation* allocation) override;
