@@ -5,32 +5,35 @@
 
 #include "utils/derived.hpp"
 
-#include "vertex.hpp"
 #include "resource.hpp"
 
-class MeshRenderer : public ILocalResource
+// TODO : copy mesh architecture
+
+class ShaderCompiled : public ILocalResource
 {
 	SUPER(ILocalResource)
 
 private:
-	std::shared_ptr<class VertexBuffer> vbo = nullptr;
 
 public:
+	std::shared_ptr<class ShaderModule> shmodule = nullptr;
+
 	void create(class IHostResource* host) override;
 	void destroy(class IHostResource* host) override;
 };
 
-class Mesh : public IHostResource
+class Shader : public IHostResource
 {
 	SUPER(IHostResource)
 
 private:
-	std::vector<Vertex> vertices;
 
 public:
+	std::vector<char> vs;
+	std::vector<char> fs;
+
 	void cpuLoad() override;
 	void cpuUnload() override;
 
-	const uint32_t getVertexNum() const;
-	const Vertex* getRawData() const;
+	const ShaderModule* getModule() const;
 };

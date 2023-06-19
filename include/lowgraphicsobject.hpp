@@ -1,7 +1,7 @@
 #pragma once
 
-// Graphics object that can be created (initialized) and destroyed
-class IGraphicsObject
+// Low level graphics object that can be created (initialized) and destroyed
+class ILowGraphicsObject
 {
 protected:
 	// graphics API

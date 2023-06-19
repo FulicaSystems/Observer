@@ -1,5 +1,5 @@
 #pragma once
 
-#include "graphicsobject.hpp"
+#include "lowgraphicsobject.hpp"
 
-class ILogicalDevice : public IGraphicsObject {};
+class ILogicalDevice : public ILowGraphicsObject {};

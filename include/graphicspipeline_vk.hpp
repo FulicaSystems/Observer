@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <deque>
-#include <fstream>
 #include <stdexcept>
 
 #include <glad/vulkan.h>
@@ -11,23 +10,6 @@
 #include "graphicspipeline.hpp"
 #include "commandbuffer_vk.hpp"
 #include "vertexbuffer.hpp"
-
-// TODO : move to libraries
-static std::vector<char> readBinaryFile(const std::string& filename)
-{
-	std::ifstream file(filename, std::ios::ate | std::ios::binary);
-	if (!file.is_open())
-		throw std::runtime_error("Failed to open file");
-
-	size_t fileSize = static_cast<size_t>(file.tellg());
-	std::vector<char> buffer(fileSize);
-
-	file.seekg(0);
-	file.read(buffer.data(), fileSize);
-
-	file.close();
-	return buffer;
-}
 
 /**
  * Rendering pipeline using a specific logical device.
@@ -50,6 +32,7 @@ private:
 	VkPipeline graphicsPipeline;
 
 	// framebuffer
+	// TODO : create framebuffer interface FrameBuffer_Vk : public IFrameBuffer
 	std::vector<VkFramebuffer> swapchainFramebuffers;
 
 	// multithreading

@@ -1,3 +1,8 @@
+#include "vertex.hpp"
+#include "vertexbuffer.hpp"
+#include "shader.hpp"
+
+#include "memorymanager.hpp"
 #include "commandbuffer_vk.hpp"
 #include "commandpool_vk.hpp"
 #include "graphicsdevice_vk.hpp"
@@ -6,12 +11,9 @@
 
 #include "lowrenderer_gl.hpp"
 
-#include "renderer.hpp"
+#include "resourcesmanager.hpp"
 
-VertexBuffer& Renderer::createVertexBufferObject(uint32_t vertexNum, const Vertex* vertices)
-{
-	return *vbos.emplace_back(api->create(vertexNum, vertices));
-}
+#include "renderer.hpp"
 
 Renderer::Renderer(const EGraphicsAPI graphicsApi)
 	: graphicsApi(graphicsApi)
@@ -55,6 +57,8 @@ Renderer::~Renderer()
 
 void Renderer::initRenderer()
 {
+	api->highRenderer = this;
+
 	switch (graphicsApi)
 	{
 	case EGraphicsAPI::OPENGL:
@@ -78,8 +82,6 @@ void Renderer::initRenderer()
 	default:
 		throw std::runtime_error("Invalid graphics API");
 	}
-
-	api->highRenderer = this;
 }
 
 void Renderer::terminateRenderer()
@@ -92,12 +94,18 @@ void Renderer::terminateRenderer()
 		api->destroyBufferObject(*vbos[i]);
 	}
 	vbos.clear();
+	ResourcesManager::clearAllResources();
 
 	allocator->destroy();
 
 	((LogicalDevice_Vk*)device)->destroy();
 
 	((LowRenderer_Vk*)api)->terminateGraphicsAPI();
+}
+
+VertexBuffer& Renderer::addVBO(std::shared_ptr<VertexBuffer> vbo)
+{
+	return *vbos.emplace_back(vbo);
 }
 
 void Renderer::render()

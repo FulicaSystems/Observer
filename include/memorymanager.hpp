@@ -3,7 +3,7 @@
 #include <cstdint>
 
 #include "utils/derived.hpp"
-#include "graphicsobject.hpp"
+#include "lowgraphicsobject.hpp"
 
 // comment this macro definition to use a custom memory allocator
 #define USE_VMA // define this macro to use Vulkan Memory Allocator
@@ -12,9 +12,9 @@ class IAllocation
 {
 };
 
-class IMemoryAllocator : public IGraphicsObject
+class IMemoryAllocator : public ILowGraphicsObject
 {
-	SUPER(IGraphicsObject)
+	SUPER(ILowGraphicsObject)
 
 protected:
 	virtual void createAllocatorInstance() = 0;
@@ -34,3 +34,9 @@ public:
 	virtual void mapMemory(IAllocation* allocation, void** ppData) = 0;
 	virtual void unmapMemory(IAllocation* allocation) = 0;
 };
+
+#ifdef USE_VMA
+#include "vmahelper.hpp"
+#else
+#include "allocator_vk.hpp"
+#endif

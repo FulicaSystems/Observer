@@ -101,16 +101,16 @@ void Application::windowInit()
 
 #include "resourcesmanager.hpp"
 #include "mesh.hpp"
+#include "shader.hpp"
 
 void Application::loop()
 {
 	// TODO : store vbos in a scene
 
 	ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
-	//ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
-	//ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
-	//ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
-	//ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
+	ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
+	ResourcesManager::load<Mesh>("triangle", "", new MeshRenderer(rdr));
+
 
 	while (!glfwWindowShouldClose(window))
 	{

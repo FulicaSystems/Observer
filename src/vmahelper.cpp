@@ -4,7 +4,7 @@
 
 #include "lowrenderer_vk.hpp"
 #include "graphicsdevice_vk.hpp"
-#include "vertexbuffer.hpp"
+#include "vertexbufferdesc_vk.hpp"
 
 void VMAHelper::createAllocator(ILowRenderer& api, ILogicalDevice& device, VmaAllocator& allocator)
 {

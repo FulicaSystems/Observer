@@ -1,14 +1,15 @@
 #pragma once
 
-//#include <glad/gl.h>
-// TODO : use GLuint instead of unsigned int
+#include "vertexbuffer.hpp"
 
-#include "vertexbufferlocaldesc.hpp"
+typedef unsigned int GLuint;
 
 class VertexBufferDesc_Gl : public IVertexBufferLocalDesc
 {
 public:
 	// vertex buffer object
-	unsigned int vbo;
-	unsigned int vao;
+	GLuint vbo;
+	GLuint vao;
+
+	~VertexBufferDesc_Gl() override {};
 };

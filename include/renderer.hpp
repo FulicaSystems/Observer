@@ -1,11 +1,11 @@
 #pragma once
 
 #include <deque>
+#include <memory>
+
+#include "vertexbuffer.hpp"
 
 #include "graphicsapi.hpp"
-
-#include "vertex.hpp"
-#include "vertexbuffer.hpp"
 
 /**
  * High level renderer.
@@ -41,7 +41,7 @@ public:
 	/**
 	 * Create a vertex buffer and store it to the vertex buffer container.
 	 */
-	VertexBuffer& createVertexBufferObject(uint32_t vertexNum, const Vertex* vertices);
+	VertexBuffer& addVBO(std::shared_ptr<VertexBuffer> vbo);
 
 
 	// rendering

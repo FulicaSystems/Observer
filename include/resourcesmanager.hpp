@@ -22,12 +22,14 @@ private:
 public:
 	template<class TResource, typename... TArg>
 		requires std::constructible_from<TResource, const char*&&, TArg...>
-	static inline std::shared_ptr<IHostResource> load(const char*&& name, TArg&&... ctorArgs);
+	static inline std::shared_ptr<TResource> load(const char*&& name, TArg&&... ctorArgs);
+
+	static void clearAllResources();
 };
 
 template<class TResource, typename... TArg>
 	requires std::constructible_from<TResource, const char*&&, TArg...>
-inline std::shared_ptr<IHostResource> ResourcesManager::load(const char*&& name, TArg&&... ctorArgs)
+inline std::shared_ptr<TResource> ResourcesManager::load(const char*&& name, TArg&&... ctorArgs)
 {
 	ResourcesManager& rm = getInstance();
 
@@ -38,10 +40,10 @@ inline std::shared_ptr<IHostResource> ResourcesManager::load(const char*&& name,
 		rm.resources[name] = rsrc;
 	}
 
-	Utils::GlobalThreadPool::addTask([&]() {
+	Utils::GlobalThreadPool::addTask([=]() {
 		rsrc->cpuLoad();
 		rsrc->gpuLoad();
 		});
 
-	return rsrc;
+	return std::dynamic_pointer_cast<TResource>(rsrc);
 }

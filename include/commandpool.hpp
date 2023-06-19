@@ -1,5 +1,5 @@
 #pragma once
 
-#include "graphicsobject.hpp"
+#include "lowgraphicsobject.hpp"
 
-class ICommandPool : public IGraphicsObject {};
+class ICommandPool : public ILowGraphicsObject {};

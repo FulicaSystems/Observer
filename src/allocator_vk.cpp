@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include "vertexbuffer.hpp"
+#include "vertexbufferdesc_vk.hpp"
 #include "graphicsdevice_vk.hpp"
 
 #include "allocator_vk.hpp"

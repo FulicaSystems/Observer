@@ -2,14 +2,9 @@
 
 #include <glad/vulkan.h>
 
-#include "vertexbufferlocaldesc.hpp"
 #include "memorymanager.hpp"
 
-#ifdef USE_VMA
-#include "vmahelper.hpp"
-#else
-#include "allocator_vk.hpp"
-#endif
+#include "vertexbuffer.hpp"
 
 class VertexBufferDesc_Vk : public IVertexBufferLocalDesc
 {
@@ -27,5 +22,5 @@ public:
 		alloc = new MyAlloc_Vk();
 #endif
 	}
-	~VertexBufferDesc_Vk() { delete alloc; }
+	~VertexBufferDesc_Vk() override { delete alloc; }
 };

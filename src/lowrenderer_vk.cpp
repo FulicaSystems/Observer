@@ -1,11 +1,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#ifdef USE_VMA
-#include "vmahelper.hpp"
-#else
-#include "allocator_vk.hpp"
-#endif
+#include "memorymanager.hpp"
 
 #include "renderer.hpp"
 
@@ -14,6 +10,9 @@
 
 #include "lowrenderer_vk.hpp"
 #include "graphicsdevice_vk.hpp"
+
+#include "vertexbufferdesc_vk.hpp"
+#include "shadermoduledesc_vk.hpp"
 
 // args[0] should be additionalExtensions
 void LowRenderer_Vk::initGraphicsAPI_Impl(std::span<void*> args)
@@ -135,7 +134,53 @@ void LowRenderer_Vk::vulkanLayers()
 }
 
 
-// vertex buffer object
+// additionalArgs[0] must be "VkBufferUsageFlags usage"
+// additionalArgs[1] must be "VkMemoryPropertyFlags memProperties"
+[[nodiscard]] std::shared_ptr<VertexBuffer> LowRenderer_Vk::createBufferObject_Impl(uint32_t vertexNum,
+	bool mappable,
+	std::span<uint32_t> additionalArgs)
+{
+	VkBufferUsageFlags usage = additionalArgs[0];
+	VkMemoryPropertyFlags memProperties = additionalArgs[1];
+
+	// out buffer object
+	std::shared_ptr<VertexBuffer> outVbo = VertexBuffer::createNew(vertexNum, EGraphicsAPI::VULKAN);
+
+	VkBufferCreateInfo createInfo = {
+		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+		.flags = 0,
+		.size = (VkDeviceSize)outVbo->bufferSize,
+		.usage = usage,
+		.sharingMode = VK_SHARING_MODE_EXCLUSIVE
+	};
+
+	highRenderer->allocator->allocateBufferObjectMemory(createInfo, outVbo->bufferSize, outVbo->localDesc, memProperties, mappable);
+
+	return outVbo;
+}
+
+void LowRenderer_Vk::populateBufferObject(VertexBuffer& vbo, const Vertex* vertices)
+{
+	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
+
+	// populating the VBO (using a CPU accessible memory)
+	highRenderer->allocator->mapMemory(desc->alloc, &vbo.vertices);
+
+	// TODO : flush memory
+	memcpy(vbo.vertices, vertices, vbo.bufferSize);
+	// TODO : invalidate memory before reading in the pipeline
+
+	highRenderer->allocator->unmapMemory(desc->alloc);
+}
+
+void LowRenderer_Vk::destroyBufferObject(VertexBuffer& vbo)
+{
+	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
+
+	vkDestroyBuffer(((LogicalDevice_Vk*)highRenderer->device)->vkdevice, desc->buffer, nullptr);
+	highRenderer->allocator->destroyBufferObjectMemory(desc, vbo.bufferSize);
+}
+
 
 std::shared_ptr<VertexBuffer> LowRenderer_Vk::createVertexBuffer_Impl(uint32_t vertexNum, const Vertex* vertices)
 {
@@ -188,49 +233,33 @@ std::shared_ptr<VertexBuffer> LowRenderer_Vk::createVertexBuffer_Impl(uint32_t v
 	return vbo;
 }
 
-// additionalArgs[0] must be "VkBufferUsageFlags usage"
-// additionalArgs[1] must be "VkMemoryPropertyFlags memProperties"
-[[nodiscard]] std::shared_ptr<class VertexBuffer> LowRenderer_Vk::createBufferObject_Impl(uint32_t vertexNum,
-	bool mappable,
-	std::span<uint32_t> additionalArgs)
+std::shared_ptr<ShaderModule> LowRenderer_Vk::createShaderModule_Impl(ILogicalDevice* device,
+	size_t vsSize,
+	size_t fsSize,
+	char* vs,
+	char* fs)
 {
-	VkBufferUsageFlags usage = additionalArgs[0];
-	VkMemoryPropertyFlags memProperties = additionalArgs[1];
+	std::shared_ptr<ShaderModule> sh = ShaderModule::createNew(EGraphicsAPI::VULKAN);
+	ShaderModuleDesc_Vk* desc = ((ShaderModuleDesc_Vk*)sh->localDesc);
 
-	// out buffer object
-	std::shared_ptr<VertexBuffer> outVbo = VertexBuffer::createNew(vertexNum, EGraphicsAPI::VULKAN);
+	desc->device = (LogicalDevice_Vk*)device;
 
-	VkBufferCreateInfo createInfo = {
-		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-		.flags = 0,
-		.size = (VkDeviceSize)outVbo->bufferSize,
-		.usage = usage,
-		.sharingMode = VK_SHARING_MODE_EXCLUSIVE
+	auto createShaderModule = [&](char* code, size_t codeSize) {
+		VkShaderModuleCreateInfo createInfo = {
+		.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+		.codeSize = codeSize,
+		.pCode = reinterpret_cast<const uint32_t*>(code)
+		};
+
+		VkDevice vkdevice = desc->device->vkdevice;
+		VkShaderModule shaderModule;
+		if (vkCreateShaderModule(vkdevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
+			throw std::runtime_error("Failed to create shader module");
+		return shaderModule;
 	};
 
-	highRenderer->allocator->allocateBufferObjectMemory(createInfo, outVbo->bufferSize, outVbo->localDesc, memProperties, mappable);
+	desc->vsModule = createShaderModule(vs, vsSize);
+	desc->fsModule = createShaderModule(fs, fsSize);
 
-	return outVbo;
-}
-
-void LowRenderer_Vk::populateBufferObject(VertexBuffer& vbo, const Vertex* vertices)
-{
-	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
-
-	// populating the VBO (using a CPU accessible memory)
-	highRenderer->allocator->mapMemory(desc->alloc, &vbo.vertices);
-
-	// TODO : flush memory
-	memcpy(vbo.vertices, vertices, vbo.bufferSize);
-	// TODO : invalidate memory before reading in the pipeline
-
-	highRenderer->allocator->unmapMemory(desc->alloc);
-}
-
-void LowRenderer_Vk::destroyBufferObject(VertexBuffer& vbo)
-{
-	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
-
-	vkDestroyBuffer(((LogicalDevice_Vk*)highRenderer->device)->vkdevice, desc->buffer, nullptr);
-	highRenderer->allocator->destroyBufferObjectMemory(desc, vbo.bufferSize);
+	return sh;
 }
