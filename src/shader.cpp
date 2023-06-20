@@ -2,8 +2,11 @@
 #include "utils/multithread/globalthreadpool.hpp"
 
 #include "renderer.hpp"
+#include "lowrenderer.hpp"
+
 #include "graphicsdevice.hpp"
 #include "shadermodule.hpp"
+
 #include "shader.hpp"
 
 void Shader::cpuLoad()
@@ -13,34 +16,21 @@ void Shader::cpuLoad()
 	fs = bin::read(str + ".frag.spv");
 }
 
+void Shader::gpuLoad()
+{
+	Utils::GlobalThreadPool::addTask([=, this]() {
+			local = highRenderer.api->create<IShaderModule>(highRenderer.device,
+			vs.size(),
+			fs.size(),
+			vs.data(),
+			fs.data());
+		loaded.test_and_set();
+		loaded.notify_all();
+		}, false);
+}
+
 void Shader::cpuUnload()
 {
 	vs.clear();
 	fs.clear();
-}
-
-const IShaderModule* Shader::getModule() const
-{
-	return ((ShaderRenderer*)local)->shmodule.get();
-}
-
-#include "lowrenderer.hpp"
-void ShaderRenderer::create(IHostResource* host)
-{
-	Shader* hostResource = (Shader*)host;
-
-	Utils::GlobalThreadPool::addTask([=, this]() {
-		shmodule = highRenderer.api->create<IShaderModule>(highRenderer.device,
-			hostResource->vs.size(),
-			hostResource->fs.size(),
-			hostResource->vs.data(),
-			hostResource->fs.data());
-		hostResource->loaded.test_and_set();
-		hostResource->loaded.notify_all();
-		}, false);
-}
-
-void ShaderRenderer::destroy(class IHostResource* host)
-{
-	shmodule.reset();
 }

@@ -7,21 +7,6 @@
 
 #include "resource.hpp"
 
-// TODO : copy mesh architecture
-
-class ShaderRenderer : public ILocalResource
-{
-	SUPER(ILocalResource)
-
-private:
-
-public:
-	std::shared_ptr<class IShaderModule> shmodule = nullptr;
-
-	void create(class IHostResource* host) override;
-	void destroy(class IHostResource* host) override;
-};
-
 class Shader : public IHostResource
 {
 	SUPER(IHostResource)
@@ -33,7 +18,7 @@ public:
 	std::vector<char> fs;
 
 	void cpuLoad() override;
-	void cpuUnload() override;
+	void gpuLoad() override;
 
-	const class IShaderModule* getModule() const;
+	void cpuUnload() override;
 };

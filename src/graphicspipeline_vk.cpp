@@ -4,6 +4,8 @@
 #include "mathematics.hpp"
 #include "format.hpp"
 
+#include "renderer.hpp"
+
 #include "vertex.hpp"
 #include "vertexbuffer_vk.hpp"
 
@@ -200,9 +202,7 @@ void GraphicsPipeline_Vk::vulkanImageViews()
 
 void GraphicsPipeline_Vk::vulkanGraphicsPipeline()
 {
-	shader = ResourcesManager::load<Shader>("triangle_shader",
-		"shaders/triangle",
-		new ShaderRenderer(*api->highRenderer));
+	shader = ResourcesManager::load<Shader>("triangle_shader", "shaders/triangle", *api->highRenderer);
 
 	auto initPipeline = [=, this]() {
 		std::vector<VkDynamicState> dynamicStates = {
@@ -320,7 +320,7 @@ void GraphicsPipeline_Vk::vulkanGraphicsPipeline()
 			.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
 			//shader stage
 			.stageCount = 2,
-			.pStages = ((ShaderModule_Vk*)shader->getModule())->getCreateInfo().data(),
+			.pStages = std::dynamic_pointer_cast<ShaderModule_Vk>(shader->local)->getCreateInfo().data(),
 			//fixed function stage
 			.pVertexInputState = &vertexInputCreateInfo,
 			.pInputAssemblyState = &inputAssemblyCreateInfo,

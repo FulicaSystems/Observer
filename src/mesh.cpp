@@ -12,6 +12,15 @@ void Mesh::cpuLoad()
 	vertices.push_back(Vertex({ { -0.5f,  0.5f, 0.f }, Color::blue }));
 }
 
+void Mesh::gpuLoad()
+{
+	Utils::GlobalThreadPool::addTask([=, this]() {
+		local = highRenderer.api->create<IVertexBuffer>(getVertexNum(), getRawData());
+		highRenderer.addVBO(std::dynamic_pointer_cast<IVertexBuffer>(local));
+		loaded.test_and_set();
+		}, false);
+}
+
 void Mesh::cpuUnload()
 {
 	vertices.clear();
@@ -25,20 +34,4 @@ const uint32_t Mesh::getVertexNum() const
 const Vertex* Mesh::getRawData() const
 {
 	return vertices.data();
-}
-
-void MeshRenderer::create(IHostResource* host)
-{
-	Mesh* hostResource = (Mesh*)host;
-
-	Utils::GlobalThreadPool::addTask([=, this]() {
-		vbo = highRenderer.api->create<IVertexBuffer>(hostResource->getVertexNum(), hostResource->getRawData());
-		highRenderer.addVBO(vbo);
-		hostResource->loaded.test_and_set();
-		}, false);
-}
-
-void MeshRenderer::destroy(IHostResource* host)
-{
-	vbo.reset();
 }

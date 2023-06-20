@@ -2,9 +2,10 @@
 
 #include <memory>
 
+#include "resource.hpp"
 #include "graphicsapi.hpp"
 
-class IVertexBuffer
+class IVertexBuffer : public ILocalResource
 {
 public:
 	// CPU accessible data

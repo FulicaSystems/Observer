@@ -1,21 +1,19 @@
 #pragma once
 
 #include <filesystem>
+#include <memory>
+
+#include "utils/property.hpp"
 
 // resources used for rendering with GPU
 // GPU device local
 class ILocalResource
 {
 protected:
-	class Renderer& highRenderer;
-
+	ILocalResource() = default;
 public:
-	ILocalResource(class Renderer& highRenderer) : highRenderer(highRenderer) {}
-
-	virtual void create(class IHostResource* host) = 0;
-	virtual void destroy(class IHostResource* host) = 0;
+	virtual ~ILocalResource() {}
 };
-
 
 // host accessible resource
 // CPU host
@@ -27,29 +25,30 @@ private:
 protected:
 	std::filesystem::path filepath = "";
 
-	// representation of this resource on the graphics device (GPU)
-	// it may not be host accessible (CPU)
-	ILocalResource* local = nullptr;
+	// reference to the high renderer
+	class Renderer& highRenderer;
+
 
 public:
+	std::shared_ptr<ILocalResource> local = nullptr;
+
 	// flag that tells if the resource is fully loaded (CPU and GPU)
 	std::atomic_flag loaded = ATOMIC_FLAG_INIT;
 
 	IHostResource(const char*&& name,
 		const char*&& filepath,
-		ILocalResource* local)
-		: name(name), filepath(filepath), local(local) {}
+		class Renderer& highRenderer)
+		: name(name), filepath(filepath), highRenderer(highRenderer) {}
 
 	~IHostResource()
 	{
 		gpuUnload();
 		cpuUnload();
-		if (local) delete local;
 	}
 
 	virtual void cpuLoad() = 0;
-	virtual void gpuLoad() { if (local) local->create(this); }
+	virtual void gpuLoad() = 0;
 
 	virtual void cpuUnload() {}
-	virtual void gpuUnload() { if (local) local->destroy(this); }
+	virtual void gpuUnload() { local.reset(); }
 };

@@ -3,9 +3,11 @@
 #include <memory>
 #include <vector>
 
+#include "resource.hpp"
+
 #include "graphicsapi.hpp"
 
-class IShaderModule
+class IShaderModule : public ILocalResource
 {
 public:
 	virtual ~IShaderModule() {}
