@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include "vertexbufferdesc_vk.hpp"
+#include "vertexbuffer_vk.hpp"
 #include "graphicsdevice_vk.hpp"
 
 #include "allocator_vk.hpp"
@@ -47,31 +47,34 @@ void MyAllocator_Vk::destroyAllocatorInstance()
 	memBlocks.clear();
 }
 
-void MyAllocator_Vk::allocateBufferObjectMemory(VkBufferCreateInfo& createInfo, size_t bufferSize, IVertexBufferLocalDesc* desc, uint32_t memoryFlags, bool mappable)
+void MyAllocator_Vk::allocateBufferObjectMemory(VkBufferCreateInfo& createInfo,
+	IVertexBuffer* vbo,
+	uint32_t memoryFlags,
+	bool mappable)
 {
-	VertexBufferDesc_Vk* localDesc = (VertexBufferDesc_Vk*)desc;
+	VertexBuffer_Vk* vk = (VertexBuffer_Vk*)vbo;
 
-	if (vkCreateBuffer(((LogicalDevice_Vk*)device)->vkdevice, &createInfo, nullptr, &localDesc->buffer) != VK_SUCCESS)
+	if (vkCreateBuffer(((LogicalDevice_Vk*)device)->vkdevice, &createInfo, nullptr, &vk->buffer) != VK_SUCCESS)
 		throw std::runtime_error("Failed to create vertex buffer");
 
-	MyAlloc_Vk* alloc = (MyAlloc_Vk*)localDesc->alloc;
+	MyAlloc_Vk* alloc = (MyAlloc_Vk*)vk->alloc;
 
 	// binding memory block
-	MemoryBlock& block = findFirstAvailableBlock(bufferSize, localDesc->buffer, memoryFlags);
+	MemoryBlock& block = findFirstAvailableBlock(vk->bufferSize, vk->buffer, memoryFlags);
 	alloc->memoryOffset = block.usedSpace;
-	vkBindBufferMemory(((LogicalDevice_Vk*)device)->vkdevice, localDesc->buffer, block.memory, block.usedSpace);
+	vkBindBufferMemory(((LogicalDevice_Vk*)device)->vkdevice, vk->buffer, block.memory, block.usedSpace);
 
 	// marking space as taken
-	block.usedSpace += bufferSize;
+	block.usedSpace += vk->bufferSize;
 	alloc->memoryBlock = &block;
 }
 
-void MyAllocator_Vk::destroyBufferObjectMemory(IVertexBufferLocalDesc* desc, size_t bufferSize)
+void MyAllocator_Vk::destroyBufferObjectMemory(IVertexBuffer* vbo)
 {
-	VertexBufferDesc_Vk* localDesc = (VertexBufferDesc_Vk*)desc;
+	VertexBuffer_Vk* vk = (VertexBuffer_Vk*)vbo;
 
-	MemoryBlock* currentBlock = ((MyAlloc_Vk*)localDesc->alloc)->memoryBlock;
-	currentBlock->usedSpace -= bufferSize;
+	MemoryBlock* currentBlock = ((MyAlloc_Vk*)vk->alloc)->memoryBlock;
+	currentBlock->usedSpace -= vk->bufferSize;
 	if (currentBlock->usedSpace <= 0)
 	{
 		vkFreeMemory(((LogicalDevice_Vk*)device)->vkdevice, currentBlock->memory, nullptr);

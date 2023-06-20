@@ -11,8 +11,9 @@
 #include "lowrenderer_vk.hpp"
 #include "graphicsdevice_vk.hpp"
 
-#include "vertexbufferdesc_vk.hpp"
-#include "shadermoduledesc_vk.hpp"
+#include "vertex.hpp"
+#include "vertexbuffer_vk.hpp"
+#include "shadermodule_vk.hpp"
 
 // args[0] should be additionalExtensions
 void LowRenderer_Vk::initGraphicsAPI_Impl(std::span<void*> args)
@@ -136,7 +137,7 @@ void LowRenderer_Vk::vulkanLayers()
 
 // additionalArgs[0] must be "VkBufferUsageFlags usage"
 // additionalArgs[1] must be "VkMemoryPropertyFlags memProperties"
-[[nodiscard]] std::shared_ptr<VertexBuffer> LowRenderer_Vk::createBufferObject_Impl(uint32_t vertexNum,
+[[nodiscard]] std::shared_ptr<IVertexBuffer> LowRenderer_Vk::createBufferObject_Impl(uint32_t vertexNum,
 	bool mappable,
 	std::span<uint32_t> additionalArgs)
 {
@@ -144,7 +145,7 @@ void LowRenderer_Vk::vulkanLayers()
 	VkMemoryPropertyFlags memProperties = additionalArgs[1];
 
 	// out buffer object
-	std::shared_ptr<VertexBuffer> outVbo = VertexBuffer::createNew(vertexNum, EGraphicsAPI::VULKAN);
+	std::shared_ptr<IVertexBuffer> outVbo = IVertexBuffer::instantiate(vertexNum, EGraphicsAPI::VULKAN);
 
 	VkBufferCreateInfo createInfo = {
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -154,51 +155,53 @@ void LowRenderer_Vk::vulkanLayers()
 		.sharingMode = VK_SHARING_MODE_EXCLUSIVE
 	};
 
-	highRenderer->allocator->allocateBufferObjectMemory(createInfo, outVbo->bufferSize, outVbo->localDesc, memProperties, mappable);
+	highRenderer->allocator->allocateBufferObjectMemory(createInfo, outVbo.get(), memProperties, mappable);
 
 	return outVbo;
 }
 
-void LowRenderer_Vk::populateBufferObject(VertexBuffer& vbo, const Vertex* vertices)
+void LowRenderer_Vk::populateBufferObject(IVertexBuffer& vbo, const Vertex* vertices)
 {
-	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
+	VertexBuffer_Vk& vk = (VertexBuffer_Vk&)vbo;
 
 	// populating the VBO (using a CPU accessible memory)
-	highRenderer->allocator->mapMemory(desc->alloc, &vbo.vertices);
+	highRenderer->allocator->mapMemory(vk.alloc, &vk.vertices);
 
 	// TODO : flush memory
-	memcpy(vbo.vertices, vertices, vbo.bufferSize);
+	memcpy(vk.vertices, vertices, vk.bufferSize);
 	// TODO : invalidate memory before reading in the pipeline
 
-	highRenderer->allocator->unmapMemory(desc->alloc);
+	highRenderer->allocator->unmapMemory(vk.alloc);
 }
 
-void LowRenderer_Vk::destroyBufferObject(VertexBuffer& vbo)
+void LowRenderer_Vk::destroyBufferObject(IVertexBuffer& vbo)
 {
-	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
+	VertexBuffer_Vk& vk = (VertexBuffer_Vk&)vbo;
 
-	vkDestroyBuffer(((LogicalDevice_Vk*)highRenderer->device)->vkdevice, desc->buffer, nullptr);
-	highRenderer->allocator->destroyBufferObjectMemory(desc, vbo.bufferSize);
+	vkDestroyBuffer(((LogicalDevice_Vk*)highRenderer->device)->vkdevice, vk.buffer, nullptr);
+	highRenderer->allocator->destroyBufferObjectMemory(&vbo);
 }
 
 
-std::shared_ptr<VertexBuffer> LowRenderer_Vk::createVertexBuffer_Impl(uint32_t vertexNum, const Vertex* vertices)
+std::shared_ptr<IVertexBuffer> LowRenderer_Vk::createVertexBuffer_Impl(uint32_t vertexNum, const Vertex* vertices)
 {
 	// this buffer is a CPU accessible buffer (temporary buffer to later load the data to the GPU)
-	std::shared_ptr<VertexBuffer> stagingVBO = createBufferObject(vertexNum,
+	std::shared_ptr<VertexBuffer_Vk> stagingVBO =
+		std::dynamic_pointer_cast<VertexBuffer_Vk>(createBufferObject(vertexNum,
 		true,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,	// used for memory transfer operation
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
 
 	// populating the CPU accessible buffer
 	populateBufferObject(*stagingVBO, vertices);
 
 	// creating a device (GPU) local buffer (on the specific device of the renderer)
 	// store this vertex buffer to keep a reference
-	std::shared_ptr<VertexBuffer> vbo = createBufferObject(vertexNum,
+	std::shared_ptr<VertexBuffer_Vk> vbo =
+		std::dynamic_pointer_cast<VertexBuffer_Vk>(createBufferObject(vertexNum,
 		false,
 		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,	// memory transfer operation
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT));
 
 	// copying the staging buffer data into the device local buffer
 
@@ -213,9 +216,7 @@ std::shared_ptr<VertexBuffer> LowRenderer_Vk::createVertexBuffer_Impl(uint32_t v
 		.dstOffset = 0,
 		.size = stagingVBO->bufferSize
 	};
-	VertexBufferDesc_Vk* stagingDesc = (VertexBufferDesc_Vk*)stagingVBO->localDesc;
-	VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo->localDesc;
-	vkCmdCopyBuffer(cbo.get(), stagingDesc->buffer, desc->buffer, 1, &copyRegion);
+	vkCmdCopyBuffer(cbo.get(), stagingVBO->buffer, vbo->buffer, 1, &copyRegion);
 
 	cbo.endRecord();
 
@@ -233,16 +234,15 @@ std::shared_ptr<VertexBuffer> LowRenderer_Vk::createVertexBuffer_Impl(uint32_t v
 	return vbo;
 }
 
-std::shared_ptr<ShaderModule> LowRenderer_Vk::createShaderModule_Impl(ILogicalDevice* device,
+std::shared_ptr<IShaderModule> LowRenderer_Vk::createShaderModule_Impl(ILogicalDevice* device,
 	size_t vsSize,
 	size_t fsSize,
 	char* vs,
 	char* fs)
 {
-	std::shared_ptr<ShaderModule> sh = ShaderModule::createNew(EGraphicsAPI::VULKAN);
-	ShaderModuleDesc_Vk* desc = ((ShaderModuleDesc_Vk*)sh->localDesc);
-
-	desc->device = (LogicalDevice_Vk*)device;
+	std::shared_ptr<ShaderModule_Vk> sh =
+		std::dynamic_pointer_cast<ShaderModule_Vk>(IShaderModule::instantiate(EGraphicsAPI::VULKAN));
+	sh->device = (LogicalDevice_Vk*)device;
 
 	auto createShaderModule = [&](char* code, size_t codeSize) {
 		VkShaderModuleCreateInfo createInfo = {
@@ -251,15 +251,15 @@ std::shared_ptr<ShaderModule> LowRenderer_Vk::createShaderModule_Impl(ILogicalDe
 		.pCode = reinterpret_cast<const uint32_t*>(code)
 		};
 
-		VkDevice vkdevice = desc->device->vkdevice;
+		VkDevice vkdevice = sh->device->vkdevice;
 		VkShaderModule shaderModule;
 		if (vkCreateShaderModule(vkdevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create shader module");
 		return shaderModule;
 	};
 
-	desc->vsModule = createShaderModule(vs, vsSize);
-	desc->fsModule = createShaderModule(fs, fsSize);
+	sh->vsModule = createShaderModule(vs, vsSize);
+	sh->fsModule = createShaderModule(fs, fsSize);
 
 	return sh;
 }

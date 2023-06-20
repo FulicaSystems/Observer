@@ -39,11 +39,11 @@ set(HEADERS
     include/scene.hpp
     include/shader.hpp
     include/shadermodule.hpp
-    include/shadermoduledesc_vk.hpp
+    include/shadermodule_vk.hpp
     include/vertex.hpp
     include/vertexbuffer.hpp
-    include/vertexbufferdesc_gl.hpp
-    include/vertexbufferdesc_vk.hpp
+    include/vertexbuffer_gl.hpp
+    include/vertexbuffer_vk.hpp
     include/vmahelper.hpp
 )
 
@@ -64,7 +64,7 @@ set(SOURCES
     src/resourcesmanager.cpp
     src/shader.cpp
     src/shadermodule.cpp
-    src/shadermoduledesc_vk.cpp
+    src/shadermodule_vk.cpp
     src/vertex.cpp
     src/vertexbuffer.cpp
     src/vmahelper.cpp

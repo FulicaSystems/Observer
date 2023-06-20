@@ -32,7 +32,7 @@ void MeshRenderer::create(IHostResource* host)
 	Mesh* hostResource = (Mesh*)host;
 
 	Utils::GlobalThreadPool::addTask([=, this]() {
-		vbo = highRenderer.api->create<VertexBuffer>(hostResource->getVertexNum(), hostResource->getRawData());
+		vbo = highRenderer.api->create<IVertexBuffer>(hostResource->getVertexNum(), hostResource->getRawData());
 		highRenderer.addVBO(vbo);
 		hostResource->loaded.test_and_set();
 		}, false);

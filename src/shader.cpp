@@ -19,18 +19,18 @@ void Shader::cpuUnload()
 	fs.clear();
 }
 
-const ShaderModule* Shader::getModule() const
+const IShaderModule* Shader::getModule() const
 {
-	return ((ShaderCompiled*)local)->shmodule.get();
+	return ((ShaderRenderer*)local)->shmodule.get();
 }
 
 #include "lowrenderer.hpp"
-void ShaderCompiled::create(IHostResource* host)
+void ShaderRenderer::create(IHostResource* host)
 {
 	Shader* hostResource = (Shader*)host;
 
 	Utils::GlobalThreadPool::addTask([=, this]() {
-		shmodule = highRenderer.api->create<ShaderModule>(highRenderer.device,
+		shmodule = highRenderer.api->create<IShaderModule>(highRenderer.device,
 			hostResource->vs.size(),
 			hostResource->fs.size(),
 			hostResource->vs.data(),
@@ -40,7 +40,7 @@ void ShaderCompiled::create(IHostResource* host)
 		}, false);
 }
 
-void ShaderCompiled::destroy(class IHostResource* host)
+void ShaderRenderer::destroy(class IHostResource* host)
 {
 	shmodule.reset();
 }

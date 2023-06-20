@@ -1,22 +1,22 @@
 #include "graphicsdevice_vk.hpp"
 
-#include "shadermoduledesc_vk.hpp"
+#include "shadermodule_vk.hpp"
 
 #include "shadermodule.hpp"
 
-[[nodiscard]] std::shared_ptr<ShaderModule> ShaderModule::createNew(const EGraphicsAPI graphicsApi)
+[[nodiscard]] std::shared_ptr<IShaderModule> IShaderModule::instantiate(const EGraphicsAPI graphicsApi)
 {
-	std::shared_ptr<ShaderModule> sh;
+	std::shared_ptr<IShaderModule> sh;
 	switch (graphicsApi)
 	{
 	case EGraphicsAPI::OPENGL:
 	{
-		//sh = std::make_shared<ShaderModule>(new ShaderModuleDesc_Gl());
+		//sh = std::make_shared<ShaderModule_Vk>();
 		break;
 	}
 	case EGraphicsAPI::VULKAN:
 	{
-		sh = std::make_shared<ShaderModule>(new ShaderModuleDesc_Vk());
+		sh = std::make_shared<ShaderModule_Vk>();
 
 		break;
 	}

@@ -8,9 +8,7 @@
 // comment this macro definition to use a custom memory allocator
 #define USE_VMA // define this macro to use Vulkan Memory Allocator
 
-class IAllocation
-{
-};
+class IAllocation {};
 
 class IMemoryAllocator : public ILowGraphicsObject
 {
@@ -25,11 +23,10 @@ public:
 	void destroy() override { destroyAllocatorInstance(); };
 
 	virtual void allocateBufferObjectMemory(class VkBufferCreateInfo& createInfo,
-		size_t bufferSize,
-		class IVertexBufferLocalDesc* desc,
+		class IVertexBuffer* vbo,
 		uint32_t memoryFlags = 0,
 		bool mappable = false) = 0;
-	virtual void destroyBufferObjectMemory(class IVertexBufferLocalDesc* desc, size_t bufferSize) = 0;
+	virtual void destroyBufferObjectMemory(class IVertexBuffer* vbo) = 0;
 
 	virtual void mapMemory(IAllocation* allocation, void** ppData) = 0;
 	virtual void unmapMemory(IAllocation* allocation) = 0;

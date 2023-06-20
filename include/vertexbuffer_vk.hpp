@@ -6,7 +6,7 @@
 
 #include "vertexbuffer.hpp"
 
-class VertexBufferDesc_Vk : public IVertexBufferLocalDesc
+class VertexBuffer_Vk : public IVertexBuffer
 {
 public:
 	class IAllocation* alloc;
@@ -14,7 +14,7 @@ public:
 	// vertex buffer object
 	VkBuffer buffer;
 
-	VertexBufferDesc_Vk()
+	VertexBuffer_Vk()
 	{
 #ifdef USE_VMA
 		alloc = new Alloc_VMA();
@@ -22,5 +22,5 @@ public:
 		alloc = new MyAlloc_Vk();
 #endif
 	}
-	~VertexBufferDesc_Vk() override { delete alloc; }
+	~VertexBuffer_Vk() override { delete alloc; }
 };

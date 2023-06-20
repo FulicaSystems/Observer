@@ -13,7 +13,7 @@ class MeshRenderer : public ILocalResource
 	SUPER(ILocalResource)
 
 private:
-	std::shared_ptr<class VertexBuffer> vbo = nullptr;
+	std::shared_ptr<class IVertexBuffer> vbo = nullptr;
 
 public:
 	void create(class IHostResource* host) override;

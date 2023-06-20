@@ -14,19 +14,19 @@ protected:
 	// buffer object manager
 
 	template<typename... TArgs>
-	[[nodiscard]] std::shared_ptr<class VertexBuffer> createBufferObject(uint32_t vertexNum,
+	[[nodiscard]] std::shared_ptr<class IVertexBuffer> createBufferObject(uint32_t vertexNum,
 		bool mappable = false,
 		TArgs&&... args)
 	{
 		std::array<uint32_t, sizeof...(TArgs)> forwardedArgs = { std::forward<TArgs>(args)... };
 		return createBufferObject_Impl(vertexNum, mappable, forwardedArgs);
 	}
-	[[nodiscard]] virtual std::shared_ptr<class VertexBuffer> createBufferObject_Impl(uint32_t vertexNum,
+	[[nodiscard]] virtual std::shared_ptr<class IVertexBuffer> createBufferObject_Impl(uint32_t vertexNum,
 		bool mappable,
 		std::span<uint32_t> additionalArgs = std::span<uint32_t>()) = 0;
-	virtual void populateBufferObject(class VertexBuffer& vbo, const class Vertex* vertices) = 0;
+	virtual void populateBufferObject(class IVertexBuffer& vbo, const struct Vertex* vertices) = 0;
 public:
-	virtual void destroyBufferObject(class VertexBuffer& vbo) = 0;
+	virtual void destroyBufferObject(class IVertexBuffer& vbo) = 0;
 
 
 public:
@@ -49,24 +49,24 @@ public:
 	}
 
 protected:
-	virtual std::shared_ptr<class VertexBuffer> createVertexBuffer_Impl(uint32_t vertexNum,
-		const class Vertex* vertices) = 0;
+	virtual std::shared_ptr<class IVertexBuffer> createVertexBuffer_Impl(uint32_t vertexNum,
+		const struct Vertex* vertices) = 0;
 public:
 	template<>
-	std::shared_ptr<class VertexBuffer> create<class VertexBuffer,
+	std::shared_ptr<class IVertexBuffer> create<class IVertexBuffer,
 		uint32_t,
-		const class Vertex*>(uint32_t vertexNum,
-			const class Vertex* vertices);
+		const struct Vertex*>(uint32_t vertexNum,
+			const struct Vertex* vertices);
 
 protected:
-	virtual std::shared_ptr<class ShaderModule> createShaderModule_Impl(class ILogicalDevice* device,
+	virtual std::shared_ptr<class IShaderModule> createShaderModule_Impl(class ILogicalDevice* device,
 		size_t vsSize,
 		size_t fsSize,
 		char* vs,
 		char* fs) = 0;
 public:
 	template<>
-	std::shared_ptr<class ShaderModule> create<class ShaderModule,
+	std::shared_ptr<class IShaderModule> create<class IShaderModule,
 		class ILogicalDevice*,
 		size_t,
 		size_t,

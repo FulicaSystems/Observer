@@ -1,21 +1,10 @@
 #pragma once
 
 #include <memory>
-#include <stdexcept>
-
-#include "vertex.hpp"
 
 #include "graphicsapi.hpp"
 
-// local (gpu) vertex buffer interface
-// override with different graphics API
-class IVertexBufferLocalDesc
-{
-public:
-	virtual ~IVertexBufferLocalDesc() {}
-};
-
-class VertexBuffer
+class IVertexBuffer
 {
 public:
 	// CPU accessible data
@@ -25,11 +14,7 @@ public:
 	// buffer size
 	size_t bufferSize = 0;
 
-public:
-	IVertexBufferLocalDesc* localDesc;
+	virtual ~IVertexBuffer() {}
 
-	explicit VertexBuffer(IVertexBufferLocalDesc* localDesc) : localDesc(localDesc) {}
-	~VertexBuffer() { delete localDesc; }
-
-	[[nodiscard]] static std::shared_ptr<VertexBuffer> createNew(uint32_t vertexNum, const EGraphicsAPI graphicsApi = EGraphicsAPI::VULKAN);
+	[[nodiscard]] static std::shared_ptr<IVertexBuffer> instantiate(uint32_t vertexNum, const EGraphicsAPI graphicsApi = EGraphicsAPI::VULKAN);
 };

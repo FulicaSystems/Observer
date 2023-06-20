@@ -9,14 +9,14 @@
 
 // TODO : copy mesh architecture
 
-class ShaderCompiled : public ILocalResource
+class ShaderRenderer : public ILocalResource
 {
 	SUPER(ILocalResource)
 
 private:
 
 public:
-	std::shared_ptr<class ShaderModule> shmodule = nullptr;
+	std::shared_ptr<class IShaderModule> shmodule = nullptr;
 
 	void create(class IHostResource* host) override;
 	void destroy(class IHostResource* host) override;
@@ -35,5 +35,5 @@ public:
 	void cpuLoad() override;
 	void cpuUnload() override;
 
-	const ShaderModule* getModule() const;
+	const class IShaderModule* getModule() const;
 };

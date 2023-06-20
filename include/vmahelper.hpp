@@ -11,14 +11,14 @@
 class VMAHelper
 {
 public:
-	static void createAllocator(ILowRenderer& api, ILogicalDevice& device, VmaAllocator& allocator);
+	static void createAllocator(class ILowRenderer& api, class ILogicalDevice& device, VmaAllocator& allocator);
 	static void destroyAllocator(VmaAllocator& allocator);
 
 	static void allocateBufferObjectMemory(VmaAllocator& allocator,
 		VkBufferCreateInfo& createInfo,
-		class VertexBufferDesc_Vk* desc,
+		class IVertexBuffer* vbo,
 		bool mappable = false);
-	static void destroyBufferObjectMemory(VmaAllocator& allocator, class VertexBufferDesc_Vk* desc);
+	static void destroyBufferObjectMemory(VmaAllocator& allocator, class IVertexBuffer* vbo);
 
 	static void mapMemory(VmaAllocator& allocator, VmaAllocation& allocation, void** ppData);
 	static void unmapMemory(VmaAllocator& allocator, VmaAllocation& allocation);
@@ -40,11 +40,10 @@ private:
 
 public:
 	void allocateBufferObjectMemory(VkBufferCreateInfo& createInfo,
-		size_t bufferSize,
-		class IVertexBufferLocalDesc* desc,
+		class IVertexBuffer* vbo,
 		uint32_t memoryFlags = 0,
 		bool mappable = false) override;
-	void destroyBufferObjectMemory(class IVertexBufferLocalDesc* desc, size_t bufferSize) override;
+	void destroyBufferObjectMemory(class IVertexBuffer* vbo) override;
 
 	void mapMemory(IAllocation* allocation, void** ppData) override;
 	void unmapMemory(IAllocation* allocation) override;

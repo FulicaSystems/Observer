@@ -14,7 +14,7 @@ class Renderer
 {
 private:
 	// every created buffer objects
-	std::deque<std::shared_ptr<VertexBuffer>> vbos;
+	std::deque<std::shared_ptr<IVertexBuffer>> vbos;
 
 public:
 	EGraphicsAPI graphicsApi;
@@ -41,7 +41,7 @@ public:
 	/**
 	 * Create a vertex buffer and store it to the vertex buffer container.
 	 */
-	VertexBuffer& addVBO(std::shared_ptr<VertexBuffer> vbo);
+	IVertexBuffer& addVBO(std::shared_ptr<IVertexBuffer> vbo);
 
 
 	// rendering

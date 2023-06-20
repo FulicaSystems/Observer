@@ -15,21 +15,21 @@ private:
 
 	// buffer object
 
-	[[nodiscard]] std::shared_ptr<class VertexBuffer> createBufferObject_Impl(uint32_t vertexNum,
+	[[nodiscard]] std::shared_ptr<class IVertexBuffer> createBufferObject_Impl(uint32_t vertexNum,
 		bool mappable,
 		std::span<uint32_t> additionalArgs = std::span<uint32_t>()) override;
-	void populateBufferObject(class VertexBuffer& vbo, const class Vertex* vertices) override;
+	void populateBufferObject(class IVertexBuffer& vbo, const struct Vertex* vertices) override;
 public:
-	void destroyBufferObject(class VertexBuffer& vbo) override;
+	void destroyBufferObject(class IVertexBuffer& vbo) override;
 
 
 private:
 	// vertex buffer object
-	std::shared_ptr<class VertexBuffer> createVertexBuffer_Impl(uint32_t vertexNum,
-		const class Vertex* vertices) override;
+	std::shared_ptr<class IVertexBuffer> createVertexBuffer_Impl(uint32_t vertexNum,
+		const struct Vertex* vertices) override;
 
 	// shader module
-	std::shared_ptr<class ShaderModule> createShaderModule_Impl(class ILogicalDevice* device,
+	std::shared_ptr<class IShaderModule> createShaderModule_Impl(class ILogicalDevice* device,
 		size_t vsSize,
 		size_t fsSize,
 		char* vs,

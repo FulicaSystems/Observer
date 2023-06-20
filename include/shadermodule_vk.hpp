@@ -8,7 +8,7 @@
 
 #include "shadermodule.hpp"
 
-class ShaderModuleDesc_Vk : public IShaderModuleLocalDesc
+class ShaderModule_Vk : public IShaderModule
 {
 private:
 
@@ -18,7 +18,7 @@ public:
 	VkShaderModule vsModule = nullptr;
 	VkShaderModule fsModule = nullptr;
 
-	~ShaderModuleDesc_Vk() override;
+	~ShaderModule_Vk() override;
 
 	std::array<VkPipelineShaderStageCreateInfo, 2> getCreateInfo();
 };

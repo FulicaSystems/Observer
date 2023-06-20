@@ -36,11 +36,10 @@ protected:
 
 public:
 	void allocateBufferObjectMemory(VkBufferCreateInfo& createInfo,
-		size_t bufferSize,
-		class IVertexBufferLocalDesc* desc,
+		class IVertexBuffer* vbo,
 		uint32_t memoryFlags = 0,
 		bool mappable = false) override;
-	void destroyBufferObjectMemory(class IVertexBufferLocalDesc* desc, size_t bufferSize) override;
+	void destroyBufferObjectMemory(class IVertexBuffer* vbo) override;
 
 	void mapMemory(IAllocation* allocation, void** ppData) override;
 	void unmapMemory(IAllocation* allocation) override;

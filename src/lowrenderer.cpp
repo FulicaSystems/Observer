@@ -6,7 +6,7 @@
 #include "lowrenderer.hpp"
 
 template<>
-std::shared_ptr<VertexBuffer> ILowRenderer::create<VertexBuffer,
+std::shared_ptr<IVertexBuffer> ILowRenderer::create<IVertexBuffer,
 	uint32_t,
 	const Vertex*>(uint32_t vertexNum,
 		const Vertex* vertices)
@@ -15,7 +15,7 @@ std::shared_ptr<VertexBuffer> ILowRenderer::create<VertexBuffer,
 }
 
 template<>
-std::shared_ptr<ShaderModule> ILowRenderer::create<ShaderModule,
+std::shared_ptr<IShaderModule> ILowRenderer::create<IShaderModule,
 	ILogicalDevice*,
 	size_t,
 	size_t,

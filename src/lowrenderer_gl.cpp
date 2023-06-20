@@ -1,7 +1,8 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
-#include "vertexbufferdesc_gl.hpp"
+#include "vertex.hpp"
+#include "vertexbuffer_gl.hpp"
 
 #include "renderer.hpp"
 
@@ -17,39 +18,36 @@ void LowRenderer_Gl::initGraphicsAPI_Impl(std::span<void*> args)
 }
 
 
-[[nodiscard]] std::shared_ptr<VertexBuffer> LowRenderer_Gl::createBufferObject_Impl(uint32_t vertexNum,
+[[nodiscard]] std::shared_ptr<IVertexBuffer> LowRenderer_Gl::createBufferObject_Impl(uint32_t vertexNum,
 	bool mappable,
 	std::span<uint32_t> additionalArgs)
 {
-	std::shared_ptr<VertexBuffer> outVbo = VertexBuffer::createNew(vertexNum, EGraphicsAPI::OPENGL);
-	VertexBufferDesc_Gl* desc = (VertexBufferDesc_Gl*)outVbo->localDesc;
+	std::shared_ptr<VertexBuffer_Gl> outVbo =
+		std::dynamic_pointer_cast<VertexBuffer_Gl>(IVertexBuffer::instantiate(vertexNum,
+			EGraphicsAPI::OPENGL));
 
-	glGenBuffers(1, &desc->vbo);
+	glGenBuffers(1, &outVbo->vbo);
 
 	return outVbo;
 }
 
-void LowRenderer_Gl::populateBufferObject(VertexBuffer& vbo, const class Vertex* vertices)
+void LowRenderer_Gl::populateBufferObject(IVertexBuffer& vbo, const Vertex* vertices)
 {
-	VertexBufferDesc_Gl* desc = (VertexBufferDesc_Gl*)vbo.localDesc;
-
-	glBindBuffer(GL_ARRAY_BUFFER, desc->vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, ((VertexBuffer_Gl&)vbo).vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void LowRenderer_Gl::destroyBufferObject(VertexBuffer& vbo)
+void LowRenderer_Gl::destroyBufferObject(IVertexBuffer& vbo)
 {
-	VertexBufferDesc_Gl* desc = (VertexBufferDesc_Gl*)vbo.localDesc;
-
-	glDeleteBuffers(1, &desc->vbo);
+	glDeleteBuffers(1, &((VertexBuffer_Gl&)vbo).vbo);
 }
 
 
-std::shared_ptr<VertexBuffer> LowRenderer_Gl::createVertexBuffer_Impl(uint32_t vertexNum,
-	const class Vertex* vertices)
+std::shared_ptr<IVertexBuffer> LowRenderer_Gl::createVertexBuffer_Impl(uint32_t vertexNum,
+	const Vertex* vertices)
 {
-	std::shared_ptr<VertexBuffer> vbo = createBufferObject(vertexNum);
+	std::shared_ptr<IVertexBuffer> vbo = createBufferObject(vertexNum);
 	populateBufferObject(*vbo, vertices);
 
 	return vbo;

@@ -5,19 +5,10 @@
 
 #include "graphicsapi.hpp"
 
-class IShaderModuleLocalDesc
+class IShaderModule
 {
 public:
-	virtual ~IShaderModuleLocalDesc() {}
-};
+	virtual ~IShaderModule() {}
 
-class ShaderModule
-{
-public:
-	IShaderModuleLocalDesc* localDesc;
-
-	explicit ShaderModule(IShaderModuleLocalDesc* localDesc) : localDesc(localDesc) {}
-	~ShaderModule() { delete localDesc; }
-
-	[[nodiscard]] static std::shared_ptr<ShaderModule> createNew(const EGraphicsAPI graphicsApi = EGraphicsAPI::VULKAN);
+	[[nodiscard]] static std::shared_ptr<IShaderModule> instantiate(const EGraphicsAPI graphicsApi = EGraphicsAPI::VULKAN);
 };

@@ -1,21 +1,24 @@
-#include "vertexbufferdesc_gl.hpp"
-#include "vertexbufferdesc_vk.hpp"
+#include <stdexcept>
 
+#include "vertexbuffer_gl.hpp"
+#include "vertexbuffer_vk.hpp"
+
+#include "vertex.hpp"
 #include "vertexbuffer.hpp"
 
-[[nodiscard]] std::shared_ptr<VertexBuffer> VertexBuffer::createNew(uint32_t vertexNum, const EGraphicsAPI graphicsApi)
+[[nodiscard]] std::shared_ptr<IVertexBuffer> IVertexBuffer::instantiate(uint32_t vertexNum, const EGraphicsAPI graphicsApi)
 {
-	std::shared_ptr<VertexBuffer> vbo;
+	std::shared_ptr<IVertexBuffer> vbo;
 	switch (graphicsApi)
 	{
 	case EGraphicsAPI::OPENGL:
 	{
-		vbo = std::make_shared<VertexBuffer>(new VertexBufferDesc_Gl());
+		vbo = std::make_shared<VertexBuffer_Gl>();
 		break;
 	}
 	case EGraphicsAPI::VULKAN:
 	{
-		vbo = std::make_shared<VertexBuffer>(new VertexBufferDesc_Vk());
+		vbo = std::make_shared<VertexBuffer_Vk>();
 		break;
 	}
 	default:

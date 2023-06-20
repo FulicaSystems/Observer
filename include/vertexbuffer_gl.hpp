@@ -4,12 +4,12 @@
 
 typedef unsigned int GLuint;
 
-class VertexBufferDesc_Gl : public IVertexBufferLocalDesc
+class VertexBuffer_Gl : public IVertexBuffer
 {
 public:
 	// vertex buffer object
 	GLuint vbo;
 	GLuint vao;
 
-	~VertexBufferDesc_Gl() override {};
+	~VertexBuffer_Gl() override {};
 };

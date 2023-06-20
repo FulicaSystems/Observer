@@ -103,7 +103,7 @@ void Renderer::terminateRenderer()
 	((LowRenderer_Vk*)api)->terminateGraphicsAPI();
 }
 
-VertexBuffer& Renderer::addVBO(std::shared_ptr<VertexBuffer> vbo)
+IVertexBuffer& Renderer::addVBO(std::shared_ptr<IVertexBuffer> vbo)
 {
 	return *vbos.emplace_back(vbo);
 }

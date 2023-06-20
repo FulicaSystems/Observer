@@ -5,11 +5,11 @@
 #include "format.hpp"
 
 #include "vertex.hpp"
-#include "vertexbufferdesc_vk.hpp"
+#include "vertexbuffer_vk.hpp"
 
 #include "lowrenderer_vk.hpp"
 #include "graphicsdevice_vk.hpp"
-#include "shadermoduledesc_vk.hpp"
+#include "shadermodule_vk.hpp"
 #include "graphicspipeline_vk.hpp"
 
 void GraphicsPipeline_Vk::create(ILowRenderer* api, ILogicalDevice* device)
@@ -202,7 +202,7 @@ void GraphicsPipeline_Vk::vulkanGraphicsPipeline()
 {
 	shader = ResourcesManager::load<Shader>("triangle_shader",
 		"shaders/triangle",
-		new ShaderCompiled(*api->highRenderer));
+		new ShaderRenderer(*api->highRenderer));
 
 	auto initPipeline = [=, this]() {
 		std::vector<VkDynamicState> dynamicStates = {
@@ -320,7 +320,7 @@ void GraphicsPipeline_Vk::vulkanGraphicsPipeline()
 			.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
 			//shader stage
 			.stageCount = 2,
-			.pStages = ((ShaderModuleDesc_Vk*)shader->getModule()->localDesc)->getCreateInfo().data(),
+			.pStages = ((ShaderModule_Vk*)shader->getModule())->getCreateInfo().data(),
 			//fixed function stage
 			.pVertexInputState = &vertexInputCreateInfo,
 			.pInputAssemblyState = &inputAssemblyCreateInfo,
@@ -425,7 +425,7 @@ void GraphicsPipeline_Vk::vulkanFramebuffers()
 
 void GraphicsPipeline_Vk::recordImageCommandBuffer(CommandBuffer_Vk& cb,
 	uint32_t imageIndex,
-	const std::deque<std::shared_ptr<VertexBuffer>>& vbos)
+	const std::deque<std::shared_ptr<IVertexBuffer>>& vbos)
 {
 	cb.reset();
 	cb.beginRecord();
@@ -472,10 +472,9 @@ void GraphicsPipeline_Vk::recordImageCommandBuffer(CommandBuffer_Vk& cb,
 	// bind VBOs
 	for (int i = 0; i < vbos.size(); ++i)
 	{
-		const VertexBuffer& vbo = *vbos.at(i);
-		VertexBufferDesc_Vk* desc = (VertexBufferDesc_Vk*)vbo.localDesc;
+		const VertexBuffer_Vk& vbo = *(VertexBuffer_Vk*)vbos.at(i).get();
 
-		VkBuffer buffers[] = { desc->buffer };
+		VkBuffer buffers[] = { vbo.buffer };
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(cbo, 0, 1, buffers, offsets);
 		vkCmdDraw(cbo, vbo.vertexNum, 1, 0, 0);
@@ -486,7 +485,7 @@ void GraphicsPipeline_Vk::recordImageCommandBuffer(CommandBuffer_Vk& cb,
 	cb.endRecord();
 }
 
-void GraphicsPipeline_Vk::drawFrame(CommandBuffer_Vk& cb, const std::deque<std::shared_ptr<VertexBuffer>>& vbos)
+void GraphicsPipeline_Vk::drawFrame(CommandBuffer_Vk& cb, const std::deque<std::shared_ptr<IVertexBuffer>>& vbos)
 {
 	if (!readyToDraw.test())
 		return;

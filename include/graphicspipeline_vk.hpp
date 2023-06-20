@@ -52,7 +52,7 @@ private:
 
 	void recordImageCommandBuffer(CommandBuffer_Vk& cb,
 		uint32_t imageIndex,
-		const std::deque<std::shared_ptr<VertexBuffer>>& vbos);
+		const std::deque<std::shared_ptr<IVertexBuffer>>& vbos);
 
 public:
 	void create(ILowRenderer* api, ILogicalDevice* device) override;
@@ -62,7 +62,5 @@ public:
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availableModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
-	VkShaderModule createShaderModule(const std::vector<char>& code);
-
-	void drawFrame(CommandBuffer_Vk& cb, const std::deque<std::shared_ptr<VertexBuffer>>& vbos);
+	void drawFrame(CommandBuffer_Vk& cb, const std::deque<std::shared_ptr<IVertexBuffer>>& vbos);
 };
