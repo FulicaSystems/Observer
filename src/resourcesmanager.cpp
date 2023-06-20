@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "resourcesmanager.hpp"
 
 void ResourcesManager::clearAllResources()
@@ -7,7 +9,7 @@ void ResourcesManager::clearAllResources()
 	std::lock_guard<std::mutex> guard(rm.resourcesMX);
 	for (auto& r : rm.resources)
 	{
-		printf("%i", r.second.use_count());
+		std::cout << "Clearing " << r.first << " : " << r.second.use_count() << " use" << std::endl;
 	}
 	rm.resources.clear();
 }

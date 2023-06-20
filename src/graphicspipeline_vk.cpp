@@ -45,6 +45,7 @@ void GraphicsPipeline_Vk::destroy()
 	{
 		vkDestroyFramebuffer(vkdevice, framebuffer, nullptr);
 	}
+	shader.reset();
 	vkDestroyPipeline(vkdevice, graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(vkdevice, pipelineLayout, nullptr);
 	vkDestroyRenderPass(vkdevice, renderPass, nullptr);
