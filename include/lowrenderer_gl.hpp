@@ -34,4 +34,6 @@ private:
 		size_t fsSize,
 		char* vs,
 		char* fs) override { return nullptr; }
+
+	void destroyShaderModule_Impl(std::shared_ptr<class IShaderModule> ptr) override {}
 };

@@ -40,15 +40,12 @@ public:
 		class Renderer& highRenderer)
 		: name(name), filepath(filepath), highRenderer(highRenderer) {}
 
-	~IHostResource()
-	{
-		gpuUnload();
-		cpuUnload();
-	}
+	// resources should be unloaded when destroyed (cpuUnload() and gpuUnload())
+	virtual ~IHostResource() {};
 
 	virtual void cpuLoad() = 0;
 	virtual void gpuLoad() = 0;
 
-	virtual void cpuUnload() {}
-	virtual void gpuUnload() { local.reset(); }
+	virtual void cpuUnload() = 0;
+	virtual void gpuUnload() = 0;
 };

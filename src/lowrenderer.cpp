@@ -30,6 +30,12 @@ std::shared_ptr<IShaderModule> ILowRenderer::create<IShaderModule,
 }
 
 template<>
+void ILowRenderer::destroy<class IShaderModule>(std::shared_ptr<class IShaderModule> ptr)
+{
+	destroyShaderModule_Impl(ptr);
+}
+
+template<>
 std::shared_ptr<CommandBuffer> ILowRenderer::create<CommandBuffer>()
 {
 	return createCommandBuffer_Impl();

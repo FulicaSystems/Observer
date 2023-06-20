@@ -9,6 +9,9 @@
 #include "vertex.hpp"
 #include "vertexbuffer_vk.hpp"
 
+#include "resourcesmanager.hpp"
+#include "shader.hpp"
+
 #include "lowrenderer_vk.hpp"
 #include "graphicsdevice_vk.hpp"
 #include "shadermodule_vk.hpp"
@@ -17,6 +20,7 @@
 void GraphicsPipeline_Vk::create(ILowRenderer* api, ILogicalDevice* device)
 {
 	Super::create(api, device);
+	shader = ResourcesManager::load<Shader>("triangle_shader", "shaders/triangle", *api->highRenderer);
 
 	// swapchain
 	vulkanSwapchain();
@@ -198,13 +202,8 @@ void GraphicsPipeline_Vk::vulkanImageViews()
 	}
 }
 
-#include "resourcesmanager.hpp"
-#include "shader.hpp"
-
 void GraphicsPipeline_Vk::vulkanGraphicsPipeline()
 {
-	shader = ResourcesManager::load<Shader>("triangle_shader", "shaders/triangle", *api->highRenderer);
-
 	auto initPipeline = [=, this]() {
 		std::vector<VkDynamicState> dynamicStates = {
 			VK_DYNAMIC_STATE_VIEWPORT,

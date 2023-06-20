@@ -34,3 +34,8 @@ void Shader::cpuUnload()
 	vs.clear();
 	fs.clear();
 }
+
+void Shader::gpuUnload()
+{
+	highRenderer.api->destroy<IShaderModule>(std::dynamic_pointer_cast<IShaderModule>(local));
+}

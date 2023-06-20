@@ -17,8 +17,15 @@ public:
 	std::vector<char> vs;
 	std::vector<char> fs;
 
+	~Shader() override
+	{
+		gpuUnload();
+		cpuUnload();
+	}
+
 	void cpuLoad() override;
 	void gpuLoad() override;
 
 	void cpuUnload() override;
+	void gpuUnload() override;
 };

@@ -26,6 +26,10 @@ void Mesh::cpuUnload()
 	vertices.clear();
 }
 
+void Mesh::gpuUnload()
+{
+}
+
 const uint32_t Mesh::getVertexNum() const
 {
 	return vertices.size();

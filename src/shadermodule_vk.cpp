@@ -1,13 +1,4 @@
-#include "utils/binary.hpp"
-
-#include "graphicsdevice_vk.hpp"
 #include "shadermodule_vk.hpp"
-
-ShaderModule_Vk::~ShaderModule_Vk()
-{
-	vkDestroyShaderModule(device->vkdevice, vsModule, nullptr);
-	vkDestroyShaderModule(device->vkdevice, fsModule, nullptr);
-}
 
 std::array<VkPipelineShaderStageCreateInfo, 2> ShaderModule_Vk::getCreateInfo()
 {

@@ -67,6 +67,8 @@ private:
 		char* vs,
 		char* fs) override;
 
+	void destroyShaderModule_Impl(std::shared_ptr<class IShaderModule> ptr) override;
+
 public:
 	VkInstance instance;
 	// surface must be initialized using the windowing framework

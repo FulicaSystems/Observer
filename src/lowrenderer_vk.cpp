@@ -242,7 +242,6 @@ std::shared_ptr<IShaderModule> LowRenderer_Vk::createShaderModule_Impl(ILogicalD
 {
 	std::shared_ptr<ShaderModule_Vk> sh =
 		std::dynamic_pointer_cast<ShaderModule_Vk>(IShaderModule::instantiate(EGraphicsAPI::VULKAN));
-	sh->device = (LogicalDevice_Vk*)device;
 
 	auto createShaderModule = [&](char* code, size_t codeSize) {
 		VkShaderModuleCreateInfo createInfo = {
@@ -251,7 +250,7 @@ std::shared_ptr<IShaderModule> LowRenderer_Vk::createShaderModule_Impl(ILogicalD
 		.pCode = reinterpret_cast<const uint32_t*>(code)
 		};
 
-		VkDevice vkdevice = sh->device->vkdevice;
+		VkDevice vkdevice = ((LogicalDevice_Vk*)highRenderer->device)->vkdevice;
 		VkShaderModule shaderModule;
 		if (vkCreateShaderModule(vkdevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create shader module");
@@ -262,4 +261,12 @@ std::shared_ptr<IShaderModule> LowRenderer_Vk::createShaderModule_Impl(ILogicalD
 	sh->fsModule = createShaderModule(fs, fsSize);
 
 	return sh;
+}
+
+void LowRenderer_Vk::destroyShaderModule_Impl(std::shared_ptr<class IShaderModule> ptr)
+{
+	LogicalDevice_Vk& device = (LogicalDevice_Vk&)*highRenderer->device;
+	ShaderModule_Vk& sh = (ShaderModule_Vk&)*ptr;
+	vkDestroyShaderModule(device.vkdevice, sh.vsModule, nullptr);
+	vkDestroyShaderModule(device.vkdevice, sh.fsModule, nullptr);
 }
