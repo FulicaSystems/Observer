@@ -105,6 +105,7 @@ void Renderer::terminateRenderer()
 
 IVertexBuffer& Renderer::addVBO(std::shared_ptr<IVertexBuffer> vbo)
 {
+	// TODO : add mutex for thread safety
 	return *vbos.emplace_back(vbo);
 }
 

@@ -3,17 +3,21 @@
 #include <filesystem>
 #include <memory>
 
-#include "utils/property.hpp"
-
-// resources used for rendering with GPU
-// GPU device local
+/**
+ * resources used for rendering with GPU
+ * GPU device local
+ * Derived class should define a static instantiate method
+ * [[nodiscard]] static std::shared_ptr<MyResource> instantiate(..., const EGraphicsAPI graphicsApi);
+ */
 class ILocalResource
 {
 protected:
 	ILocalResource() = default;
+
 public:
 	virtual ~ILocalResource() {}
 };
+
 
 // host accessible resource
 // CPU host

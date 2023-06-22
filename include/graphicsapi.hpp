@@ -2,6 +2,7 @@
 
 enum class EGraphicsAPI
 {
-	OPENGL = 0,
-	VULKAN = 1
+	NONE = 0,
+	OPENGL = 1,
+	VULKAN = 2
 };

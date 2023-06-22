@@ -9,6 +9,8 @@ protected:
 	class ILogicalDevice* device = nullptr;
 
 public:
+	virtual ~ILowGraphicsObject() {}
+
 	/**
 	 * Create the graphics object.
 	 */

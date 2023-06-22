@@ -10,7 +10,7 @@
 // argv[1] : first parameter
 int main(int argc, char** argv)
 {
-	int api = -1;
+	int api = 0;
 	// TODO : make a standalone argument parser for libraries
 	try
 	{
@@ -27,10 +27,10 @@ int main(int argc, char** argv)
 
 				std::string str = std::string(argv[i]);
 				if (str == "-gl" || str == "-opengl")
-					api = 0;
+					api = 1;
 
 				if (str == "-vk" || str == "-vulkan")
-					api = 1;
+					api = 2;
 			}
 		}
 	}
