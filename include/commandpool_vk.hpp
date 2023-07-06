@@ -20,9 +20,6 @@ private:
 	void vulkanCommandPool();
 
 public:
-	void create(class ILowRenderer* api, ILogicalDevice* device) override;
-	void destroy() override;
-
 	CommandBuffer_Vk createFloatingCommandBuffer();
 	CommandBuffer_Vk& createCommandBuffer();
 

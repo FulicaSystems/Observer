@@ -1,5 +1,7 @@
 #pragma once
 
-#include "lowgraphicsobject.hpp"
-
-class ILogicalDevice : public ILowGraphicsObject {};
+class ILogicalDevice
+{
+public:
+	virtual ~ILogicalDevice() {}
+};

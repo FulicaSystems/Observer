@@ -28,11 +28,21 @@ std::shared_ptr<IShaderModule> ILowRenderer::create<IShaderModule,
 {
 	return createShaderModule_Impl(device, vsSize, fsSize, vs, fs);
 }
-
 template<>
 void ILowRenderer::destroy<class IShaderModule>(std::shared_ptr<class IShaderModule> ptr)
 {
 	destroyShaderModule_Impl(ptr);
+}
+
+template<>
+std::shared_ptr<class ILogicalDevice> ILowRenderer::create<class ILogicalDevice>()
+{
+	return createLogicalDevice_Impl();
+}
+template<>
+void ILowRenderer::destroy<class ILogicalDevice>(std::shared_ptr<class ILogicalDevice> ptr)
+{
+	destroyLogicalDevice_Impl(ptr);
 }
 
 template<>

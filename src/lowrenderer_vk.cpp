@@ -266,7 +266,17 @@ std::shared_ptr<IShaderModule> LowRenderer_Vk::createShaderModule_Impl(ILogicalD
 void LowRenderer_Vk::destroyShaderModule_Impl(std::shared_ptr<class IShaderModule> ptr)
 {
 	LogicalDevice_Vk& device = (LogicalDevice_Vk&)*highRenderer->device;
-	ShaderModule_Vk& sh = (ShaderModule_Vk&)*ptr;
-	vkDestroyShaderModule(device.vkdevice, sh.vsModule, nullptr);
-	vkDestroyShaderModule(device.vkdevice, sh.fsModule, nullptr);
+	std::shared_ptr<ShaderModule_Vk> sh = std::dynamic_pointer_cast<ShaderModule_Vk>(ptr);
+	vkDestroyShaderModule(device.vkdevice, sh->vsModule, nullptr);
+	vkDestroyShaderModule(device.vkdevice, sh->fsModule, nullptr);
+}
+
+std::shared_ptr<class ILogicalDevice> LowRenderer_Vk::createLogicalDevice_Impl()
+{
+	return std::shared_ptr<class ILogicalDevice>();
+}
+
+void LowRenderer_Vk::destroyLogicalDevice_Impl(std::shared_ptr<class ILogicalDevice> ptr)
+{
+	vkDestroyDevice(std::dynamic_pointer_cast<LogicalDevice_Vk>(ptr)->vkdevice, nullptr);
 }

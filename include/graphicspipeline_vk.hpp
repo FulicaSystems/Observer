@@ -55,9 +55,6 @@ private:
 		const std::deque<std::shared_ptr<IVertexBuffer>>& vbos);
 
 public:
-	void create(ILowRenderer* api, ILogicalDevice* device) override;
-	void destroy() override;
-
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availableModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);

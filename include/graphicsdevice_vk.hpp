@@ -73,9 +73,6 @@ public:
 	PhysicalDevice pdevice;
 	VkDevice vkdevice;
 
-	void create(ILowRenderer* api, ILogicalDevice* device) override;
-	void destroy() override;
-
 	void waitGraphicsQueue();
 
 	void submitCommandToGraphicsQueue(VkSubmitInfo& submitInfo, VkFence fence = VK_NULL_HANDLE);

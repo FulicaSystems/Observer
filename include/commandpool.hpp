@@ -1,5 +1,7 @@
 #pragma once
 
-#include "lowgraphicsobject.hpp"
-
-class ICommandPool : public ILowGraphicsObject {};
+class ICommandPool
+{
+public:
+	virtual ~ICommandPool() {}
+};

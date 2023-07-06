@@ -57,8 +57,6 @@ Renderer::~Renderer()
 
 void Renderer::initRenderer()
 {
-	api->highRenderer = this;
-
 	switch (graphicsApi)
 	{
 	case EGraphicsAPI::OPENGL:

@@ -40,7 +40,7 @@ public:
 	}
 
 
-	// local resources manager
+	// graphics related object types
 
 	template<typename TType, typename... TArgs>
 	std::shared_ptr<TType> create(TArgs... args)
@@ -84,6 +84,15 @@ public:
 			char* fs);
 	template<>
 	void destroy<class IShaderModule>(std::shared_ptr<class IShaderModule> ptr);
+
+protected:
+	virtual std::shared_ptr<class ILogicalDevice> createLogicalDevice_Impl() = 0;
+	virtual void destroyLogicalDevice_Impl(std::shared_ptr<class ILogicalDevice> ptr) = 0;
+public:
+	template<>
+	std::shared_ptr<class ILogicalDevice> create<class ILogicalDevice>();
+	template<>
+	void destroy<class ILogicalDevice>(std::shared_ptr<class ILogicalDevice> ptr);
 
 protected:
 	virtual std::shared_ptr<class CommandBuffer> createCommandBuffer_Impl() { return nullptr; }

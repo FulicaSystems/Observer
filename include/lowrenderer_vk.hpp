@@ -66,8 +66,11 @@ private:
 		size_t fsSize,
 		char* vs,
 		char* fs) override;
-
 	void destroyShaderModule_Impl(std::shared_ptr<class IShaderModule> ptr) override;
+
+	// logical device
+	std::shared_ptr<class ILogicalDevice> createLogicalDevice_Impl() override;
+	void destroyLogicalDevice_Impl(std::shared_ptr<class ILogicalDevice> ptr) override;
 
 public:
 	VkInstance instance;

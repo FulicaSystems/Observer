@@ -3,24 +3,25 @@
 #include <cstdint>
 
 #include "utils/derived.hpp"
-#include "lowgraphicsobject.hpp"
 
 // comment this macro definition to use a custom memory allocator
 #define USE_VMA // define this macro to use Vulkan Memory Allocator
 
-class IAllocation {};
-
-class IMemoryAllocator : public ILowGraphicsObject
+class IAllocation
 {
-	SUPER(ILowGraphicsObject)
+public:
+	virtual ~IAllocation() {}
+};
 
+class IMemoryAllocator
+{
 protected:
 	virtual void createAllocatorInstance() = 0;
 	virtual void destroyAllocatorInstance() = 0;
 
 public:
-	void create(ILowRenderer* api, ILogicalDevice* device) override { Super::create(api, device); createAllocatorInstance(); };
-	void destroy() override { destroyAllocatorInstance(); };
+	IMemoryAllocator() { createAllocatorInstance(); };
+	virtual ~IMemoryAllocator() { destroyAllocatorInstance(); };
 
 	virtual void allocateBufferObjectMemory(class VkBufferCreateInfo& createInfo,
 		class IVertexBuffer* vbo,

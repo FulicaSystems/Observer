@@ -17,7 +17,6 @@ void LogicalDevice_Vk::create(ILowRenderer* api, ILogicalDevice* device)
 
 void LogicalDevice_Vk::destroy()
 {
-	vkDestroyDevice(vkdevice, nullptr);
 }
 
 void LogicalDevice_Vk::waitGraphicsQueue()

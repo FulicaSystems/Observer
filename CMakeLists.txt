@@ -27,7 +27,6 @@ set(HEADERS
     include/graphicsdevice_vk.hpp
     include/graphicspipeline.hpp
     include/graphicspipeline_vk.hpp
-    include/lowgraphicsobject.hpp
     include/lowrenderer.hpp
     include/lowrenderer_gl.hpp
     include/lowrenderer_vk.hpp
