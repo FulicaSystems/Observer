@@ -1,7 +1,6 @@
 #include "vertex.hpp"
 #include "vertexbuffer.hpp"
 #include "shadermodule.hpp"
-#include "graphicsdevice.hpp"
 
 #include "lowrenderer.hpp"
 
@@ -16,33 +15,20 @@ std::shared_ptr<IVertexBuffer> ILowRenderer::create<IVertexBuffer,
 
 template<>
 std::shared_ptr<IShaderModule> ILowRenderer::create<IShaderModule,
-	ILogicalDevice*,
 	size_t,
 	size_t,
 	char*,
-	char*>(ILogicalDevice* device,
-		size_t vsSize,
+	char*>(size_t vsSize,
 		size_t fsSize,
 		char* vs,
 		char* fs)
 {
-	return createShaderModule_Impl(device, vsSize, fsSize, vs, fs);
+	return createShaderModule_Impl(vsSize, fsSize, vs, fs);
 }
 template<>
 void ILowRenderer::destroy<class IShaderModule>(std::shared_ptr<class IShaderModule> ptr)
 {
 	destroyShaderModule_Impl(ptr);
-}
-
-template<>
-std::shared_ptr<class ILogicalDevice> ILowRenderer::create<class ILogicalDevice>()
-{
-	return createLogicalDevice_Impl();
-}
-template<>
-void ILowRenderer::destroy<class ILogicalDevice>(std::shared_ptr<class ILogicalDevice> ptr)
-{
-	destroyLogicalDevice_Impl(ptr);
 }
 
 template<>

@@ -1,10 +1,8 @@
 #include "utils/binary.hpp"
 #include "utils/multithread/globalthreadpool.hpp"
 
-#include "renderer.hpp"
 #include "lowrenderer.hpp"
 
-#include "graphicsdevice.hpp"
 #include "shadermodule.hpp"
 
 #include "shader.hpp"
@@ -19,8 +17,7 @@ void Shader::cpuLoad()
 void Shader::gpuLoad()
 {
 	Utils::GlobalThreadPool::addTask([=, this]() {
-			local = highRenderer.api->create<IShaderModule>(highRenderer.device,
-			vs.size(),
+			local = lowrdr.create<IShaderModule>(vs.size(),
 			fs.size(),
 			vs.data(),
 			fs.data());
@@ -37,5 +34,5 @@ void Shader::cpuUnload()
 
 void Shader::gpuUnload()
 {
-	highRenderer.api->destroy<IShaderModule>(std::dynamic_pointer_cast<IShaderModule>(local));
+	lowrdr.destroy<IShaderModule>(std::dynamic_pointer_cast<IShaderModule>(local));
 }

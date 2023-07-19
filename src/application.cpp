@@ -6,6 +6,7 @@
 #include "utils/multithread/globalthreadpool.hpp"
 
 #include "format.hpp"
+#include "lowrenderer_gl.hpp"
 #include "lowrenderer_vk.hpp"
 
 #include <GLFW/glfw3.h>
@@ -13,17 +14,17 @@
 #include "application.hpp"
 
 Application::Application(const EGraphicsAPI graphicsApi)
-	: rdr(graphicsApi)
 {
 	windowInit();
 
-	switch (rdr.graphicsApi)
+	switch (graphicsApi)
 	{
 	case EGraphicsAPI::OPENGL:
 	{
 		glfwMakeContextCurrent(window);
 
-		rdr.api->initGraphicsAPI(glfwGetProcAddress);
+		rdr = new LowRenderer_Gl(graphicsApi);
+		rdr->initGraphicsAPI(glfwGetProcAddress);
 
 		break;
 	}
@@ -41,11 +42,12 @@ Application::Application(const EGraphicsAPI graphicsApi)
 
 		std::vector<const char*> requiredExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
+		rdr = new LowRenderer_Vk(graphicsApi);
 		// give the extensions to the low renderer (api instance)
 		// create the Vulkan instance first
-		rdr.api->initGraphicsAPI(&requiredExtensions);
+		rdr->initGraphicsAPI(&requiredExtensions);
 
-		LowRenderer_Vk* api = (LowRenderer_Vk*)rdr.api;
+		LowRenderer_Vk* api = (LowRenderer_Vk*)rdr;
 		// create a surface using the instance
 		if (glfwCreateWindowSurface(api->instance, window, nullptr, &api->surface) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create window surface");
@@ -56,12 +58,12 @@ Application::Application(const EGraphicsAPI graphicsApi)
 		throw std::runtime_error("Invalid specified graphics API");
 	}
 
-	rdr.initRenderer();
+	((LowRenderer_Vk*)rdr)->initRendererModules();
 }
 
 Application::~Application()
 {
-	rdr.terminateRenderer();
+	((LowRenderer_Vk*)rdr)->terminateGraphicsAPI();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -73,7 +75,7 @@ void Application::windowInit()
 
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-	switch (rdr.graphicsApi)
+	switch (rdr->graphicsApi)
 	{
 	case EGraphicsAPI::OPENGL:
 	{
@@ -107,9 +109,9 @@ void Application::loop()
 {
 	// TODO : store vbos in a scene
 
-	ResourcesManager::load<Mesh>("triangle", "", rdr);
-	ResourcesManager::load<Mesh>("triangle", "", rdr);
-	ResourcesManager::load<Mesh>("triangle", "", rdr);
+	ResourcesManager::load<Mesh>("triangle", "", *rdr);
+	ResourcesManager::load<Mesh>("triangle", "", *rdr);
+	ResourcesManager::load<Mesh>("triangle", "", *rdr);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -117,6 +119,6 @@ void Application::loop()
 		Utils::GlobalThreadPool::pollMainQueue();
 
 		//draw frame
-		rdr.render();
+		((LowRenderer_Vk*)rdr)->renderFrame();
 	}
 }

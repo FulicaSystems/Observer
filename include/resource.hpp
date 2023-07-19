@@ -30,7 +30,7 @@ protected:
 	std::filesystem::path filepath = "";
 
 	// reference to the high renderer
-	class Renderer& highRenderer;
+	class ILowRenderer& lowrdr;
 
 
 public:
@@ -41,8 +41,8 @@ public:
 
 	IHostResource(const char*&& name,
 		const char*&& filepath,
-		class Renderer& highRenderer)
-		: name(name), filepath(filepath), highRenderer(highRenderer) {}
+		class ILowRenderer& lowrdr)
+		: name(name), filepath(filepath), lowrdr(lowrdr) {}
 
 	// resources should be unloaded when destroyed (cpuUnload() and gpuUnload())
 	virtual ~IHostResource() {};

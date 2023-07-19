@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "renderer.hpp"
+#include "lowrenderer.hpp"
 
 // windowing lib should always be include after the api file
 // #include <glad/gl.h> or <glad/vulkan.h>
@@ -13,7 +13,7 @@ class Application
 private:
 	class GLFWwindow* window;
 
-	Renderer rdr;
+	ILowRenderer* rdr;
 
 	void windowInit();
 

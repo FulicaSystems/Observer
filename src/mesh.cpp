@@ -1,6 +1,6 @@
 #include "utils/multithread/globalthreadpool.hpp"
-#include "renderer.hpp"
-#include "lowrenderer.hpp"
+#include "lowrenderer_vk.hpp"
+#include "vertexbuffer.hpp"
 
 #include "mesh.hpp"
 
@@ -15,8 +15,8 @@ void Mesh::cpuLoad()
 void Mesh::gpuLoad()
 {
 	Utils::GlobalThreadPool::addTask([=, this]() {
-		local = highRenderer.api->create<IVertexBuffer>(getVertexNum(), getRawData());
-		highRenderer.addVBO(std::dynamic_pointer_cast<IVertexBuffer>(local));
+		local = lowrdr.create<IVertexBuffer>(getVertexNum(), getRawData());
+		((LowRenderer_Vk&)lowrdr).addVBO(std::dynamic_pointer_cast<IVertexBuffer>(local));
 		loaded.test_and_set();
 		}, false);
 }

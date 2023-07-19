@@ -4,8 +4,6 @@
 #include "vertex.hpp"
 #include "vertexbuffer_gl.hpp"
 
-#include "renderer.hpp"
-
 #include "lowrenderer_gl.hpp"
 
 // args[0] should be glfwGetProcAddress

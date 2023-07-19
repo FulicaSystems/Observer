@@ -16,23 +16,14 @@ project(Project_O)
 add_subdirectory(externals)
 
 set(HEADERS
-    include/allocator_vk.hpp
     include/application.hpp
     include/commandbuffer_vk.hpp
-    include/commandpool.hpp
-    include/commandpool_vk.hpp
     include/format.hpp
     include/graphicsapi.hpp
-    include/graphicsdevice.hpp
-    include/graphicsdevice_vk.hpp
-    include/graphicspipeline.hpp
-    include/graphicspipeline_vk.hpp
     include/lowrenderer.hpp
     include/lowrenderer_gl.hpp
     include/lowrenderer_vk.hpp
-    include/memorymanager.hpp
     include/mesh.hpp
-    include/renderer.hpp
     include/resource.hpp
     include/resourcesmanager.hpp
     include/scene.hpp
@@ -47,19 +38,14 @@ set(HEADERS
 )
 
 set(SOURCES
-    src/allocator_vk.cpp
     src/application.cpp
     src/commandbuffer_vk.cpp
-    src/commandpool_vk.cpp
     src/format.cpp
-    src/graphicsdevice_vk.cpp
-    src/graphicspipeline_vk.cpp
     src/lowrenderer.cpp
     src/lowrenderer_gl.cpp
     src/lowrenderer_vk.cpp
     src/main.cpp
     src/mesh.cpp
-    src/renderer.cpp
     src/resourcesmanager.cpp
     src/shader.cpp
     src/shadermodule.cpp

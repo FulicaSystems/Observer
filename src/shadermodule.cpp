@@ -1,5 +1,3 @@
-#include "graphicsdevice_vk.hpp"
-
 #include "shadermodule_vk.hpp"
 
 #include "shadermodule.hpp"

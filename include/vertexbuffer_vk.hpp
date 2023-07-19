@@ -2,8 +2,7 @@
 
 #include <glad/vulkan.h>
 
-#include "memorymanager.hpp"
-
+#include "lowrenderer_vk.hpp"
 #include "vertexbuffer.hpp"
 
 class VertexBuffer_Vk : public IVertexBuffer
@@ -19,7 +18,7 @@ public:
 #ifdef USE_VMA
 		alloc = new Alloc_VMA();
 #else
-		alloc = new MyAlloc_Vk();
+		alloc = new Alloc();
 #endif
 	}
 	~VertexBuffer_Vk() override { delete alloc; }

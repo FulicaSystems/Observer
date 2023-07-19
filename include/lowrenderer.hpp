@@ -5,6 +5,8 @@
 #include <span>
 #include <memory>
 
+#include "graphicsapi.hpp"
+
 class ILowRenderer
 {
 protected:
@@ -30,7 +32,9 @@ public:
 
 
 public:
-	class Renderer* highRenderer = nullptr;
+	EGraphicsAPI graphicsApi;
+
+	ILowRenderer(const EGraphicsAPI graphicsApi = EGraphicsAPI::VULKAN) : graphicsApi(graphicsApi) {}
 
 	template<typename... TArgs>
 	void initGraphicsAPI(TArgs&&... args)
@@ -64,8 +68,7 @@ public:
 			const struct Vertex* vertices);
 
 protected:
-	virtual std::shared_ptr<class IShaderModule> createShaderModule_Impl(class ILogicalDevice* device,
-		size_t vsSize,
+	virtual std::shared_ptr<class IShaderModule> createShaderModule_Impl(size_t vsSize,
 		size_t fsSize,
 		char* vs,
 		char* fs) = 0;
@@ -73,26 +76,15 @@ protected:
 public:
 	template<>
 	std::shared_ptr<class IShaderModule> create<class IShaderModule,
-		class ILogicalDevice*,
 		size_t,
 		size_t,
 		char*,
-		char*>(class ILogicalDevice* device,
-			size_t vsSize,
+		char*>(size_t vsSize,
 			size_t fsSize,
 			char* vs,
 			char* fs);
 	template<>
 	void destroy<class IShaderModule>(std::shared_ptr<class IShaderModule> ptr);
-
-protected:
-	virtual std::shared_ptr<class ILogicalDevice> createLogicalDevice_Impl() = 0;
-	virtual void destroyLogicalDevice_Impl(std::shared_ptr<class ILogicalDevice> ptr) = 0;
-public:
-	template<>
-	std::shared_ptr<class ILogicalDevice> create<class ILogicalDevice>();
-	template<>
-	void destroy<class ILogicalDevice>(std::shared_ptr<class ILogicalDevice> ptr);
 
 protected:
 	virtual std::shared_ptr<class CommandBuffer> createCommandBuffer_Impl() { return nullptr; }

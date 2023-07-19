@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "utils/derived.hpp"
+
 #include "lowrenderer.hpp"
 
 /**
@@ -9,6 +11,8 @@
  */
 class LowRenderer_Gl : public ILowRenderer
 {
+	SUPER(ILowRenderer)
+
 private:
 	void initGraphicsAPI_Impl(std::span<void*> args) override;
 
@@ -29,11 +33,9 @@ private:
 		const struct Vertex* vertices) override;
 
 	// shader module
-	std::shared_ptr<class IShaderModule> createShaderModule_Impl(class ILogicalDevice* device,
-		size_t vsSize,
+	std::shared_ptr<class IShaderModule> createShaderModule_Impl(size_t vsSize,
 		size_t fsSize,
 		char* vs,
 		char* fs) override { return nullptr; }
-
 	void destroyShaderModule_Impl(std::shared_ptr<class IShaderModule> ptr) override {}
 };

@@ -1,17 +1,17 @@
+#include "lowrenderer_vk.hpp"
+
 #include "vmahelper.hpp"
 
 #ifdef USE_VMA
 
-#include "lowrenderer_vk.hpp"
-#include "graphicsdevice_vk.hpp"
 #include "vertexbuffer_vk.hpp"
 
-void VMAHelper::createAllocator(ILowRenderer& api, ILogicalDevice& device, VmaAllocator& allocator)
+void VMAHelper::createAllocator(VkInstance instance, VkPhysicalDevice pdevice, VkDevice device, VmaAllocator& allocator)
 {
 	VmaAllocatorCreateInfo createInfo = {
-		.physicalDevice = ((LogicalDevice_Vk&)device).pdevice.vkpdevice,
-		.device = ((LogicalDevice_Vk&)device).vkdevice,
-		.instance = ((LowRenderer_Vk&)api).instance,
+		.physicalDevice = pdevice,
+		.device = device,
+		.instance = instance,
 		.vulkanApiVersion = VK_API_VERSION_1_3
 	};
 
@@ -57,38 +57,5 @@ void VMAHelper::unmapMemory(VmaAllocator& allocator, VmaAllocation& allocation)
 
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>
-
-void Allocator_VMA::createAllocatorInstance()
-{
-	VMAHelper::createAllocator(*api, *device, allocator);
-}
-
-void Allocator_VMA::destroyAllocatorInstance()
-{
-	VMAHelper::destroyAllocator(allocator);
-}
-
-void Allocator_VMA::allocateBufferObjectMemory(VkBufferCreateInfo& createInfo,
-	IVertexBuffer* vbo,
-	uint32_t memoryFlags,
-	bool mappable)
-{
-	VMAHelper::allocateBufferObjectMemory(allocator, createInfo, vbo, mappable);
-}
-
-void Allocator_VMA::destroyBufferObjectMemory(IVertexBuffer* vbo)
-{
-	VMAHelper::destroyBufferObjectMemory(allocator, vbo);
-}
-
-void Allocator_VMA::mapMemory(IAllocation* allocation, void** ppData)
-{
-	VMAHelper::mapMemory(allocator, ((Alloc_VMA*)allocation)->allocation, ppData);
-}
-
-void Allocator_VMA::unmapMemory(IAllocation* allocation)
-{
-	VMAHelper::unmapMemory(allocator, ((Alloc_VMA*)allocation)->allocation);
-}
 
 #endif
