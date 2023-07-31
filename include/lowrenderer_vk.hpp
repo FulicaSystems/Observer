@@ -9,10 +9,15 @@
 
 #include "utils/derived.hpp"
 
+// TODO : remove include
+#include "commandbuffer_vk.hpp"
+
+
 #include "lowrenderer.hpp"
 
 // comment this macro definition to use a custom memory allocator
 #define USE_VMA // define this macro to use Vulkan Memory Allocator
+
 
 #ifndef NDEBUG
 const std::vector<const char*> validationLayers = {
@@ -32,7 +37,7 @@ struct VkQueueFamilyIndices
 	//a queue family that supports presenting images to the surface
 	VkQueueFamilyIndex presentFamily;
 
-	bool isComplete() { return graphicsFamily.has_value() && presentFamily.has_value(); }
+	inline bool isComplete() { return graphicsFamily.has_value() && presentFamily.has_value(); }
 };
 struct VkSwapchainSupportDetails
 {
@@ -40,6 +45,7 @@ struct VkSwapchainSupportDetails
 	std::vector<VkSurfaceFormatKHR> formats;
 	std::vector<VkPresentModeKHR> presentModes;
 };
+
 
 /**
  * Physical device (GPU).
@@ -68,29 +74,69 @@ public:
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
 };
 
-class IAllocation
+struct LogicalDevice
 {
-public:
-	virtual ~IAllocation() {}
+	VkQueue graphicsQueue;
+	VkQueue presentQueue;
+
+	PhysicalDevice pdevice;
+	VkDevice vkdevice;
+
+	void waitGraphicsQueue();
+	void submitCommandToGraphicsQueue(VkSubmitInfo& submitInfo, VkFence fence = VK_NULL_HANDLE);
+	void present(VkPresentInfoKHR& presentInfo);
 };
 
-struct IMemoryAllocator
+struct Swapchain
 {
-	virtual void createAllocatorInstance() = 0;
-	virtual void destroyAllocatorInstance() = 0;
-
-	IMemoryAllocator() { createAllocatorInstance(); }
-	virtual ~IMemoryAllocator() { destroyAllocatorInstance(); }
-
-	virtual void allocateBufferObjectMemory(class VkBufferCreateInfo& createInfo,
-		class IVertexBuffer* vbo,
-		uint32_t memoryFlags = 0,
-		bool mappable = false) = 0;
-	virtual void destroyBufferObjectMemory(class IVertexBuffer* vbo) = 0;
-
-	virtual void mapMemory(IAllocation* allocation, void** ppData) = 0;
-	virtual void unmapMemory(IAllocation* allocation) = 0;
+	// swapchain
+	VkSwapchainKHR vkswapchain;
+	std::vector<VkImage> swapchainImages;
+	VkFormat swapchainImageFormat;
+	VkExtent2D swapchainExtent;
+	std::vector<VkImageView> swapchainImageViews;
 };
+
+struct Framebuffers
+{
+	// TODO : create framebuffer interface FrameBuffer_Vk : public IFrameBuffer
+	std::vector<VkFramebuffer> swapchainFramebuffers;
+};
+
+struct GraphicsPipeline
+{
+	// TODO : make the pipeline independant in order to make different pipelines
+	std::atomic_flag readyToDraw = ATOMIC_FLAG_INIT;
+	std::shared_ptr<class Shader> shader = nullptr;
+
+	Swapchain swapchain;
+
+	// pipeline
+	VkRenderPass renderPass;
+	VkPipelineLayout pipelineLayout;
+	VkPipeline graphicsPipeline;
+
+	// framebuffer
+	Framebuffers framebuffers;
+
+	// multithreading
+	VkSemaphore renderReadySemaphore;
+	VkSemaphore renderDoneSemaphore;
+	VkFence renderOnceFence;
+
+	void recordImageCommandBuffer(CommandBuffer_Vk& cb,
+		uint32_t imageIndex,
+		const std::deque<std::shared_ptr<class IVertexBuffer>>& vbos);
+};
+
+struct CommandPool
+{
+	VkCommandPool commandPool;
+	std::deque<CommandBuffer_Vk> cbos;
+
+	CommandBuffer_Vk& getCmdBufferByIndex(const int index);
+};
+
 
 
 /**
@@ -106,14 +152,10 @@ private:
 
 	VkDebugUtilsMessengerEXT debugMessenger;
 
-	struct LogicalDevice;
-	std::unique_ptr<LogicalDevice> devicePImpl = nullptr;
-	struct GraphicsPipeline;
-	std::unique_ptr<GraphicsPipeline> pipelinePImpl = nullptr;
-	struct CommandPool;
-	std::unique_ptr<CommandPool> commandPoolPImpl = nullptr;
-	struct MemoryAllocator;
-	std::unique_ptr<MemoryAllocator> allocatorPImpl = nullptr;
+	LogicalDevice logicalDevice;
+	std::shared_ptr<GraphicsPipeline> pipeline;
+	CommandPool commandPool;
+	std::shared_ptr<class IMemoryAllocator> memoryAllocator;
 
 
 	// every created buffer objects
@@ -126,6 +168,10 @@ private:
 		const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
 		void* userData);
 
+	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availableModes);
+	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+
 	void vulkanCreate();
 	void vulkanDestroy();
 
@@ -133,6 +179,28 @@ private:
 	void vulkanLayers();
 
 	void vulkanDebugMessenger();
+
+	PhysicalDevice createPhysicalDevice();
+	LogicalDevice createLogicalDevice(PhysicalDevice pdevice);
+	void destroyLogicalDevice(LogicalDevice logicalDevice);
+
+	Swapchain createSwapchain(LogicalDevice logicalDevice);
+	void createSwapchainImageViews(LogicalDevice logicalDevice, Swapchain& swapchain);
+
+	std::shared_ptr<GraphicsPipeline> createGraphicsPipelineAsync(LogicalDevice logicalDevice);
+	void createPipelineRenderPass(LogicalDevice logicalDevice, GraphicsPipeline& pipeline);
+	void createPipelineFramebuffers(LogicalDevice logicalDevice, GraphicsPipeline& pipeline);
+	void createPipelineMultithreadObjects(LogicalDevice logicalDevice, GraphicsPipeline& pipeline);
+	void destroyGraphicsPipeline(LogicalDevice logicalDevice, GraphicsPipeline& pipeline);
+
+	CommandPool createCommandPool(LogicalDevice logicalDevice);
+	void destroyCommandPool(LogicalDevice logicalDevice, CommandPool& commandPool);
+
+	CommandBuffer_Vk createFloatingCommandBuffer();
+	void destroyFloatingCommandBuffer(CommandBuffer_Vk& cbo);
+	CommandBuffer_Vk& createCommandBuffer();
+	void destroyCommandBuffer(const int index);
+
 
 	void initGraphicsAPI_Impl(std::span<void*> args) override;
 
@@ -168,6 +236,7 @@ public:
 	void terminateRendererModules();
 	void terminateGraphicsAPI();
 
+
 	// vertex buffer object
 
 	/**
@@ -183,21 +252,3 @@ public:
 	 */
 	void renderFrame();
 };
-
-#ifdef USE_VMA
-#include "vmahelper.hpp"
-
-class Alloc_VMA : public IAllocation
-{
-public:
-	VmaAllocation allocation;
-};
-#else
-class Alloc : public IAllocation
-{
-public:
-	// binded memory block
-	struct LowRenderer_Vk::MemoryAllocator::MemoryBlock* memoryBlock = nullptr;
-	size_t memoryOffset = 0;
-};
-#endif

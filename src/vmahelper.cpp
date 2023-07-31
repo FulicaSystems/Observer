@@ -1,10 +1,6 @@
-#include "lowrenderer_vk.hpp"
+#include "vertexbuffer_vk.hpp"
 
 #include "vmahelper.hpp"
-
-#ifdef USE_VMA
-
-#include "vertexbuffer_vk.hpp"
 
 void VMAHelper::createAllocator(VkInstance instance, VkPhysicalDevice pdevice, VkDevice device, VmaAllocator& allocator)
 {
@@ -54,8 +50,3 @@ void VMAHelper::unmapMemory(VmaAllocator& allocator, VmaAllocation& allocation)
 {
 	vmaUnmapMemory(allocator, allocation);
 }
-
-#define VMA_IMPLEMENTATION
-#include <vk_mem_alloc.h>
-
-#endif

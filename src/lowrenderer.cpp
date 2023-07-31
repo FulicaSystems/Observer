@@ -26,13 +26,13 @@ std::shared_ptr<IShaderModule> ILowRenderer::create<IShaderModule,
 	return createShaderModule_Impl(vsSize, fsSize, vs, fs);
 }
 template<>
-void ILowRenderer::destroy<class IShaderModule>(std::shared_ptr<class IShaderModule> ptr)
+void ILowRenderer::destroy<IShaderModule>(std::shared_ptr<IShaderModule> ptr)
 {
 	destroyShaderModule_Impl(ptr);
 }
 
 template<>
-std::shared_ptr<CommandBuffer> ILowRenderer::create<CommandBuffer>()
+std::shared_ptr<ICommandBuffer> ILowRenderer::create<ICommandBuffer>()
 {
 	return createCommandBuffer_Impl();
 }

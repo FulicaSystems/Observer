@@ -15,7 +15,7 @@
 
 Application::Application(const EGraphicsAPI graphicsApi)
 {
-	windowInit();
+	windowInit(graphicsApi);
 
 	switch (graphicsApi)
 	{
@@ -69,13 +69,13 @@ Application::~Application()
 	glfwTerminate();
 }
 
-void Application::windowInit()
+void Application::windowInit(EGraphicsAPI graphicsApi)
 {
 	glfwInit();
 
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-	switch (rdr->graphicsApi)
+	switch (graphicsApi)
 	{
 	case EGraphicsAPI::OPENGL:
 	{

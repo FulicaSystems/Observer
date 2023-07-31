@@ -57,6 +57,7 @@ public:
 		static_assert(sizeof(TType) == 0, "Invalid or undefined type destruction : use template specialization");
 	}
 
+
 protected:
 	virtual std::shared_ptr<class IVertexBuffer> createVertexBuffer_Impl(uint32_t vertexNum,
 		const struct Vertex* vertices) = 0;
@@ -66,6 +67,7 @@ public:
 		uint32_t,
 		const struct Vertex*>(uint32_t vertexNum,
 			const struct Vertex* vertices);
+
 
 protected:
 	virtual std::shared_ptr<class IShaderModule> createShaderModule_Impl(size_t vsSize,
@@ -86,9 +88,10 @@ public:
 	template<>
 	void destroy<class IShaderModule>(std::shared_ptr<class IShaderModule> ptr);
 
+
 protected:
-	virtual std::shared_ptr<class CommandBuffer> createCommandBuffer_Impl() { return nullptr; }
+	virtual std::shared_ptr<class ICommandBuffer> createCommandBuffer_Impl() { return nullptr; }
 public:
 	template<>
-	std::shared_ptr<class CommandBuffer> create<class CommandBuffer>();
+	std::shared_ptr<class ICommandBuffer> create<class ICommandBuffer>();
 };

@@ -23,6 +23,7 @@ set(HEADERS
     include/lowrenderer.hpp
     include/lowrenderer_gl.hpp
     include/lowrenderer_vk.hpp
+    include/memoryallocator.hpp
     include/mesh.hpp
     include/resource.hpp
     include/resourcesmanager.hpp
@@ -45,6 +46,7 @@ set(SOURCES
     src/lowrenderer_gl.cpp
     src/lowrenderer_vk.cpp
     src/main.cpp
+    src/memoryallocator.cpp
     src/mesh.cpp
     src/resourcesmanager.cpp
     src/shader.cpp

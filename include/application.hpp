@@ -15,7 +15,7 @@ private:
 
 	ILowRenderer* rdr;
 
-	void windowInit();
+	void windowInit(EGraphicsAPI graphicsApi);
 
 public:
 	Application(const EGraphicsAPI graphicsApi = EGraphicsAPI::VULKAN);

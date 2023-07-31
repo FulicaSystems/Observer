@@ -2,6 +2,8 @@
 
 #include <glad/vulkan.h>
 
+#include "memoryallocator.hpp"
+
 #include "lowrenderer_vk.hpp"
 #include "vertexbuffer.hpp"
 
