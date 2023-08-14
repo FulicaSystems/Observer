@@ -407,13 +407,9 @@ void LowRenderer_Vk::createSwapchainImageViews(LogicalDevice logicalDevice, Swap
 }
 
 
-std::shared_ptr<GraphicsPipeline> LowRenderer_Vk::createGraphicsPipelineAsync(LogicalDevice logicalDevice)
+void LowRenderer_Vk::createGraphicsPipelineAsync(LogicalDevice logicalDevice, GraphicsPipeline* pipeline)
 {
-	std::shared_ptr<GraphicsPipeline> pipeline = std::make_shared<GraphicsPipeline>();
-	// TODO : move shader creation
-	pipeline->shader = ResourcesManager::load<Shader>("triangle_shader", "shaders/triangle", *this);
-
-	auto initPipeline = [=, this]() {
+	auto initPipeline = [=]() {
 		std::vector<VkDynamicState> dynamicStates = {
 			VK_DYNAMIC_STATE_VIEWPORT,
 			VK_DYNAMIC_STATE_SCISSOR
@@ -555,16 +551,14 @@ std::shared_ptr<GraphicsPipeline> LowRenderer_Vk::createGraphicsPipelineAsync(Lo
 			throw std::runtime_error("Failed to create graphics pipeline");
 	};
 
-	Utils::GlobalThreadPool::addTask([=, this]() {
+	Utils::GlobalThreadPool::addTask([=]() {
 		// wait for shader loading
 		pipeline->shader->loaded.wait(false);
-		Utils::GlobalThreadPool::addTask([=, this]() {
+		Utils::GlobalThreadPool::addTask([=]() {
 			initPipeline();
 			pipeline->readyToDraw.test_and_set();
 			}, false);
 		});
-
-	return pipeline;
 }
 void LowRenderer_Vk::createPipelineRenderPass(LogicalDevice logicalDevice, GraphicsPipeline& pipeline)
 {
@@ -804,10 +798,24 @@ void LowRenderer_Vk::terminateGraphicsAPI()
 
 void LowRenderer_Vk::initRendererModules()
 {
+	// device
 	logicalDevice = createLogicalDevice(createPhysicalDevice());
-	pipeline = createGraphicsPipelineAsync(logicalDevice);
+
+	// pipeline
+	pipeline = std::make_shared<GraphicsPipeline>();
+	// TODO : move shader creation
+	pipeline->shader = ResourcesManager::load<Shader>("triangle_shader", "shaders/triangle", *this);
+	pipeline->swapchain = createSwapchain(logicalDevice);
+	createSwapchainImageViews(logicalDevice, pipeline->swapchain);
+	createPipelineRenderPass(logicalDevice, *pipeline);
+	createGraphicsPipelineAsync(logicalDevice, pipeline.get());
+	createPipelineFramebuffers(logicalDevice, *pipeline);
+	createPipelineMultithreadObjects(logicalDevice, *pipeline);
+
+	// command pool
 	commandPool = createCommandPool(logicalDevice);
 
+	// allocator
 #ifdef USE_VMA
 	memoryAllocator = std::make_shared<VMAMemoryAllocator>();
 #else

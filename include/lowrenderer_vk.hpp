@@ -187,7 +187,7 @@ private:
 	Swapchain createSwapchain(LogicalDevice logicalDevice);
 	void createSwapchainImageViews(LogicalDevice logicalDevice, Swapchain& swapchain);
 
-	std::shared_ptr<GraphicsPipeline> createGraphicsPipelineAsync(LogicalDevice logicalDevice);
+	void createGraphicsPipelineAsync(LogicalDevice logicalDevice, GraphicsPipeline* pipeline);
 	void createPipelineRenderPass(LogicalDevice logicalDevice, GraphicsPipeline& pipeline);
 	void createPipelineFramebuffers(LogicalDevice logicalDevice, GraphicsPipeline& pipeline);
 	void createPipelineMultithreadObjects(LogicalDevice logicalDevice, GraphicsPipeline& pipeline);
