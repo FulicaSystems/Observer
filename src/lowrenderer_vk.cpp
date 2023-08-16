@@ -2,10 +2,12 @@
 #include <stdexcept>
 #include <set>
 
+#include <glad/vulkan.h>
+
+
 #include "format.hpp"
 #include "utils/multithread/globalthreadpool.hpp"
 
-#include "commandbuffer_vk.hpp"
 #include "resourcesmanager.hpp"
 #include "memoryallocator.hpp"
 
@@ -148,14 +150,14 @@ void LogicalDevice::present(VkPresentInfoKHR& presentInfo)
 }
 
 
-void GraphicsPipeline::recordImageCommandBuffer(class CommandBuffer_Vk& cb,
+void GraphicsPipeline::recordImageCommandBuffer(CommandBuffer& cb,
 	uint32_t imageIndex,
 	const std::deque<std::shared_ptr<class IVertexBuffer>>& vbos)
 {
 	cb.reset();
 	cb.beginRecord();
 
-	VkCommandBuffer& cbo = cb.get();
+	VkCommandBuffer& cbo = cb.commandBuffer;
 
 	VkClearValue clearColor = {
 		.color = { 0.2f, 0.2f, 0.2f, 1.f }
@@ -211,7 +213,28 @@ void GraphicsPipeline::recordImageCommandBuffer(class CommandBuffer_Vk& cb,
 }
 
 
-CommandBuffer_Vk& CommandPool::getCmdBufferByIndex(const int index)
+void CommandBuffer::reset()
+{
+	vkResetCommandBuffer(commandBuffer, 0);
+}
+void CommandBuffer::beginRecord(VkCommandBufferUsageFlags flags)
+{
+	VkCommandBufferBeginInfo commandBufferBeginInfo = {
+	.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+	.flags = flags,
+	.pInheritanceInfo = nullptr
+	};
+
+	if (vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo) != VK_SUCCESS)
+		throw std::runtime_error("Failed to begin recording command buffer");
+}
+void CommandBuffer::endRecord()
+{
+	if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+		throw std::runtime_error("Failed to record command buffer");
+}
+
+CommandBuffer& CommandPool::getCmdBufferByIndex(const int index)
 {
 	return cbos[index];
 }
@@ -695,7 +718,7 @@ void LowRenderer_Vk::destroyCommandPool(LogicalDevice logicalDevice, CommandPool
 }
 
 
-CommandBuffer_Vk LowRenderer_Vk::createFloatingCommandBuffer()
+CommandBuffer LowRenderer_Vk::createFloatingCommandBuffer()
 {
 	VkCommandBufferAllocateInfo allocInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -704,17 +727,17 @@ CommandBuffer_Vk LowRenderer_Vk::createFloatingCommandBuffer()
 		.commandBufferCount = 1
 	};
 
-	CommandBuffer_Vk outCbo;
-	if (vkAllocateCommandBuffers(logicalDevice.vkdevice, &allocInfo, &outCbo.get()) != VK_SUCCESS)
+	CommandBuffer outCbo;
+	if (vkAllocateCommandBuffers(logicalDevice.vkdevice, &allocInfo, &outCbo.commandBuffer) != VK_SUCCESS)
 		throw std::runtime_error("Failed to allocate command buffers");
 
 	return outCbo;
 }
-void LowRenderer_Vk::destroyFloatingCommandBuffer(CommandBuffer_Vk& cbo)
+void LowRenderer_Vk::destroyFloatingCommandBuffer(CommandBuffer& cbo)
 {
-	vkFreeCommandBuffers(logicalDevice.vkdevice, commandPool.commandPool, 1, &cbo.get());
+	vkFreeCommandBuffers(logicalDevice.vkdevice, commandPool.commandPool, 1, &cbo.commandBuffer);
 }
-CommandBuffer_Vk& LowRenderer_Vk::createCommandBuffer()
+CommandBuffer& LowRenderer_Vk::createCommandBuffer()
 {
 	return commandPool.cbos.emplace_back(createFloatingCommandBuffer());
 }
@@ -737,7 +760,7 @@ void LowRenderer_Vk::renderFrame()
 	vkAcquireNextImageKHR(logicalDevice.vkdevice, pipeline->swapchain.vkswapchain, UINT64_MAX, pipeline->renderReadySemaphore, VK_NULL_HANDLE, &imageIndex);
 
 
-	CommandBuffer_Vk cb = commandPool.getCmdBufferByIndex(0);
+	CommandBuffer cb = commandPool.getCmdBufferByIndex(0);
 	pipeline->recordImageCommandBuffer(cb, imageIndex, vbos);
 
 	VkSemaphore waitSemaphores[] = { pipeline->renderReadySemaphore };
@@ -749,7 +772,7 @@ void LowRenderer_Vk::renderFrame()
 		.pWaitSemaphores = waitSemaphores,
 		.pWaitDstStageMask = waitStages,
 		.commandBufferCount = 1,
-		.pCommandBuffers = &cb.get(),
+		.pCommandBuffers = &cb.commandBuffer,
 		.signalSemaphoreCount = 1,
 		.pSignalSemaphores = signalSemaphores
 	};
@@ -1042,7 +1065,7 @@ std::shared_ptr<IVertexBuffer> LowRenderer_Vk::createVertexBuffer_Impl(uint32_t 
 	// copying the staging buffer data into the device local buffer
 
 	// using a command buffer to transfer the data
-	CommandBuffer_Vk cbo = createFloatingCommandBuffer();
+	CommandBuffer cbo = createFloatingCommandBuffer();
 
 	// copy the staging buffer (CPU accessible) into the GPU buffer (GPU memory)
 	cbo.beginRecord(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
@@ -1052,14 +1075,14 @@ std::shared_ptr<IVertexBuffer> LowRenderer_Vk::createVertexBuffer_Impl(uint32_t 
 		.dstOffset = 0,
 		.size = stagingVBO->bufferSize
 	};
-	vkCmdCopyBuffer(cbo.get(), stagingVBO->buffer, vbo->buffer, 1, &copyRegion);
+	vkCmdCopyBuffer(cbo.commandBuffer, stagingVBO->buffer, vbo->buffer, 1, &copyRegion);
 
 	cbo.endRecord();
 
 	VkSubmitInfo submitInfo = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		.commandBufferCount = 1,
-		.pCommandBuffers = &cbo.get()
+		.pCommandBuffers = &cbo.commandBuffer
 	};
 	logicalDevice.submitCommandToGraphicsQueue(submitInfo);
 	logicalDevice.waitGraphicsQueue();

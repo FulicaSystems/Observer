@@ -9,10 +9,6 @@
 
 #include "utils/derived.hpp"
 
-// TODO : remove include
-#include "commandbuffer_vk.hpp"
-
-
 #include "lowrenderer.hpp"
 
 // comment this macro definition to use a custom memory allocator
@@ -50,9 +46,8 @@ struct VkSwapchainSupportDetails
 /**
  * Physical device (GPU).
  */
-class PhysicalDevice
+struct PhysicalDevice
 {
-public:
 	VkPhysicalDevice vkpdevice = VK_NULL_HANDLE;
 
 	PhysicalDevice() = default;
@@ -124,17 +119,27 @@ struct GraphicsPipeline
 	VkSemaphore renderDoneSemaphore;
 	VkFence renderOnceFence;
 
-	void recordImageCommandBuffer(CommandBuffer_Vk& cb,
+	void recordImageCommandBuffer(struct CommandBuffer& cb,
 		uint32_t imageIndex,
 		const std::deque<std::shared_ptr<class IVertexBuffer>>& vbos);
+};
+
+struct CommandBuffer
+{
+	VkCommandBuffer commandBuffer;
+
+	void reset();
+
+	void beginRecord(VkCommandBufferUsageFlags flags = 0);
+	void endRecord();
 };
 
 struct CommandPool
 {
 	VkCommandPool commandPool;
-	std::deque<CommandBuffer_Vk> cbos;
+	std::deque<CommandBuffer> cbos;
 
-	CommandBuffer_Vk& getCmdBufferByIndex(const int index);
+	CommandBuffer& getCmdBufferByIndex(const int index);
 };
 
 
@@ -196,9 +201,9 @@ private:
 	CommandPool createCommandPool(LogicalDevice logicalDevice);
 	void destroyCommandPool(LogicalDevice logicalDevice, CommandPool& commandPool);
 
-	CommandBuffer_Vk createFloatingCommandBuffer();
-	void destroyFloatingCommandBuffer(CommandBuffer_Vk& cbo);
-	CommandBuffer_Vk& createCommandBuffer();
+	CommandBuffer createFloatingCommandBuffer();
+	void destroyFloatingCommandBuffer(CommandBuffer& cbo);
+	CommandBuffer& createCommandBuffer();
 	void destroyCommandBuffer(const int index);
 
 

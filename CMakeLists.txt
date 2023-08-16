@@ -17,7 +17,6 @@ add_subdirectory(externals)
 
 set(HEADERS
     include/application.hpp
-    include/commandbuffer_vk.hpp
     include/format.hpp
     include/graphicsapi.hpp
     include/lowrenderer.hpp
@@ -40,7 +39,6 @@ set(HEADERS
 
 set(SOURCES
     src/application.cpp
-    src/commandbuffer_vk.cpp
     src/format.cpp
     src/lowrenderer.cpp
     src/lowrenderer_gl.cpp
