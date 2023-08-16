@@ -17,20 +17,15 @@ private:
 	void initGraphicsAPI_Impl(std::span<void*> args) override;
 
 
-	// buffer object
-
-	[[nodiscard]] std::shared_ptr<class IVertexBuffer> createBufferObject_Impl(uint32_t vertexNum,
+	// vertex buffer object
+	[[nodiscard]] std::shared_ptr<class IVertexBuffer> createVertexBufferObject_Impl(uint32_t vertexNum,
 		bool mappable,
 		std::span<uint32_t> additionalArgs = std::span<uint32_t>()) override;
-	void populateBufferObject(class IVertexBuffer& vbo, const struct Vertex* vertices) override;
-public:
-	void destroyBufferObject(class IVertexBuffer& vbo) override;
-
-
-private:
-	// vertex buffer object
+	void populateVertexBufferObject(class IVertexBuffer& vbo, const struct Vertex* vertices) override;
 	std::shared_ptr<class IVertexBuffer> createVertexBuffer_Impl(uint32_t vertexNum,
 		const struct Vertex* vertices) override;
+	void destroyVertexBuffer_Impl(std::shared_ptr<class IVertexBuffer> ptr) override;
+
 
 	// shader module
 	std::shared_ptr<class IShaderModule> createShaderModule_Impl(size_t vsSize,

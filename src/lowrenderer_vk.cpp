@@ -833,7 +833,7 @@ void LowRenderer_Vk::terminateRendererModules()
 
 	for (int i = 0; i < vbos.size(); ++i)
 	{
-		destroyBufferObject(*vbos[i]);
+		destroy<IVertexBuffer>(vbos[i]);
 	}
 	vbos.clear();
 	ResourcesManager::clearAllResources();
@@ -984,7 +984,7 @@ void LowRenderer_Vk::vulkanLayers()
 
 // additionalArgs[0] must be "VkBufferUsageFlags usage"
 // additionalArgs[1] must be "VkMemoryPropertyFlags memProperties"
-[[nodiscard]] std::shared_ptr<IVertexBuffer> LowRenderer_Vk::createBufferObject_Impl(uint32_t vertexNum,
+[[nodiscard]] std::shared_ptr<IVertexBuffer> LowRenderer_Vk::createVertexBufferObject_Impl(uint32_t vertexNum,
 	bool mappable,
 	std::span<uint32_t> additionalArgs)
 {
@@ -1006,7 +1006,7 @@ void LowRenderer_Vk::vulkanLayers()
 
 	return outVbo;
 }
-void LowRenderer_Vk::populateBufferObject(IVertexBuffer& vbo, const Vertex* vertices)
+void LowRenderer_Vk::populateVertexBufferObject(IVertexBuffer& vbo, const Vertex* vertices)
 {
 	VertexBuffer_Vk& vk = (VertexBuffer_Vk&)vbo;
 
@@ -1019,31 +1019,22 @@ void LowRenderer_Vk::populateBufferObject(IVertexBuffer& vbo, const Vertex* vert
 
 	memoryAllocator->unmapMemory(logicalDevice.vkdevice, vk.alloc);
 }
-void LowRenderer_Vk::destroyBufferObject(IVertexBuffer& vbo)
-{
-	VertexBuffer_Vk& vk = (VertexBuffer_Vk&)vbo;
-
-	vkDestroyBuffer(logicalDevice.vkdevice, vk.buffer, nullptr);
-	memoryAllocator->destroyBufferObjectMemory(logicalDevice.vkdevice, &vbo);
-}
-
-
 std::shared_ptr<IVertexBuffer> LowRenderer_Vk::createVertexBuffer_Impl(uint32_t vertexNum, const Vertex* vertices)
 {
 	// this buffer is a CPU accessible buffer (temporary buffer to later load the data to the GPU)
 	std::shared_ptr<VertexBuffer_Vk> stagingVBO =
-		std::dynamic_pointer_cast<VertexBuffer_Vk>(createBufferObject(vertexNum,
+		std::dynamic_pointer_cast<VertexBuffer_Vk>(createVertexBufferObject(vertexNum,
 			true,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,	// used for memory transfer operation
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
 
 	// populating the CPU accessible buffer
-	populateBufferObject(*stagingVBO, vertices);
+	populateVertexBufferObject(*stagingVBO, vertices);
 
 	// creating a device (GPU) local buffer (on the specific device of the renderer)
 	// store this vertex buffer to keep a reference
 	std::shared_ptr<VertexBuffer_Vk> vbo =
-		std::dynamic_pointer_cast<VertexBuffer_Vk>(createBufferObject(vertexNum,
+		std::dynamic_pointer_cast<VertexBuffer_Vk>(createVertexBufferObject(vertexNum,
 			false,
 			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,	// memory transfer operation
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT));
@@ -1074,10 +1065,18 @@ std::shared_ptr<IVertexBuffer> LowRenderer_Vk::createVertexBuffer_Impl(uint32_t 
 	logicalDevice.waitGraphicsQueue();
 
 	destroyFloatingCommandBuffer(cbo);
-	destroyBufferObject(*stagingVBO);
+	destroy<IVertexBuffer>(stagingVBO);
 
 	return vbo;
 }
+void LowRenderer_Vk::destroyVertexBuffer_Impl(std::shared_ptr<IVertexBuffer> ptr)
+{
+	std::shared_ptr<VertexBuffer_Vk> vk = std::dynamic_pointer_cast<VertexBuffer_Vk>(ptr);
+
+	vkDestroyBuffer(logicalDevice.vkdevice, vk->buffer, nullptr);
+	memoryAllocator->destroyBufferObjectMemory(logicalDevice.vkdevice, ptr.get());
+}
+
 std::shared_ptr<IShaderModule> LowRenderer_Vk::createShaderModule_Impl(size_t vsSize,
 	size_t fsSize,
 	char* vs,

@@ -16,7 +16,7 @@ void LowRenderer_Gl::initGraphicsAPI_Impl(std::span<void*> args)
 }
 
 
-[[nodiscard]] std::shared_ptr<IVertexBuffer> LowRenderer_Gl::createBufferObject_Impl(uint32_t vertexNum,
+[[nodiscard]] std::shared_ptr<IVertexBuffer> LowRenderer_Gl::createVertexBufferObject_Impl(uint32_t vertexNum,
 	bool mappable,
 	std::span<uint32_t> additionalArgs)
 {
@@ -28,25 +28,22 @@ void LowRenderer_Gl::initGraphicsAPI_Impl(std::span<void*> args)
 
 	return outVbo;
 }
-
-void LowRenderer_Gl::populateBufferObject(IVertexBuffer& vbo, const Vertex* vertices)
+void LowRenderer_Gl::populateVertexBufferObject(IVertexBuffer& vbo, const Vertex* vertices)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, ((VertexBuffer_Gl&)vbo).vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
-
-void LowRenderer_Gl::destroyBufferObject(IVertexBuffer& vbo)
-{
-	glDeleteBuffers(1, &((VertexBuffer_Gl&)vbo).vbo);
-}
-
-
 std::shared_ptr<IVertexBuffer> LowRenderer_Gl::createVertexBuffer_Impl(uint32_t vertexNum,
 	const Vertex* vertices)
 {
-	std::shared_ptr<IVertexBuffer> vbo = createBufferObject(vertexNum);
-	populateBufferObject(*vbo, vertices);
+	std::shared_ptr<IVertexBuffer> vbo = createVertexBufferObject(vertexNum);
+	populateVertexBufferObject(*vbo, vertices);
 
 	return vbo;
+}
+
+void LowRenderer_Gl::destroyVertexBuffer_Impl(std::shared_ptr<IVertexBuffer> ptr)
+{
+	glDeleteBuffers(1, &((VertexBuffer_Gl&)ptr).vbo);
 }

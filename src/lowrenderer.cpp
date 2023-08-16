@@ -14,6 +14,12 @@ std::shared_ptr<IVertexBuffer> ILowRenderer::create<IVertexBuffer,
 }
 
 template<>
+void ILowRenderer::destroy<IVertexBuffer>(std::shared_ptr<IVertexBuffer> ptr)
+{
+	destroyVertexBuffer_Impl(ptr);
+}
+
+template<>
 std::shared_ptr<IShaderModule> ILowRenderer::create<IShaderModule,
 	size_t,
 	size_t,
@@ -29,10 +35,4 @@ template<>
 void ILowRenderer::destroy<IShaderModule>(std::shared_ptr<IShaderModule> ptr)
 {
 	destroyShaderModule_Impl(ptr);
-}
-
-template<>
-std::shared_ptr<ICommandBuffer> ILowRenderer::create<ICommandBuffer>()
-{
-	return createCommandBuffer_Impl();
 }
