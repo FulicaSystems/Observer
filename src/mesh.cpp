@@ -16,7 +16,7 @@ void Mesh::gpuLoad()
 {
 	Utils::GlobalThreadPool::addTask([=, this]() {
 		local = lowrdr.create<IVertexBuffer>(getVertexNum(), getRawData());
-		((LowRenderer_Vk&)lowrdr).addVBO(std::dynamic_pointer_cast<IVertexBuffer>(local));
+		lowrdr.addVBO(std::dynamic_pointer_cast<IVertexBuffer>(local));
 		loaded.test_and_set();
 		}, false);
 }

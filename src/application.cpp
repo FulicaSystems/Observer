@@ -58,7 +58,7 @@ Application::Application(const EGraphicsAPI graphicsApi)
 		throw std::runtime_error("Invalid specified graphics API");
 	}
 
-	((LowRenderer_Vk*)rdr)->initRendererModules();
+	rdr->initRendererModules();
 }
 
 Application::~Application()

@@ -24,6 +24,13 @@ public:
 		std::array<void*, sizeof...(TArgs)> forwardedArgs = { std::forward<TArgs>(args)... };
 		initGraphicsAPI_Impl(forwardedArgs);
 	}
+	virtual void terminateGraphicsAPI() = 0;
+
+	virtual void createAPIInstance(const char* appName) = 0;
+	virtual void destroyAPIInstance() = 0;
+
+	virtual void initRendererModules() = 0;
+	virtual void terminateRendererModules() = 0;
 
 
 	// graphics related object types
@@ -87,4 +94,9 @@ public:
 			char* fs);
 	template<>
 	void destroy<class IShaderModule>(std::shared_ptr<class IShaderModule> ptr);
+
+
+public:
+	virtual IVertexBuffer& addVBO(std::shared_ptr<IVertexBuffer> vbo) = 0;
+	virtual void renderFrame() = 0;
 };

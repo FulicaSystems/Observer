@@ -804,19 +804,19 @@ void LowRenderer_Vk::initGraphicsAPI_Impl(std::span<void*> args)
 		throw std::runtime_error("Unable to load Vulkan symbols");
 
 	// check extensions and layers
-	vulkanExtensions();
-	vulkanLayers();
+	printAvailableExtensions();
+	printAvailableLayers();
 
 	// create the Vulkan instance
-	vulkanCreate();
+	createAPIInstance("renderer");
 #ifndef NDEBUG
-	vulkanDebugMessenger();
+	createDebugMessenger();
 #endif
 }
 void LowRenderer_Vk::terminateGraphicsAPI()
 {
 	terminateRendererModules();
-	vulkanDestroy();
+	destroyAPIInstance();
 }
 
 void LowRenderer_Vk::initRendererModules()
@@ -923,11 +923,11 @@ VkExtent2D LowRenderer_Vk::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capa
 	}
 }
 
-void LowRenderer_Vk::vulkanCreate()
+void LowRenderer_Vk::createAPIInstance(const char* appName)
 {
 	VkApplicationInfo appInfo = {
 		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-		.pApplicationName = "renderer",
+		.pApplicationName = appName,
 		.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
 		.engineVersion = VK_MAKE_VERSION(1, 0, 0),
 		.apiVersion = VK_API_VERSION_1_3
@@ -956,13 +956,13 @@ void LowRenderer_Vk::vulkanCreate()
 	if (!gladLoaderLoadVulkan(instance, nullptr, nullptr))
 		throw std::runtime_error("Unable to reload Vulkan symbols with Vulkan instance");
 }
-void LowRenderer_Vk::vulkanDestroy()
+void LowRenderer_Vk::destroyAPIInstance()
 {
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	vkDestroyInstance(instance, nullptr);
 }
-void LowRenderer_Vk::vulkanDebugMessenger()
+void LowRenderer_Vk::createDebugMessenger()
 {
 	VkDebugUtilsMessengerCreateInfoEXT createInfo = {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
@@ -983,7 +983,7 @@ void LowRenderer_Vk::vulkanDebugMessenger()
 	if (vkCreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
 		throw std::runtime_error("Failed to set up debug messenger");
 }
-void LowRenderer_Vk::vulkanExtensions()
+void LowRenderer_Vk::printAvailableExtensions()
 {
 	uint32_t extensionCount = 0;
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -993,7 +993,7 @@ void LowRenderer_Vk::vulkanExtensions()
 	for (const auto& extension : extensions)
 		std::cout << '\t' << extension.extensionName << '\n';
 }
-void LowRenderer_Vk::vulkanLayers()
+void LowRenderer_Vk::printAvailableLayers()
 {
 	uint32_t layerCount = 0;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);

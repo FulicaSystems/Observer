@@ -177,13 +177,15 @@ private:
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availableModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
-	void vulkanCreate();
-	void vulkanDestroy();
 
-	void vulkanExtensions();
-	void vulkanLayers();
+	void createAPIInstance(const char* appName) override;
+	void destroyAPIInstance() override;
 
-	void vulkanDebugMessenger();
+	void printAvailableExtensions();
+	void printAvailableLayers();
+
+	void createDebugMessenger();
+
 
 	PhysicalDevice createPhysicalDevice();
 	LogicalDevice createLogicalDevice(PhysicalDevice pdevice);
@@ -208,21 +210,24 @@ private:
 
 
 	void initGraphicsAPI_Impl(std::span<void*> args) override;
+public:
+	void terminateGraphicsAPI() override;
 
 
 
+private:
 	// vertex buffer object
 	[[nodiscard]] std::shared_ptr<class IVertexBuffer> createVertexBufferObject_Impl(uint32_t vertexNum,
 		bool mappable,
 		std::span<uint32_t> additionalArgs = std::span<uint32_t>()) override;
 	void populateVertexBufferObject(class IVertexBuffer& vbo, const struct Vertex* vertices) override;
-	std::shared_ptr<class IVertexBuffer> createVertexBuffer_Impl(uint32_t vertexNum,
+	[[nodiscard]] std::shared_ptr<class IVertexBuffer> createVertexBuffer_Impl(uint32_t vertexNum,
 		const struct Vertex* vertices) override;
 	void destroyVertexBuffer_Impl(std::shared_ptr<class IVertexBuffer> ptr) override;
 
 
 	// shader module
-	std::shared_ptr<class IShaderModule> createShaderModule_Impl(size_t vsSize,
+	[[nodiscard]] std::shared_ptr<class IShaderModule> createShaderModule_Impl(size_t vsSize,
 		size_t fsSize,
 		char* vs,
 		char* fs) override;
@@ -234,9 +239,9 @@ public:
 	// surface must be initialized using the windowing framework
 	VkSurfaceKHR surface;
 
-	void initRendererModules();
-	void terminateRendererModules();
-	void terminateGraphicsAPI();
+
+	void initRendererModules() override;
+	void terminateRendererModules() override;
 
 
 	// vertex buffer object
@@ -244,7 +249,7 @@ public:
 	/**
 	 * Create a vertex buffer and store it to the vertex buffer container.
 	 */
-	IVertexBuffer& addVBO(std::shared_ptr<IVertexBuffer> vbo);
+	IVertexBuffer& addVBO(std::shared_ptr<IVertexBuffer> vbo) override;
 
 
 	// rendering
@@ -252,5 +257,5 @@ public:
 	/**
 	 * Rendering a single frame.
 	 */
-	void renderFrame();
+	void renderFrame() override;
 };

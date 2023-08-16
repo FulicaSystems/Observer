@@ -47,3 +47,13 @@ void LowRenderer_Gl::destroyVertexBuffer_Impl(std::shared_ptr<IVertexBuffer> ptr
 {
 	glDeleteBuffers(1, &((VertexBuffer_Gl&)ptr).vbo);
 }
+
+IVertexBuffer& LowRenderer_Gl::addVBO(std::shared_ptr<IVertexBuffer> vbo)
+{
+	// TODO : add mutex for thread safety
+	return *vbos.emplace_back(vbo);
+}
+
+void LowRenderer_Gl::renderFrame()
+{
+}
