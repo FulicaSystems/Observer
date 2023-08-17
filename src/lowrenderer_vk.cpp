@@ -197,6 +197,7 @@ void GraphicsPipeline::recordImageCommandBuffer(CommandBuffer& cb,
 	vkCmdSetScissor(cbo, 0, 1, &scissor);
 
 	// bind VBOs
+	// TODO : loop command buffer usage instead of looping vbos as a single command
 	for (int i = 0; i < vbos.size(); ++i)
 	{
 		const VertexBuffer_Vk& vbo = *(VertexBuffer_Vk*)vbos.at(i).get();
@@ -546,7 +547,7 @@ void LowRenderer_Vk::createGraphicsPipelineAsync(LogicalDevice logicalDevice, Gr
 			.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
 			//shader stage
 			.stageCount = 2,
-			.pStages = std::dynamic_pointer_cast<ShaderModule_Vk>(pipeline->shader->local)->getCreateInfo().data(),
+			.pStages = std::dynamic_pointer_cast<ShaderModule_Vk>(pipeline->shaderProgram->local)->getCreateInfo().data(),
 			//fixed function stage
 			.pVertexInputState = &vertexInputCreateInfo,
 			.pInputAssemblyState = &inputAssemblyCreateInfo,
@@ -576,7 +577,7 @@ void LowRenderer_Vk::createGraphicsPipelineAsync(LogicalDevice logicalDevice, Gr
 
 	Utils::GlobalThreadPool::addTask([=]() {
 		// wait for shader loading
-		pipeline->shader->loaded.wait(false);
+		pipeline->shaderProgram->loaded.wait(false);
 		Utils::GlobalThreadPool::addTask([=]() {
 			initPipeline();
 			pipeline->readyToDraw.test_and_set();
@@ -678,7 +679,7 @@ void LowRenderer_Vk::destroyGraphicsPipeline(LogicalDevice logicalDevice, Graphi
 	{
 		vkDestroyFramebuffer(logicalDevice.vkdevice, framebuffer, nullptr);
 	}
-	pipeline.shader.reset();
+	pipeline.shaderProgram.reset();
 	vkDestroyPipeline(logicalDevice.vkdevice, pipeline.graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(logicalDevice.vkdevice, pipeline.pipelineLayout, nullptr);
 	vkDestroyRenderPass(logicalDevice.vkdevice, pipeline.renderPass, nullptr);
@@ -827,7 +828,7 @@ void LowRenderer_Vk::initRendererModules()
 	// pipeline
 	pipeline = std::make_shared<GraphicsPipeline>();
 	// TODO : move shader creation
-	pipeline->shader = ResourcesManager::load<Shader>("triangle_shader", "shaders/triangle", *this);
+	pipeline->shaderProgram = ResourcesManager::load<Shader>("triangle_shader", "shaders/triangle", *this);
 	pipeline->swapchain = createSwapchain(logicalDevice);
 	createSwapchainImageViews(logicalDevice, pipeline->swapchain);
 	createPipelineRenderPass(logicalDevice, *pipeline);
@@ -1007,7 +1008,7 @@ void LowRenderer_Vk::printAvailableLayers()
 
 // additionalArgs[0] must be "VkBufferUsageFlags usage"
 // additionalArgs[1] must be "VkMemoryPropertyFlags memProperties"
-[[nodiscard]] std::shared_ptr<IVertexBuffer> LowRenderer_Vk::createVertexBufferObject_Impl(uint32_t vertexNum,
+std::shared_ptr<IVertexBuffer> LowRenderer_Vk::createVertexBufferObject_Impl(uint32_t vertexNum,
 	bool mappable,
 	std::span<uint32_t> additionalArgs)
 {

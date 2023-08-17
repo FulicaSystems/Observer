@@ -38,8 +38,8 @@ private:
 	[[nodiscard]] std::shared_ptr<class IShaderModule> createShaderModule_Impl(size_t vsSize,
 		size_t fsSize,
 		char* vs,
-		char* fs) override { return nullptr; }
-	void destroyShaderModule_Impl(std::shared_ptr<class IShaderModule> ptr) override {}
+		char* fs) override;
+	void destroyShaderModule_Impl(std::shared_ptr<class IShaderModule> ptr) override;
 
 
 public:

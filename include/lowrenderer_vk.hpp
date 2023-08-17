@@ -102,7 +102,7 @@ struct GraphicsPipeline
 {
 	// TODO : make the pipeline independant in order to make different pipelines
 	std::atomic_flag readyToDraw = ATOMIC_FLAG_INIT;
-	std::shared_ptr<class Shader> shader = nullptr;
+	std::shared_ptr<class Shader> shaderProgram = nullptr;
 
 	Swapchain swapchain;
 
