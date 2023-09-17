@@ -23,5 +23,8 @@ public:
 		alloc = new Alloc();
 #endif
 	}
-	~VertexBuffer_Vk() override { delete alloc; }
+	~VertexBuffer_Vk() override
+	{
+		delete alloc;
+	}
 };

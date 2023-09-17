@@ -16,43 +16,9 @@ project(Project_O)
 add_subdirectory(externals)
 
 set(HEADERS
-    include/application.hpp
-    include/format.hpp
-    include/graphicsapi.hpp
-    include/lowrenderer.hpp
-    include/lowrenderer_gl.hpp
-    include/lowrenderer_vk.hpp
-    include/memoryallocator.hpp
-    include/mesh.hpp
-    include/resource.hpp
-    include/resourcesmanager.hpp
-    include/scene.hpp
-    include/shader.hpp
-    include/shadermodule.hpp
-    include/shadermodule_vk.hpp
-    include/vertex.hpp
-    include/vertexbuffer.hpp
-    include/vertexbuffer_gl.hpp
-    include/vertexbuffer_vk.hpp
-    include/vmahelper.hpp
 )
 
 set(SOURCES
-    src/application.cpp
-    src/format.cpp
-    src/lowrenderer.cpp
-    src/lowrenderer_gl.cpp
-    src/lowrenderer_vk.cpp
-    src/main.cpp
-    src/memoryallocator.cpp
-    src/mesh.cpp
-    src/resourcesmanager.cpp
-    src/shader.cpp
-    src/shadermodule.cpp
-    src/shadermodule_vk.cpp
-    src/vertex.cpp
-    src/vertexbuffer.cpp
-    src/vmahelper.cpp
 )
 
 add_executable(renderer ${HEADERS} ${SOURCES})

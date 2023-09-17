@@ -155,7 +155,6 @@ private:
 	// some extensions are required
 	std::vector<const char*> additionalExtensions;
 
-	VkDebugUtilsMessengerEXT debugMessenger;
 
 	LogicalDevice logicalDevice;
 	std::shared_ptr<GraphicsPipeline> pipeline;
@@ -167,11 +166,6 @@ private:
 	std::deque<std::shared_ptr<IVertexBuffer>> vbos;
 
 
-	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-		VkDebugUtilsMessageTypeFlagsEXT messageType,
-		const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
-		void* userData);
 
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availableModes);
@@ -235,7 +229,6 @@ private:
 
 
 public:
-	VkInstance instance;
 	// surface must be initialized using the windowing framework
 	VkSurfaceKHR surface;
 
