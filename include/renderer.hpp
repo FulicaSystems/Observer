@@ -1,5 +1,9 @@
 #pragma once
 
+#include <vector>
+
+#include <glad/vulkan.h>
+
 class MultiPassRenderer
 {
 private:
@@ -85,7 +89,6 @@ public:
 			vkDestroyFramebuffer(logicalDevice.vkdevice, framebuffer, nullptr);
 		}
 		vkDestroyRenderPass(logicalDevice.vkdevice, pipeline.renderPass, nullptr);
-
 	}
 };
 

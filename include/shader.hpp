@@ -29,3 +29,23 @@ public:
 	void cpuUnload() override;
 	void gpuUnload() override;
 };
+
+class ShaderModule
+
+{
+private:
+
+public:
+	VkShaderModule vsModule = nullptr;
+	VkShaderModule fsModule = nullptr;
+
+	std::array<VkPipelineShaderStageCreateInfo, 2> getCreateInfo();
+
+};
+
+
+template<>
+struct Local<ShaderModule>
+{
+
+}

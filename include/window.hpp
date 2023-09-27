@@ -11,7 +11,7 @@ private:
 	const LogicalDevice& device;
 
 private:
-	VkSwapchainKHR swapchain;
+	VkSwapchainKHR handle;
 
 public:
 	SwapChain() = delete;
@@ -87,7 +87,7 @@ public:
 class Surface
 {
 private:
-	VkSurfaceKHR surface;
+	VkSurfaceKHR handle;
 
 public:
 	Surface() = delete;

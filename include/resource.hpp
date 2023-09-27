@@ -3,21 +3,6 @@
 #include <filesystem>
 #include <memory>
 
-/**
- * resources used for rendering with GPU
- * GPU device local
- * Derived class should define a static instantiate method
- * [[nodiscard]] static std::shared_ptr<MyResource> instantiate(..., const EGraphicsAPI graphicsApi);
- */
-class ILocalResource
-{
-protected:
-	ILocalResource() = default;
-
-public:
-	virtual ~ILocalResource() {}
-};
-
 
 // host accessible resource
 // CPU host
@@ -29,12 +14,9 @@ private:
 protected:
 	std::filesystem::path filepath = "";
 
-	// reference to the high renderer
-	class ILowRenderer& lowrdr;
-
 
 public:
-	std::shared_ptr<ILocalResource> local = nullptr;
+	std::shared_ptr<class ILocalResource> local = nullptr;
 
 	// flag that tells if the resource is fully loaded (CPU and GPU)
 	std::atomic_flag loaded = ATOMIC_FLAG_INIT;
@@ -43,7 +25,6 @@ public:
 		const char*&& filepath,
 		class ILowRenderer& lowrdr)
 		: name(name), filepath(filepath), lowrdr(lowrdr) {}
-
 	// resources should be unloaded when destroyed (cpuUnload() and gpuUnload())
 	virtual ~IHostResource() {};
 
@@ -52,4 +33,25 @@ public:
 
 	virtual void cpuUnload() = 0;
 	virtual void gpuUnload() = 0;
+};
+
+
+/**
+ * resources used for rendering with GPU
+ * GPU device local
+ */
+class ILocalResource
+{
+protected:
+	ILocalResource() = default;
+
+public:
+	virtual ~ILocalResource() {}
+};
+
+template<typename TLocal>
+static struct Local
+{
+	static std::shared_ptr<TLocal> create() { throw std::runtime_error("Use template specialization"); }
+	static void destroy(TLocal& resource) { throw std::runtime_error("Use template specialization"); }
 };

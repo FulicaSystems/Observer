@@ -5,7 +5,7 @@
 class PhysicalDevice
 {
 private:
-	VkPhysicalDevice physicalDevice;
+	VkPhysicalDevice handle;
 
 public:
 	PhysicalDevice() = delete;
@@ -54,7 +54,7 @@ public:
 class LogicalDevice
 {
 private:
-	VkDevice device;
+	VkDevice handle;
 
 public:
 	LogicalDevice() = delete;

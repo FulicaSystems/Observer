@@ -6,7 +6,10 @@
 class VMAHelper
 {
 public:
-	static void createAllocator(VkInstance instance, VkPhysicalDevice pdevice, VkDevice device, VmaAllocator& allocator);
+	static void createAllocator(const VkInstance& instance,
+		const VkPhysicalDevice& physicalDevice,
+		const VkDevice& device,
+		VmaAllocator& allocator);
 	static void destroyAllocator(VmaAllocator& allocator);
 
 	static void allocateBufferObjectMemory(VmaAllocator& allocator,

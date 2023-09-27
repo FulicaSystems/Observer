@@ -2,7 +2,10 @@
 
 #include "vmahelper.hpp"
 
-void VMAHelper::createAllocator(VkInstance instance, VkPhysicalDevice pdevice, VkDevice device, VmaAllocator& allocator)
+void VMAHelper::createAllocator(const VkInstance& instance,
+	const VkPhysicalDevice& pdevice,
+	const VkDevice& device,
+	VmaAllocator& allocator)
 {
 	VmaAllocatorCreateInfo createInfo = {
 		.physicalDevice = pdevice,

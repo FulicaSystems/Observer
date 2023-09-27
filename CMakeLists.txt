@@ -16,9 +16,39 @@ project(Project_O)
 add_subdirectory(externals)
 
 set(HEADERS
+    include/context.hpp
+    include/device.hpp
+    include/format.hpp
+    include/graphicsapi.hpp
+    include/memoryallocator.hpp
+    include/mesh.hpp
+    include/pipeline.hpp
+    include/renderer.hpp
+    include/resource.hpp
+    include/resourcesmanager.hpp
+    include/scene.hpp
+    include/shader.hpp
+    include/vertex.hpp
+    include/vmahelper.hpp
+    include/window.hpp
 )
 
 set(SOURCES
+    src/application.cpp
+    src/format.cpp
+    src/lowrenderer.cpp
+    src/lowrenderer_gl.cpp
+    src/lowrenderer_vk.cpp
+    src/main.cpp
+    src/memoryallocator.cpp
+    src/mesh.cpp
+    src/resourcesmanager.cpp
+    src/shader.cpp
+    src/shadermodule.cpp
+    src/shadermodule_vk.cpp
+    src/vertex.cpp
+    src/vertexbuffer.cpp
+    src/vmahelper.cpp
 )
 
 add_executable(renderer ${HEADERS} ${SOURCES})
