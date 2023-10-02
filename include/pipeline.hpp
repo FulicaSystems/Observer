@@ -1,11 +1,19 @@
 #pragma once
 
 #include <vector>
+#include <stdexcept>
+#include <memory>
 
 #include <glad/vulkan.h>
 
+#include "device.hpp"
+#include "vertex.hpp"
+
 class Pipeline
 {
+private:
+	const LogicalDevice& device;
+
 private:
 	VkDescriptorPool descriptorPool;
 
@@ -18,7 +26,9 @@ private:
 
 public:
 	Pipeline() = delete;
-	Pipeline()
+	Pipeline(const LogicalDevice& device,
+		const VkExtent2D& viewportExtent)
+		: device(device)
 	{
 		std::vector<VkDynamicState> dynamicStates = {
 			VK_DYNAMIC_STATE_VIEWPORT,
@@ -53,15 +63,15 @@ public:
 		VkViewport viewport = {
 			.x = 0.f,
 			.y = 0.f,
-			.width = static_cast<float>(pipeline->swapchain.swapchainExtent.width),
-			.height = static_cast<float>(pipeline->swapchain.swapchainExtent.height),
+			.width = static_cast<float>(viewportExtent.width),
+			.height = static_cast<float>(viewportExtent.height),
 			.minDepth = 0.f,
 			.maxDepth = 1.f
 		};
 
 		VkRect2D scissor = {
 			.offset = { 0, 0 },
-			.extent = pipeline->swapchain.swapchainExtent
+			.extent = viewportExtent
 		};
 
 		VkPipelineViewportStateCreateInfo viewportStateCreateInfo = {
@@ -126,14 +136,14 @@ public:
 			.pPushConstantRanges = nullptr
 		};
 
-		if (vkCreatePipelineLayout(logicalDevice.vkdevice, &pipelineLayoutCreateInfo, nullptr, &pipeline->pipelineLayout) != VK_SUCCESS)
+		if (vkCreatePipelineLayout(device.handle, &pipelineLayoutCreateInfo, nullptr, &layout) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create pipeline layout");
 
 		VkGraphicsPipelineCreateInfo pipelineCreateInfo = {
 			.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
 			//shader stage
 			.stageCount = 2,
-			.pStages = std::dynamic_pointer_cast<ShaderModule_Vk>(pipeline->shaderProgram->local)->getCreateInfo().data(),
+			.pStages = std::dynamic_pointer_cast<ShaderModule_Vk>(shaderProgram->local)->getCreateInfo().data(),
 			//fixed function stage
 			.pVertexInputState = &vertexInputCreateInfo,
 			.pInputAssemblyState = &inputAssemblyCreateInfo,
@@ -152,7 +162,7 @@ public:
 			.basePipelineIndex = -1
 		};
 
-		if (vkCreateGraphicsPipelines(logicalDevice.vkdevice,
+		if (vkCreateGraphicsPipelines(device.handle,
 			VK_NULL_HANDLE,
 			1,
 			&pipelineCreateInfo,
@@ -162,7 +172,7 @@ public:
 	}
 	~Pipeline()
 	{
-		vkDestroyPipeline(device, pipeline, nullptr);
-		vkDestroyPipelineLayout(device, layout, nullptr);
+		vkDestroyPipeline(device.handle, handle, nullptr);
+		vkDestroyPipelineLayout(device.handle, layout, nullptr);
 	}
 };

@@ -4,8 +4,13 @@
 
 #include <glad/vulkan.h>
 
+#include "pipeline.hpp"
+
 class MultiPassRenderer
 {
+private:
+	const LogicalDevice& device;
+
 private:
 	VkRenderPass renderPass;
 
@@ -15,7 +20,8 @@ private:
 
 public:
 	MultiPassRenderer() = delete;
-	MultiPassRenderer()
+	MultiPassRenderer(const LogicalDevice& device)
+		: device(device)
 	{
 		// render pass
 		VkAttachmentDescription colorAttachment = {
@@ -59,18 +65,18 @@ public:
 			.pDependencies = &dependency
 		};
 
-		if (vkCreateRenderPass(logicalDevice.vkdevice, &createInfo, nullptr, &pipeline.renderPass) != VK_SUCCESS)
+		if (vkCreateRenderPass(device.handle, &createInfo, nullptr, &renderPass) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create render pass");
 
 
 		// framebuffers
-		pipeline.framebuffers.swapchainFramebuffers.resize(pipeline.swapchain.swapchainImageViews.size());
+		framebuffers.resize(pipeline.swapchain.swapchainImageViews.size());
 
 		for (size_t i = 0; i < pipeline.swapchain.swapchainImageViews.size(); ++i)
 		{
 			VkFramebufferCreateInfo createInfo = {
 				.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-				.renderPass = pipeline.renderPass,
+				.renderPass = renderPass,
 				.attachmentCount = 1,
 				.pAttachments = &pipeline.swapchain.swapchainImageViews[i],
 				.width = pipeline.swapchain.swapchainExtent.width,
@@ -78,17 +84,17 @@ public:
 				.layers = 1
 			};
 
-			if (vkCreateFramebuffer(logicalDevice.vkdevice, &createInfo, nullptr, &pipeline.framebuffers.swapchainFramebuffers[i]) != VK_SUCCESS)
+			if (vkCreateFramebuffer(device.handle, &createInfo, nullptr, &framebuffers[i]) != VK_SUCCESS)
 				throw std::runtime_error("Failed to create framebuffer");
 		}
 	}
 	~MultiPassRenderer()
 	{
-		for (VkFramebuffer& framebuffer : pipeline.framebuffers.swapchainFramebuffers)
+		for (VkFramebuffer& framebuffer : framebuffers)
 		{
-			vkDestroyFramebuffer(logicalDevice.vkdevice, framebuffer, nullptr);
+			vkDestroyFramebuffer(device.handle, framebuffer, nullptr);
 		}
-		vkDestroyRenderPass(logicalDevice.vkdevice, pipeline.renderPass, nullptr);
+		vkDestroyRenderPass(device.handle, renderPass, nullptr);
 	}
 };
 

@@ -1,11 +1,20 @@
 #pragma once
 
 #include <iostream>
+#include <vector>
 
 #include <glad/vulkan.h>
 
 class Context
 {
+public:
+#ifndef NDEBUG
+	static constexpr const uint32_t validationLayerCount = 1;
+	static constexpr const char* validationLayers = {
+		"VK_LAYER_KHRONOS_validation"
+	};
+#endif
+
 private:
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
@@ -25,7 +34,8 @@ public:
 	Context() = delete;
 	Context(const char* applicationName,
 		const uint32_t applicationVersion,
-		const uint32_t engineVersion)
+		const uint32_t engineVersion,
+		std::vector<const char*> additionalExtensions)
 	{
 		VkApplicationInfo appInfo = {
 			.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -45,8 +55,8 @@ public:
 #ifdef NDEBUG
 			.enabledLayerCount = 0,
 #else
-			.enabledLayerCount = static_cast<uint32_t>(validationLayers.size()),
-			.ppEnabledLayerNames = validationLayers.data(),
+			.enabledLayerCount = validationLayerCount,
+			.ppEnabledLayerNames = &validationLayers,
 #endif
 			.enabledExtensionCount = static_cast<uint32_t>(additionalExtensions.size()),
 			.ppEnabledExtensionNames = additionalExtensions.data()

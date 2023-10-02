@@ -33,6 +33,9 @@ public:
 };
 
 
+
+#include "datatypes.hpp"
+
 class IVertexBuffer : public ILocalResource
 {
 public:
@@ -44,21 +47,6 @@ public:
 	size_t bufferSize = 0;
 
 
-	class IAllocation* alloc;
-
-	// vertex buffer object
-	VkBuffer buffer;
-
-	IVertexBuffer()
-	{
-#ifdef USE_VMA
-		alloc = new Alloc_VMA();
-#else
-		alloc = new Alloc();
-#endif
-	}
-	~IVertexBuffer() override
-	{
-		delete alloc;
-	}
-}
+	// GPU data
+	Buffer buffer;
+};

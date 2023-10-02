@@ -1,10 +1,16 @@
 #pragma once
 
+#include <stdexcept>
+#include <vector>
+#include <iostream>
+
 #include <glad/vulkan.h>
+
+#include "context.hpp"
 
 class PhysicalDevice
 {
-private:
+public:
 	VkPhysicalDevice handle;
 
 public:
@@ -33,18 +39,17 @@ public:
 			PhysicalDevice d(device);
 			if (d.isDeviceSuitable(surface))
 			{
-				pdevice = device;
+				handle = device;
 				//break;
 			}
 		}
 
-		VkPhysicalDevice d = pdevice.vkpdevice;
-		if (d == VK_NULL_HANDLE)
+		if (handle == VK_NULL_HANDLE)
 			throw std::runtime_error("Failed to find a suitable GPU");
 
 		// physical device limits
 		VkPhysicalDeviceProperties prop;
-		vkGetPhysicalDeviceProperties(pdevice.vkpdevice, &prop);
+		vkGetPhysicalDeviceProperties(handle, &prop);
 		VkPhysicalDeviceLimits limit = prop.limits;
 		std::cout << "Physical device max memory allocation count : " << limit.maxMemoryAllocationCount << std::endl;
 	}
@@ -53,12 +58,22 @@ public:
 
 class LogicalDevice
 {
-private:
+public:
+	static constexpr const uint32_t deviceExtensionCount = 1;
+	static constexpr const const char* deviceExtensions = {
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
+
+public:
 	VkDevice handle;
+	VkQueue graphicsQueue;
+	VkQueue presentQueue;
+	VkQueue decodeQueue;
 
 public:
 	LogicalDevice() = delete;
-	LogicalDevice(const VkInstance& instance)
+	LogicalDevice(const VkInstance& instance,
+		const PhysicalDevice& physicalDevice)
 	{
 		VkQueueFamilyIndices indices = pdevice.findQueueFamilies(surface);
 
@@ -84,27 +99,23 @@ public:
 	#ifdef NDEBUG
 			.enabledLayerCount = 0,
 	#else
-			.enabledLayerCount = static_cast<uint32_t>(validationLayers.size()),
-			.ppEnabledLayerNames = validationLayers.data(),
+			.enabledLayerCount = Context::validationLayerCount,
+			.ppEnabledLayerNames = &Context::validationLayers,
 	#endif
-			.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
-			.ppEnabledExtensionNames = deviceExtensions.data()
+			.enabledExtensionCount = deviceExtensionCount,
+			.ppEnabledExtensionNames = &deviceExtensions,
 		};
 
-		VkPhysicalDevice d = pdevice.vkpdevice;
-
-		LogicalDevice logicalDevice;
-		logicalDevice.pdevice = pdevice;
-		if (vkCreateDevice(d, &createInfo, nullptr, &logicalDevice.vkdevice) != VK_SUCCESS)
+		if (vkCreateDevice(physicalDevice.handle, &createInfo, nullptr, &handle) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create logical device");
-		if (!gladLoaderLoadVulkan(instance, d, logicalDevice.vkdevice))
+		if (!gladLoaderLoadVulkan(instance, physicalDevice.handle, handle))
 			throw std::runtime_error("Unable to reload Vulkan symbols with logical device");
 
-		vkGetDeviceQueue(logicalDevice.vkdevice, indices.graphicsFamily.value(), 0, &logicalDevice.graphicsQueue);
-		vkGetDeviceQueue(logicalDevice.vkdevice, indices.presentFamily.value(), 0, &logicalDevice.presentQueue);
+		vkGetDeviceQueue(handle, indices.graphicsFamily.value(), 0, &graphicsQueue);
+		vkGetDeviceQueue(handle, indices.presentFamily.value(), 0, &presentQueue);
 	}
 	~LogicalDevice()
 	{
-		vkDestroyDevice(device, nullptr);
+		vkDestroyDevice(handle, nullptr);
 	}
 };

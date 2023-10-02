@@ -50,7 +50,7 @@ public:
 };
 
 template<typename TLocal>
-static struct Local
+struct Local
 {
 	static std::shared_ptr<TLocal> create() { throw std::runtime_error("Use template specialization"); }
 	static void destroy(TLocal& resource) { throw std::runtime_error("Use template specialization"); }
