@@ -17,12 +17,14 @@ add_subdirectory(externals)
 
 set(HEADERS
     include/context.hpp
+    include/datatypes.hpp
     include/device.hpp
     include/format.hpp
     include/graphicsapi.hpp
     include/memoryallocator.hpp
     include/mesh.hpp
     include/pipeline.hpp
+    include/queue.hpp
     include/renderer.hpp
     include/resource.hpp
     include/resourcesmanager.hpp

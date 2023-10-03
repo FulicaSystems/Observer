@@ -5,7 +5,14 @@
 
 #include "device.hpp"
 
-class SwapChain
+struct SwapchainSupport
+{
+	VkSurfaceCapabilitiesKHR capabilities;
+	std::vector<VkSurfaceFormatKHR> formats;
+	std::vector<VkPresentModeKHR> presentModes;
+};
+
+class Swapchain
 {
 private:
 	const LogicalDevice& device;
@@ -14,8 +21,8 @@ private:
 	VkSwapchainKHR handle;
 
 public:
-	SwapChain() = delete;
-	SwapChain(const VkInstance& instance, const VkSurfaceKHR& surface, const LogicalDevice& device)
+	Swapchain() = delete;
+	Swapchain(const VkInstance& instance, const VkSurfaceKHR& surface, const LogicalDevice& device)
 		: device(device)
 	{
 		VkSwapchainSupportDetails support = logicalDevice.pdevice.querySwapchainSupport(surface);
@@ -74,7 +81,7 @@ public:
 		swapchain.swapchainImageFormat = surfaceFormat.format;
 		swapchain.swapchainExtent = extent;
 	}
-	~SwapChain()
+	~Swapchain()
 	{
 		for (VkImageView& imageView : pipeline.swapchain.swapchainImageViews)
 		{
@@ -104,7 +111,7 @@ public:
 class PresentationWindow
 {
 private:
-	SwapChain swapchain;
+	Swapchain swapchain;
 	Surface surface;
 
 public:

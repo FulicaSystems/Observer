@@ -7,8 +7,8 @@ struct Buffer
 	VkBuffer handle;
 
 	// allocation
-	// custom
-	// vma
+	//	- custom
+	//	- vma
 };
 
 struct Image

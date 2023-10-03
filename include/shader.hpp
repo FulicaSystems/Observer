@@ -2,6 +2,9 @@
 
 #include <vector>
 #include <memory>
+#include <array>
+
+#include <glad/vulkan.h>
 
 #include "utils/derived.hpp"
 
@@ -48,4 +51,4 @@ template<>
 struct Local<ShaderModule>
 {
 
-}
+};

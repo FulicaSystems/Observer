@@ -13,6 +13,8 @@ class PhysicalDevice
 public:
 	VkPhysicalDevice handle;
 
+	std::vector<VkQueueFamilyProperties> queueFamilies;
+
 public:
 	PhysicalDevice() = delete;
 	PhysicalDevice(const VkInstance& instance)
@@ -52,6 +54,12 @@ public:
 		vkGetPhysicalDeviceProperties(handle, &prop);
 		VkPhysicalDeviceLimits limit = prop.limits;
 		std::cout << "Physical device max memory allocation count : " << limit.maxMemoryAllocationCount << std::endl;
+
+		// queue families
+		uint32_t queueFamilyCount;
+		vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamilyCount, nullptr);
+		queueFamilies.resize(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamilyCount, queueFamilies.data());
 	}
 	~PhysicalDevice() = default;
 };
