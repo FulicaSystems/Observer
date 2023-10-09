@@ -70,17 +70,20 @@ public:
 
 
 
-	std::unique_ptr<LogicalDevice> createDevice()
+	std::unique_ptr<LogicalDevice> createDevice(const VkSurfaceKHR* presentationSurface = nullptr)
 	{
-		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 		auto graphicsFamily = findQueueFamily(VK_QUEUE_GRAPHICS_BIT);
-		auto presentFamily = ;
-		std::set<uint32_t> uniqueQueueFamilies = {
-			graphicsFamily.value(),
-			presentFamily.value()
-		};
+		auto presentFamily = presentationSurface ? findPresentFamily(*presentationSurface) :
+			std::optional<uint32_t>();
+		std::set<uint32_t> uniqueQueueFamilies;
+		if (graphicsFamily.has_value())
+			uniqueQueueFamilies.insert(graphicsFamily.value());
+		if (presentFamily.has_value())
+			uniqueQueueFamilies.insert(presentFamily.value());
+
 
 		float queuePriority = 1.f;
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 		for (uint32_t queueFamily : uniqueQueueFamilies)
 		{
 			VkDeviceQueueCreateInfo queueCreateInfo = {
@@ -139,6 +142,42 @@ public:
 				return std::optional<uint32_t>(i);
 		}
 		return std::optional<uint32_t>();
+	}
+	std::optional<uint32_t> findPresentFamily(const VkSurfaceKHR& surface) const
+	{
+		for (uint32_t i = 0; i < queueFamilies.size(); ++i)
+		{
+			VkBool32 supported;
+			vkGetPhysicalDeviceSurfaceSupportKHR(handle, i, surface, &supported);
+			if (supported)
+				return std::optional<uint32_t>(i);
+		}
+		return std::optional<uint32_t>();
+	}
+
+	SwapchainSupport querySwapchainSupport(const VkSurfaceKHR& surface) const
+	{
+		SwapchainSupport details;
+
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, surface, &details.capabilities);
+
+		uint32_t formatCount;
+		vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, nullptr);
+		if (formatCount != 0)
+		{
+			details.formats.resize(formatCount);
+			vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, details.formats.data());
+		}
+
+		uint32_t modeCount;
+		vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &modeCount, nullptr);
+		if (modeCount != 0)
+		{
+			details.presentModes.resize(modeCount);
+			vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &modeCount, details.presentModes.data());
+		}
+
+		return details;
 	}
 };
 

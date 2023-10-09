@@ -15,8 +15,6 @@ private:
 	const LogicalDevice& device;
 
 private:
-	VkDescriptorPool descriptorPool;
-
 	VkDescriptorSetLayout setlayout;
 	std::vector<VkDescriptorSet> sets;
 
@@ -27,6 +25,7 @@ private:
 public:
 	Pipeline() = delete;
 	Pipeline(const LogicalDevice& device,
+		const VkRenderPass renderPass,
 		const VkExtent2D& viewportExtent)
 		: device(device)
 	{
@@ -154,9 +153,9 @@ public:
 			.pColorBlendState = &colorBlendCreateInfo,
 			.pDynamicState = &dynamicStateCreateInfo,
 			//pipeline layout
-			.layout = pipeline->pipelineLayout,
+			.layout = layout,
 			//render pass
-			.renderPass = pipeline->renderPass,
+			.renderPass = renderPass,
 			.subpass = 0,
 			.basePipelineHandle = VK_NULL_HANDLE,
 			.basePipelineIndex = -1
@@ -167,7 +166,7 @@ public:
 			1,
 			&pipelineCreateInfo,
 			nullptr,
-			&pipeline->graphicsPipeline) != VK_SUCCESS)
+			&handle) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create graphics pipeline");
 	}
 	~Pipeline()

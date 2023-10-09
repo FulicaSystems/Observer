@@ -22,10 +22,13 @@ private:
 
 public:
 	Swapchain() = delete;
-	Swapchain(const VkInstance& instance, const VkSurfaceKHR& surface, const LogicalDevice& device)
+	Swapchain(const VkInstance& instance,
+		const VkSurfaceKHR& surface,
+		const PhysicalDevice& physicalDevice,
+		const LogicalDevice& device)
 		: device(device)
 	{
-		VkSwapchainSupportDetails support = logicalDevice.pdevice.querySwapchainSupport(surface);
+		SwapchainSupport support = physicalDevice.querySwapchainSupport(surface);
 
 		VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(support.formats);
 		VkPresentModeKHR presentMode = chooseSwapPresentMode(support.presentModes);

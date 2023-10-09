@@ -6,16 +6,30 @@
 
 #include "pipeline.hpp"
 
-class MultiPassRenderer
+class RendererABC
+{
+protected:
+	VkDescriptorPool descriptorPool;
+	std::unique_ptr<Pipeline> pipeline;
+
+
+	std::vector<VkCommandBuffer> commandBuffers;
+
+	std::vector<VkSemaphore> drawSemaphores;
+	std::vector<VkSemaphore> presentSemaphores;
+	std::vector<VkFence> inFlightFences;
+
+public:
+	virtual ~RendererABC() = default;
+};
+
+class MultiPassRenderer : public RendererABC
 {
 private:
 	const LogicalDevice& device;
 
 private:
 	VkRenderPass renderPass;
-
-	Pipeline pipeline;
-
 	std::vector<VkFramebuffer> framebuffers;
 
 public:
@@ -25,7 +39,7 @@ public:
 	{
 		// render pass
 		VkAttachmentDescription colorAttachment = {
-			.format = pipeline.swapchain.swapchainImageFormat,
+			.format = pipeline->swapchain.swapchainImageFormat,
 			.samples = VK_SAMPLE_COUNT_1_BIT,
 			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,		//load : what to do with the already existing image on the framebuffer
 			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,	//store : what to do with the newly rendered image on the framebuffer
@@ -98,11 +112,8 @@ public:
 	}
 };
 
-class SinglePassRenderer
+class SinglePassRenderer : public RendererABC
 {
-private:
-	Pipeline pipeline;
-
 public:
 	SinglePassRenderer() = delete;
 	SinglePassRenderer()
