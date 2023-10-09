@@ -114,3 +114,5 @@ public:
 
 	}
 };
+
+typedef SinglePassRenderer DynamicRenderer;

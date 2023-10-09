@@ -3,90 +3,82 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
+#include <optional>
+#include <set>
 
 #include <glad/vulkan.h>
 
 #include "context.hpp"
 
-class PhysicalDevice
+struct LogicalDevice
 {
-public:
-	VkPhysicalDevice handle;
+	friend class PhysicalDevice;
+	friend class std::unique_ptr<LogicalDevice>;
+	friend std::unique_ptr<LogicalDevice> std::make_unique<LogicalDevice>();
+	friend class DeviceSelector;
 
-	std::vector<VkQueueFamilyProperties> queueFamilies;
+private:
+	LogicalDevice() = default;
 
 public:
-	PhysicalDevice() = delete;
-	PhysicalDevice(const VkInstance& instance)
+	VkDevice handle;
+
+	VkQueue graphicsQueue;
+	VkQueue presentQueue;
+	VkQueue decodeQueue;
+
+	~LogicalDevice()
 	{
-		uint32_t deviceCount = 0;
-		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-		if (deviceCount == 0)
-			throw std::runtime_error("Failed to find GPUs with Vulkan support");
-
-		std::vector<VkPhysicalDevice> devices(deviceCount);
-		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
-		std::cout << "available devices : " << deviceCount << '\n';
-
-		for (const auto& device : devices)
-		{
-			VkPhysicalDeviceProperties properties;
-			vkGetPhysicalDeviceProperties(device, &properties);
-			std::cout << '\t' << properties.deviceName << '\n';
-		}
-
-		// select the last available device (most likely discrete gpu)
-		for (const auto& device : devices)
-		{
-			PhysicalDevice d(device);
-			if (d.isDeviceSuitable(surface))
-			{
-				handle = device;
-				//break;
-			}
-		}
-
-		if (handle == VK_NULL_HANDLE)
-			throw std::runtime_error("Failed to find a suitable GPU");
-
-		// physical device limits
-		VkPhysicalDeviceProperties prop;
-		vkGetPhysicalDeviceProperties(handle, &prop);
-		VkPhysicalDeviceLimits limit = prop.limits;
-		std::cout << "Physical device max memory allocation count : " << limit.maxMemoryAllocationCount << std::endl;
-
-		// queue families
-		uint32_t queueFamilyCount;
-		vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamilyCount, nullptr);
-		queueFamilies.resize(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamilyCount, queueFamilies.data());
+		vkDestroyDevice(handle, nullptr);
 	}
-	~PhysicalDevice() = default;
 };
 
-class LogicalDevice
+class PhysicalDevice
 {
+	friend class DeviceSelector;
+
 public:
 	static constexpr const uint32_t deviceExtensionCount = 1;
 	static constexpr const const char* deviceExtensions = {
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
 	};
 
-public:
-	VkDevice handle;
-	VkQueue graphicsQueue;
-	VkQueue presentQueue;
-	VkQueue decodeQueue;
+private:
+	const VkInstance& instance;
 
 public:
-	LogicalDevice() = delete;
-	LogicalDevice(const VkInstance& instance,
-		const PhysicalDevice& physicalDevice)
+	VkPhysicalDevice handle;
+
+	VkPhysicalDeviceProperties properties;
+	VkPhysicalDeviceLimits limit;
+
+
+	std::vector<VkQueueFamilyProperties> queueFamilies;
+
+public:
+	PhysicalDevice() = delete;
+	PhysicalDevice(const VkInstance& instance, const VkPhysicalDevice& handle)
+		: instance(instance), handle(handle) {}
+	PhysicalDevice(const PhysicalDevice& copy)
+		: instance(copy.instance), handle(copy.handle), queueFamilies(copy.queueFamilies) {}
+	~PhysicalDevice() = default;
+
+	const PhysicalDevice operator=(const PhysicalDevice& copy)
 	{
-		VkQueueFamilyIndices indices = pdevice.findQueueFamilies(surface);
+		return PhysicalDevice(copy);
+	}
 
+
+
+	std::unique_ptr<LogicalDevice> createDevice()
+	{
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-		std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+		auto graphicsFamily = findQueueFamily(VK_QUEUE_GRAPHICS_BIT);
+		auto presentFamily = ;
+		std::set<uint32_t> uniqueQueueFamilies = {
+			graphicsFamily.value(),
+			presentFamily.value()
+		};
 
 		float queuePriority = 1.f;
 		for (uint32_t queueFamily : uniqueQueueFamilies)
@@ -114,16 +106,103 @@ public:
 			.ppEnabledExtensionNames = &deviceExtensions,
 		};
 
-		if (vkCreateDevice(physicalDevice.handle, &createInfo, nullptr, &handle) != VK_SUCCESS)
+		// create device
+		std::unique_ptr<LogicalDevice> out = std::make_unique<LogicalDevice>();
+		if (vkCreateDevice(handle, &createInfo, nullptr, &out->handle) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create logical device");
-		if (!gladLoaderLoadVulkan(instance, physicalDevice.handle, handle))
+		if (!gladLoaderLoadVulkan(instance, handle, out->handle))
 			throw std::runtime_error("Unable to reload Vulkan symbols with logical device");
 
-		vkGetDeviceQueue(handle, indices.graphicsFamily.value(), 0, &graphicsQueue);
-		vkGetDeviceQueue(handle, indices.presentFamily.value(), 0, &presentQueue);
+
+		// retrieve queues
+		vkGetDeviceQueue(out->handle,
+			graphicsFamily.value(),
+			0,
+			&out->graphicsQueue);
+		vkGetDeviceQueue(out->handle,
+			presentFamily.value(),
+			0,
+			&out->presentQueue);
+		//vkGetDeviceQueue(out->handle,
+		//	decodeFamily.value(),
+		//	0,
+		//	&out->decodeQueue);
+
+		return out;
 	}
-	~LogicalDevice()
+
+	std::optional<uint32_t> findQueueFamily(const VkQueueFlags& capabilities) const
 	{
-		vkDestroyDevice(handle, nullptr);
+		for (uint32_t i = 0; i < queueFamilies.size(); ++i)
+		{
+			if (queueFamilies[i].queueFlags & capabilities)
+				return std::optional<uint32_t>(i);
+		}
+		return std::optional<uint32_t>();
+	}
+};
+
+
+
+
+class DeviceSelector
+{
+private:
+	uint32_t selected = 0;
+	std::vector<PhysicalDevice> physicalDevices;
+	std::vector<std::unique_ptr<LogicalDevice>> logicalDevices;
+
+public:
+	DeviceSelector() = delete;
+	DeviceSelector(const VkInstance& instance)
+	{
+		// enumerate all physical devices
+		uint32_t deviceCount = 0;
+		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+		if (deviceCount == 0)
+			throw std::runtime_error("Failed to find GPUs with Vulkan support");
+
+		std::vector<VkPhysicalDevice> devices(deviceCount);
+		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+		std::cout << "available devices : " << deviceCount << '\n';
+
+
+		// save all physical devices
+		physicalDevices.resize(deviceCount);
+		for (int i = 0; i < devices.size(); ++i)
+		{
+			physicalDevices[i] = PhysicalDevice(instance, devices[i]);
+
+			// save queue families
+			uint32_t queueFamilyCount;
+			vkGetPhysicalDeviceQueueFamilyProperties(physicalDevices[i].handle,
+				&queueFamilyCount,
+				nullptr);
+			physicalDevices[i].queueFamilies.resize(queueFamilyCount);
+			vkGetPhysicalDeviceQueueFamilyProperties(physicalDevices[i].handle,
+				&queueFamilyCount,
+				physicalDevices[i].queueFamilies.data());
+
+
+			// print device properties
+			vkGetPhysicalDeviceProperties(physicalDevices[i].handle, &physicalDevices[i].properties);
+			std::cout << '\t' << physicalDevices[i].properties.deviceName << '\n';
+
+			// print physical device limits
+			VkPhysicalDeviceLimits limit = physicalDevices[i].properties.limits;
+			std::cout << "Physical device max memory allocation count : " << limit.maxMemoryAllocationCount << std::endl;
+		}
+
+
+		// create all logical devices
+		devices.resize(deviceCount);
+		for (int i = 0; i < physicalDevices.size(); ++i)
+		{
+			logicalDevices[i] = physicalDevices[i].createDevice();
+		}
+	}
+	~DeviceSelector()
+	{
+		logicalDevices.clear();
 	}
 };
