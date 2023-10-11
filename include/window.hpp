@@ -3,6 +3,9 @@
 #include <glad/vulkan.h>
 #include <glfw/glfw3.h>
 
+#include "mathematics.hpp"
+
+#include "format.hpp"
 #include "device.hpp"
 
 struct SwapchainSupport
@@ -10,6 +13,64 @@ struct SwapchainSupport
 	VkSurfaceCapabilitiesKHR capabilities;
 	std::vector<VkSurfaceFormatKHR> formats;
 	std::vector<VkPresentModeKHR> presentModes;
+
+	bool tryFindFormat(const VkFormat& targetFormat,
+		const VkColorSpaceKHR& targetColorSpace,
+		VkFormat& found)
+	{
+		for (const auto& format : formats)
+		{
+			if (format.format == targetFormat && format.colorSpace == targetColorSpace)
+			{
+				found = format.format;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	bool tryFindPresentMode(const VkPresentModeKHR& targetPresentMode,
+		VkPresentModeKHR& found)
+	{
+		for (const auto& presentMode : presentModes)
+		{
+			if (presentMode == targetPresentMode)
+			{
+				found = presentMode;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	VkExtent2D getExtent()
+	{
+		if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
+		{
+			return capabilities.currentExtent;
+		}
+		else
+		{
+			const int width = Format::framebufferWidth;
+			const int height = Format::framebufferHeight;
+
+			VkExtent2D extent = {
+				.width = static_cast<uint32_t>(width),
+				.height = static_cast<uint32_t>(height),
+			};
+
+			extent.width = Math::clamp(extent.width,
+				capabilities.minImageExtent.width,
+				capabilities.maxImageExtent.width);
+			extent.height = Math::clamp(extent.height,
+				capabilities.minImageExtent.height,
+				capabilities.maxImageExtent.height);
+
+			return extent;
+		}
+	}
 };
 
 class Swapchain
@@ -30,9 +91,11 @@ public:
 	{
 		SwapchainSupport support = physicalDevice.querySwapchainSupport(surface);
 
-		VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(support.formats);
-		VkPresentModeKHR presentMode = chooseSwapPresentMode(support.presentModes);
-		VkExtent2D extent = chooseSwapExtent(support.capabilities);
+		VkSurfaceFormatKHR surfaceFormat;
+		support.tryFindFormat();
+		VkPresentModeKHR presentMode;
+		support.tryFindPresentMode();
+		VkExtent2D extent = support.getExtent();
 
 		uint32_t imageCount = support.capabilities.minImageCount + 1;
 		if (support.capabilities.maxImageCount > 0 && support.capabilities.maxImageCount < imageCount)
