@@ -16,13 +16,13 @@ struct SwapchainSupport
 
 	bool tryFindFormat(const VkFormat& targetFormat,
 		const VkColorSpaceKHR& targetColorSpace,
-		VkFormat& found)
+		VkSurfaceFormatKHR& found)
 	{
 		for (const auto& format : formats)
 		{
 			if (format.format == targetFormat && format.colorSpace == targetColorSpace)
 			{
-				found = format.format;
+				found = format;
 				return true;
 			}
 		}
@@ -81,6 +81,12 @@ private:
 private:
 	VkSwapchainKHR handle;
 
+	VkFormat imageFormat;
+	VkExtent2D imageExtent;
+
+	std::vector<VkImage> images;
+	std::vector<VkImageView> imageViews;
+
 public:
 	Swapchain() = delete;
 	Swapchain(const VkInstance& instance,
@@ -92,9 +98,9 @@ public:
 		SwapchainSupport support = physicalDevice.querySwapchainSupport(surface);
 
 		VkSurfaceFormatKHR surfaceFormat;
-		support.tryFindFormat();
+		support.tryFindFormat(VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR, surfaceFormat);
 		VkPresentModeKHR presentMode;
-		support.tryFindPresentMode();
+		support.tryFindPresentMode(VK_PRESENT_MODE_MAILBOX_KHR, presentMode);
 		VkExtent2D extent = support.getExtent();
 
 		uint32_t imageCount = support.capabilities.minImageCount + 1;
@@ -117,13 +123,16 @@ public:
 			.oldSwapchain = VK_NULL_HANDLE
 		};
 
-		VkQueueFamilyIndices indices = logicalDevice.pdevice.findQueueFamilies(surface);
+
+		auto graphicsFamily = physicalDevice.findQueueFamily(VK_QUEUE_GRAPHICS_BIT);
+		auto presentFamily = physicalDevice.findPresentFamily(surface);
 		uint32_t queueFamilyIndices[] = {
-			indices.graphicsFamily.value(),
-			indices.presentFamily.value()
+			graphicsFamily.value(),
+			presentFamily.value(),
 		};
 
-		if (indices.graphicsFamily != indices.presentFamily)
+
+		if (graphicsFamily != presentFamily)
 		{
 			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 			createInfo.queueFamilyIndexCount = 2;
@@ -136,24 +145,23 @@ public:
 			createInfo.pQueueFamilyIndices = nullptr;
 		}
 
-		Swapchain swapchain;
-		if (vkCreateSwapchainKHR(logicalDevice.vkdevice, &createInfo, nullptr, &swapchain.vkswapchain) != VK_SUCCESS)
+		if (vkCreateSwapchainKHR(device.handle, &createInfo, nullptr, &handle) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create swapchain");
 
-		vkGetSwapchainImagesKHR(logicalDevice.vkdevice, swapchain.vkswapchain, &imageCount, nullptr);
-		swapchain.swapchainImages.resize(imageCount);
-		vkGetSwapchainImagesKHR(logicalDevice.vkdevice, swapchain.vkswapchain, &imageCount, swapchain.swapchainImages.data());
+		vkGetSwapchainImagesKHR(device.handle, handle, &imageCount, nullptr);
+		images.resize(imageCount);
+		vkGetSwapchainImagesKHR(device.handle, handle, &imageCount, images.data());
 
-		swapchain.swapchainImageFormat = surfaceFormat.format;
-		swapchain.swapchainExtent = extent;
+		imageFormat = surfaceFormat.format;
+		imageExtent = extent;
 	}
 	~Swapchain()
 	{
-		for (VkImageView& imageView : pipeline.swapchain.swapchainImageViews)
+		for (VkImageView& imageView : imageViews)
 		{
-			vkDestroyImageView(logicalDevice.vkdevice, imageView, nullptr);
+			vkDestroyImageView(device.handle, imageView, nullptr);
 		}
-		vkDestroySwapchainKHR(logicalDevice.vkdevice, pipeline.swapchain.vkswapchain, nullptr);
+		vkDestroySwapchainKHR(device.handle, handle, nullptr);
 	}
 };
 
