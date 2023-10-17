@@ -5,6 +5,7 @@
 #include <glad/vulkan.h>
 
 #include "pipeline.hpp"
+#include "window.hpp"
 
 class RendererABC
 {
@@ -34,12 +35,13 @@ private:
 
 public:
 	MultiPassRenderer() = delete;
-	MultiPassRenderer(const LogicalDevice& device)
+	MultiPassRenderer(const LogicalDevice& device,
+		const Swapchain& swapchain)
 		: device(device)
 	{
 		// render pass
 		VkAttachmentDescription colorAttachment = {
-			.format = pipeline->swapchain.swapchainImageFormat,
+			.format = swapchain.imageFormat,
 			.samples = VK_SAMPLE_COUNT_1_BIT,
 			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,		//load : what to do with the already existing image on the framebuffer
 			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,	//store : what to do with the newly rendered image on the framebuffer
@@ -84,17 +86,17 @@ public:
 
 
 		// framebuffers
-		framebuffers.resize(pipeline.swapchain.swapchainImageViews.size());
+		framebuffers.resize(swapchain.imageViews.size());
 
-		for (size_t i = 0; i < pipeline.swapchain.swapchainImageViews.size(); ++i)
+		for (size_t i = 0; i < swapchain.imageViews.size(); ++i)
 		{
 			VkFramebufferCreateInfo createInfo = {
 				.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
 				.renderPass = renderPass,
 				.attachmentCount = 1,
-				.pAttachments = &pipeline.swapchain.swapchainImageViews[i],
-				.width = pipeline.swapchain.swapchainExtent.width,
-				.height = pipeline.swapchain.swapchainExtent.height,
+				.pAttachments = &swapchain.imageViews[i],
+				.width = swapchain.imageExtent.width,
+				.height = swapchain.imageExtent.height,
 				.layers = 1
 			};
 

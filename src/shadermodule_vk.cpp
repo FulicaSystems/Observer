@@ -3,12 +3,11 @@
 std::array<VkPipelineShaderStageCreateInfo, 2> ShaderModule_Vk::getCreateInfo()
 {
 	VkPipelineShaderStageCreateInfo vsStageCreateInfo = {
-	.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-	.stage = VK_SHADER_STAGE_VERTEX_BIT,
-	.module = vsModule,
-	.pName = "main",
-	//for shader constants values
-	.pSpecializationInfo = nullptr
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+		.stage = VK_SHADER_STAGE_VERTEX_BIT,
+		.module = vsModule,
+		.pName = "main",
+		.pSpecializationInfo = nullptr
 	};
 
 	VkPipelineShaderStageCreateInfo fsStageCreateInfo = {

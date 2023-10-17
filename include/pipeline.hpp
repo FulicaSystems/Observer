@@ -142,7 +142,7 @@ public:
 			.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
 			//shader stage
 			.stageCount = 2,
-			.pStages = std::dynamic_pointer_cast<ShaderModule_Vk>(shaderProgram->local)->getCreateInfo().data(),
+			.pStages = std::dynamic_pointer_cast<ShaderModule>(shaderProgram->local)->getCreateInfo().data(),
 			//fixed function stage
 			.pVertexInputState = &vertexInputCreateInfo,
 			.pInputAssemblyState = &inputAssemblyCreateInfo,

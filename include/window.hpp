@@ -81,11 +81,14 @@ private:
 private:
 	VkSwapchainKHR handle;
 
+
+public:
 	VkFormat imageFormat;
 	VkExtent2D imageExtent;
 
 	std::vector<VkImage> images;
 	std::vector<VkImageView> imageViews;
+
 
 public:
 	Swapchain() = delete;
@@ -168,17 +171,22 @@ public:
 class Surface
 {
 private:
+	const VkInstance& instance;
+
+
+private:
 	VkSurfaceKHR handle;
 
 public:
 	Surface() = delete;
-	Surface(const VkInstance& instance, const Window& window)
+	Surface(const VkInstance& instance, const PresentationWindow& window)
+		: instance(instance)
 	{
-		glfwCreateWindowSurface(instance, window, nullptr, &surface);
+		glfwCreateWindowSurface(instance, window.handle, nullptr, &handle);
 	}
 	~Surface()
 	{
-		vkDestroySurfaceKHR(instance, surface, nullptr);
+		vkDestroySurfaceKHR(instance, handle, nullptr);
 	}
 };
 
@@ -189,6 +197,9 @@ private:
 	Surface surface;
 
 public:
+	GLFWwindow* handle;
+
+
 	PresentationWindow() = delete;
 	PresentationWindow()
 	{
