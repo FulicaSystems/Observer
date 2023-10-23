@@ -155,30 +155,7 @@ public:
 		return std::optional<uint32_t>();
 	}
 
-	SwapchainSupport querySwapchainSupport(const VkSurfaceKHR& surface) const
-	{
-		SwapchainSupport details;
-
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, surface, &details.capabilities);
-
-		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, nullptr);
-		if (formatCount != 0)
-		{
-			details.formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, details.formats.data());
-		}
-
-		uint32_t modeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &modeCount, nullptr);
-		if (modeCount != 0)
-		{
-			details.presentModes.resize(modeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &modeCount, details.presentModes.data());
-		}
-
-		return details;
-	}
+	class SwapchainSupport querySwapchainSupport(const VkSurfaceKHR& surface) const;
 };
 
 
@@ -245,3 +222,32 @@ public:
 		logicalDevices.clear();
 	}
 };
+
+
+
+// TODO : move to .cpp
+#include "window.hpp"
+SwapchainSupport PhysicalDevice::querySwapchainSupport(const VkSurfaceKHR& surface) const
+{
+	SwapchainSupport details;
+
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, surface, &details.capabilities);
+
+	uint32_t formatCount;
+	vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, nullptr);
+	if (formatCount != 0)
+	{
+		details.formats.resize(formatCount);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, details.formats.data());
+	}
+
+	uint32_t modeCount;
+	vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &modeCount, nullptr);
+	if (modeCount != 0)
+	{
+		details.presentModes.resize(modeCount);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &modeCount, details.presentModes.data());
+	}
+
+	return details;
+}

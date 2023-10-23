@@ -34,7 +34,7 @@ public:
 
 
 
-#include "datatypes.hpp"
+#include "buffer.hpp"
 
 class IVertexBuffer : public ILocalResource
 {

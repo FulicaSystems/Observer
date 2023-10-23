@@ -10,7 +10,3 @@ struct Buffer
 	//	- custom
 	//	- vma
 };
-
-struct Image
-{
-};
