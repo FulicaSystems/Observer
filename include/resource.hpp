@@ -21,12 +21,15 @@ public:
 	// flag that tells if the resource is fully loaded (CPU and GPU)
 	std::atomic_flag loaded = ATOMIC_FLAG_INIT;
 
+
+
 	IHostResource(const char*&& name,
 		const char*&& filepath,
 		class ILowRenderer& lowrdr)
-		: name(name), filepath(filepath), lowrdr(lowrdr) {}
+		: name(name), filepath(filepath) {}
 	// resources should be unloaded when destroyed (cpuUnload() and gpuUnload())
 	virtual ~IHostResource() {};
+
 
 	virtual void cpuLoad() = 0;
 	virtual void gpuLoad() = 0;
@@ -40,17 +43,8 @@ public:
  * resources used for rendering with GPU
  * GPU device local
  */
-class ILocalResource
-{
-protected:
-	ILocalResource() = default;
-
-public:
-	virtual ~ILocalResource() {}
-};
-
 template<typename TLocal>
-struct Local
+struct ILocalResource
 {
 	static std::shared_ptr<TLocal> create() { throw std::runtime_error("Use template specialization"); }
 	static void destroy(TLocal& resource) { throw std::runtime_error("Use template specialization"); }

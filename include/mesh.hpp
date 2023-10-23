@@ -8,6 +8,8 @@
 #include "vertex.hpp"
 #include "resource.hpp"
 
+
+
 class Mesh : public IHostResource
 {
 	SUPER(IHostResource)
@@ -34,9 +36,10 @@ public:
 
 
 
+// TODO : remove include
 #include "buffer.hpp"
 
-class IVertexBuffer : public ILocalResource
+class GPUMesh
 {
 public:
 	// CPU accessible data
@@ -48,5 +51,5 @@ public:
 
 
 	// GPU data
-	Buffer buffer;
+	std::shared_ptr<Buffer> buffer;
 };

@@ -17,7 +17,8 @@ add_subdirectory(externals)
 
 set(HEADERS
     include/context.hpp
-    include/datatypes.hpp
+    include/buffer.hpp
+    include/image.hpp
     include/device.hpp
     include/format.hpp
     include/graphicsapi.hpp
