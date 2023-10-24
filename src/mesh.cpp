@@ -1,8 +1,7 @@
-#include "utils/multithread/globalthreadpool.hpp"
-#include "lowrenderer_vk.hpp"
-#include "vertexbuffer.hpp"
+#include "device.hpp"
 
 #include "mesh.hpp"
+
 
 void Mesh::cpuLoad()
 {
@@ -14,11 +13,14 @@ void Mesh::cpuLoad()
 
 void Mesh::gpuLoad()
 {
-	Utils::GlobalThreadPool::addTask([=, this]() {
-		local = lowrdr.create<IVertexBuffer>(getVertexNum(), getRawData());
-		lowrdr.addVBO(std::dynamic_pointer_cast<IVertexBuffer>(local));
-		loaded.test_and_set();
-		}, false);
+	auto asset = std::make_shared<GPUMesh>();
+	asset->vertexCount = getVertexCount();
+	asset->vertices = getRawData();
+	asset->bufferSize = vertices.size() * sizeof(Vertex);
+	asset->buffer = device.create<Buffer>();
+
+	local = asset;
+	loaded.test_and_set();
 }
 
 void Mesh::cpuUnload()
@@ -28,14 +30,15 @@ void Mesh::cpuUnload()
 
 void Mesh::gpuUnload()
 {
+	device.destroy<Buffer>(((GPUMesh*)local.get())->buffer);
 }
 
-const uint32_t Mesh::getVertexNum() const
+const uint32_t Mesh::getVertexCount() const
 {
 	return vertices.size();
 }
 
-const Vertex* Mesh::getRawData() const
+constexpr const Vertex* Mesh::getRawData() const
 {
 	return vertices.data();
 }

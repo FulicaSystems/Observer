@@ -1,5 +1,3 @@
-#include "vertexbuffer_vk.hpp"
-
 #include "vmahelper.hpp"
 
 void VMAHelper::createAllocator(const VkInstance& instance,

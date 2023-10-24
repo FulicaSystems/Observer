@@ -22,6 +22,9 @@ protected:
 
 public:
 	virtual ~RendererABC() = default;
+
+	//void render(Scene);
+	//void present();
 };
 
 class MultiPassRenderer : public RendererABC
@@ -114,6 +117,8 @@ public:
 	}
 };
 
+
+
 class SinglePassRenderer : public RendererABC
 {
 public:
@@ -127,5 +132,4 @@ public:
 
 	}
 };
-
 typedef SinglePassRenderer DynamicRenderer;

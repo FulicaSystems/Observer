@@ -8,12 +8,11 @@
 class Context
 {
 public:
-#ifndef NDEBUG
-	static constexpr const uint32_t validationLayerCount = 1;
-	static constexpr const char* validationLayers = {
-		"VK_LAYER_KHRONOS_validation"
+	static constexpr const uint32_t layerCount = 1;
+	static constexpr const char* layers = {
+		// TODO : use validation only if !NDEBUG
+		"VK_LAYER_KHRONOS_validation" // validation layer
 	};
-#endif
 
 private:
 	VkInstance instance;
@@ -52,12 +51,8 @@ public:
 		VkInstanceCreateInfo createInfo = {
 			.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
 			.pApplicationInfo = &appInfo,
-#ifdef NDEBUG
-			.enabledLayerCount = 0,
-#else
-			.enabledLayerCount = validationLayerCount,
-			.ppEnabledLayerNames = &validationLayers,
-#endif
+			.enabledLayerCount = layerCount,
+			.ppEnabledLayerNames = &layers,
 			.enabledExtensionCount = static_cast<uint32_t>(additionalExtensions.size()),
 			.ppEnabledExtensionNames = additionalExtensions.data()
 		};

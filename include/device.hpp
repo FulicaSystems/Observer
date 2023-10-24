@@ -10,7 +10,7 @@
 
 #include "context.hpp"
 
-struct LogicalDevice
+class LogicalDevice
 {
 	friend class PhysicalDevice;
 	friend class std::unique_ptr<LogicalDevice>;
@@ -31,6 +31,21 @@ public:
 	{
 		vkDestroyDevice(handle, nullptr);
 	}
+
+	template<class TDataType>
+	std::shared_ptr<TDataType> create() const { throw std::runtime_error("Use template specialization"); }
+	template<class TDataType>
+	void destroy(std::shared_ptr<TDataType>& pData) const { throw std::runtime_error("Use template specialization"); }
+
+	template<>
+	std::shared_ptr<class Buffer> create<class Buffer>() const;
+	template<>
+	void destroy<class Buffer>(std::shared_ptr<class Buffer>& pData) const;
+
+	template<>
+	std::shared_ptr<class ShaderModule> create<class ShaderModule>() const;
+	template<>
+	void destroy<class ShaderModule>(std::shared_ptr<class ShaderModule>& pData) const;
 };
 
 class PhysicalDevice
@@ -99,12 +114,8 @@ public:
 			.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
 			.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
 			.pQueueCreateInfos = queueCreateInfos.data(),
-	#ifdef NDEBUG
-			.enabledLayerCount = 0,
-	#else
-			.enabledLayerCount = Context::validationLayerCount,
-			.ppEnabledLayerNames = &Context::validationLayers,
-	#endif
+			.enabledLayerCount = Context::layerCount,
+			.ppEnabledLayerNames = &Context::layers,
 			.enabledExtensionCount = deviceExtensionCount,
 			.ppEnabledExtensionNames = &deviceExtensions,
 		};
@@ -221,6 +232,15 @@ public:
 	{
 		logicalDevices.clear();
 	}
+
+	const PhysicalDevice& getPhysicalDevice() const
+	{
+		return physicalDevices[selected];
+	}
+	const LogicalDevice& getLogicalDevice() const
+	{
+		return *logicalDevices[selected];
+	}
 };
 
 
@@ -250,4 +270,40 @@ SwapchainSupport PhysicalDevice::querySwapchainSupport(const VkSurfaceKHR& surfa
 	}
 
 	return details;
+}
+
+// TODO : move to .cpp
+#include "buffer.hpp"
+template<>
+std::shared_ptr<Buffer> LogicalDevice::create<Buffer>() const
+{
+	std::shared_ptr<Buffer> out = std::make_shared<Buffer>();
+
+	VkBufferCreateInfo createInfo = {
+		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+		// TODO : fill this struct with args
+	};
+
+
+	vkCreateBuffer(handle, &createInfo, nullptr, &out->handle);
+
+	return out;
+}
+template<>
+void LogicalDevice::destroy<Buffer>(std::shared_ptr<Buffer>& data) const
+{
+	vkDestroyBuffer(handle, data->handle, nullptr);
+}
+
+#include "shadermodule.hpp"
+template<>
+std::shared_ptr<ShaderModule> LogicalDevice::create<ShaderModule>() const
+{
+	// TODO : create shader module
+	return std::make_shared<ShaderModule>();
+}
+template<>
+void LogicalDevice::destroy<ShaderModule>(std::shared_ptr<ShaderModule>& pData) const
+{
+	vkDestroyShaderModule(handle, pData->handle, nullptr);
 }

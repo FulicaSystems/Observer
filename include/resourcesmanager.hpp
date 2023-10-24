@@ -41,6 +41,7 @@ inline std::shared_ptr<TResource> ResourcesManager::load(const char*&& name, TAr
 	}
 
 	Utils::GlobalThreadPool::addTask([=]() {
+		// TODO : multithreaded load
 		rsrc->cpuLoad();
 		rsrc->gpuLoad();
 		});

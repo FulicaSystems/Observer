@@ -30,8 +30,8 @@ public:
 	void cpuUnload() override;
 	void gpuUnload() override;
 
-	const uint32_t getVertexNum() const;
-	const Vertex* getRawData() const;
+	const uint32_t getVertexCount() const;
+	constexpr const Vertex* getRawData() const;
 };
 
 
@@ -39,12 +39,12 @@ public:
 // TODO : remove include
 #include "buffer.hpp"
 
-class GPUMesh
+class GPUMesh : public ILocalResource
 {
 public:
 	// CPU accessible data
-	void* vertices = 0;
-	uint32_t vertexNum = 0;
+	uint32_t vertexCount = 0;
+	const void* vertices = nullptr;
 
 	// buffer size
 	size_t bufferSize = 0;

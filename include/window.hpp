@@ -98,7 +98,7 @@ public:
 		const LogicalDevice& device)
 		: device(device)
 	{
-		SwapchainSupport support = physicalDevice.querySwapchainSupport(surface);
+		auto support = physicalDevice.querySwapchainSupport(surface);
 
 		VkSurfaceFormatKHR surfaceFormat;
 		support.tryFindFormat(VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR, surfaceFormat);
@@ -193,8 +193,8 @@ public:
 class PresentationWindow
 {
 private:
-	Swapchain swapchain;
-	Surface surface;
+	std::unique_ptr<Swapchain> swapchain;
+	std::unique_ptr<Surface> surface;
 
 public:
 	GLFWwindow* handle;

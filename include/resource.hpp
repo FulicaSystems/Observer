@@ -8,6 +8,10 @@
 // CPU host
 class IHostResource
 {
+protected:
+	const class LogicalDevice& device;
+
+
 private:
 	const char* name = "";
 
@@ -25,8 +29,8 @@ public:
 
 	IHostResource(const char*&& name,
 		const char*&& filepath,
-		class ILowRenderer& lowrdr)
-		: name(name), filepath(filepath) {}
+		class LogicalDevice& device)
+		: name(name), filepath(filepath), device(device) {}
 	// resources should be unloaded when destroyed (cpuUnload() and gpuUnload())
 	virtual ~IHostResource() {};
 
@@ -43,9 +47,10 @@ public:
  * resources used for rendering with GPU
  * GPU device local
  */
-template<typename TLocal>
-struct ILocalResource
+class ILocalResource
 {
-	static std::shared_ptr<TLocal> create() { throw std::runtime_error("Use template specialization"); }
-	static void destroy(TLocal& resource) { throw std::runtime_error("Use template specialization"); }
+private:
+
+public:
+	virtual ~ILocalResource() = 0;
 };
