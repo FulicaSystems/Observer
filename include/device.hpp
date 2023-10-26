@@ -56,7 +56,7 @@ class PhysicalDevice
 
 public:
 	static constexpr const uint32_t deviceExtensionCount = 1;
-	static constexpr const const char* deviceExtensions = {
+	static constexpr const char* deviceExtensions = {
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
 	};
 
@@ -185,7 +185,6 @@ private:
 	std::vector<std::unique_ptr<LogicalDevice>> logicalDevices;
 
 public:
-	DeviceSelector() = delete;
 	DeviceSelector(const VkInstance& instance)
 	{
 		// enumerate all physical devices
@@ -200,10 +199,9 @@ public:
 
 
 		// save all physical devices
-		physicalDevices.resize(deviceCount);
 		for (int i = 0; i < devices.size(); ++i)
 		{
-			physicalDevices[i] = PhysicalDevice(instance, devices[i]);
+			physicalDevices.push_back(PhysicalDevice(instance, devices[i]));
 
 			// save queue families
 			uint32_t queueFamilyCount;

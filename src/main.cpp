@@ -46,8 +46,8 @@ int main(int argc, char** argv)
 	{
 		try
 		{
-			Application app(api >= 0 ? (EGraphicsAPI)api : EGraphicsAPI::VULKAN);
-			app.loop();
+			Application app(api >= 0 ? (GraphicsAPI_E)api : GraphicsAPI_E::VULKAN);
+			app.run();
 		}
 		catch (const std::exception& ex)
 		{

@@ -179,11 +179,7 @@ private:
 
 public:
 	Surface() = delete;
-	Surface(const VkInstance& instance, const PresentationWindow& window)
-		: instance(instance)
-	{
-		glfwCreateWindowSurface(instance, window.handle, nullptr, &handle);
-	}
+	Surface(const VkInstance& instance, const class PresentationWindow& window);
 	~Surface()
 	{
 		vkDestroySurfaceKHR(instance, handle, nullptr);
@@ -200,7 +196,7 @@ public:
 	GLFWwindow* handle;
 
 
-	PresentationWindow() = delete;
+	//PresentationWindow() = delete;
 	PresentationWindow()
 	{
 
@@ -210,3 +206,13 @@ public:
 
 	}
 };
+
+
+
+
+
+Surface::Surface(const VkInstance& instance, const class PresentationWindow& window)
+	: instance(instance)
+{
+	glfwCreateWindowSurface(instance, window.handle, nullptr, &handle);
+}

@@ -23,12 +23,8 @@ void Shader::unload()
 void GPUShader::load()
 {
 	auto base = (Shader*)host;
-	auto asset = std::make_shared<GPUShader>(base->vs.size(),
-		base->fs.size(),
-		base->vs.data(),
-		base->fs.data());
-	asset->vsModule = device.create<ShaderModule>();
-	asset->fsModule = device.create<ShaderModule>();
+	vsModule = device.create<ShaderModule>();
+	fsModule = device.create<ShaderModule>();
 
 	loaded.test_and_set();
 	loaded.notify_all();
