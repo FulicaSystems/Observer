@@ -10,27 +10,17 @@
 
 #include "resource.hpp"
 
-class Shader : public IHostResource
+class Shader : public HostResourceABC
 {
-	SUPER(IHostResource)
-
-private:
+	SUPER(HostResourceABC)
 
 public:
 	std::vector<char> vs;
 	std::vector<char> fs;
 
-	~Shader() override
-	{
-		gpuUnload();
-		cpuUnload();
-	}
 
-	void cpuLoad() override;
-	void gpuLoad() override;
-
-	void cpuUnload() override;
-	void gpuUnload() override;
+	void load() override;
+	void unload() override;
 };
 
 
@@ -38,7 +28,7 @@ public:
 // TODO : remove include
 #include "shadermodule.hpp"
 
-class GPUShader : public ILocalResource
+class GPUShader : public LocalResourceABC
 {
 private:
 
@@ -70,4 +60,7 @@ public:
 		createInfo[1] = fsStageCreateInfo;
 		return createInfo;
 	}
+
+	void load() override;
+	void unload() override;
 };

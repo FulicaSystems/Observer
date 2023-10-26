@@ -8,6 +8,8 @@
 
 #include <glad/vulkan.h>
 
+#include "utils/singleton.hpp"
+
 #include "context.hpp"
 
 class LogicalDevice
@@ -172,8 +174,11 @@ public:
 
 
 
-class DeviceSelector
+// TODO : make singleton
+class DeviceSelector : public Utils::Singleton<DeviceSelector>
 {
+	SINGLETON(DeviceSelector)
+
 private:
 	uint32_t selected = 0;
 	std::vector<PhysicalDevice> physicalDevices;
@@ -233,13 +238,15 @@ public:
 		logicalDevices.clear();
 	}
 
-	const PhysicalDevice& getPhysicalDevice() const
+	static const PhysicalDevice& getPhysicalDevice()
 	{
-		return physicalDevices[selected];
+		auto& i = getInstance();
+		return i.physicalDevices[i.selected];
 	}
-	const LogicalDevice& getLogicalDevice() const
+	static const LogicalDevice& getLogicalDevice()
 	{
-		return *logicalDevices[selected];
+		auto& i = getInstance();
+		return *i.logicalDevices[i.selected];
 	}
 };
 

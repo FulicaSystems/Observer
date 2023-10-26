@@ -4,42 +4,34 @@
 #include <memory>
 
 
-// host accessible resource
-// CPU host
-class IHostResource
+
+class ResourceABC
 {
-protected:
-	const class LogicalDevice& device;
-
-
-private:
-	const char* name = "";
-
-protected:
-	std::filesystem::path filepath = "";
-
-
 public:
-	std::shared_ptr<class ILocalResource> local = nullptr;
-
-	// flag that tells if the resource is fully loaded (CPU and GPU)
+	// flag that tells if the resource is successfully loaded
 	std::atomic_flag loaded = ATOMIC_FLAG_INIT;
 
 
-
-	IHostResource(const char*&& name,
-		const char*&& filepath,
-		class LogicalDevice& device)
-		: name(name), filepath(filepath), device(device) {}
-	// resources should be unloaded when destroyed (cpuUnload() and gpuUnload())
-	virtual ~IHostResource() {};
+	virtual void load() = 0;
+	virtual void unload() = 0;
+};
 
 
-	virtual void cpuLoad() = 0;
-	virtual void gpuLoad() = 0;
 
-	virtual void cpuUnload() = 0;
-	virtual void gpuUnload() = 0;
+// host accessible resource
+// CPU host
+class HostResourceABC : public ResourceABC
+{
+protected:
+	const uint64_t index = 0ULL;
+	std::filesystem::path filepath = "";
+
+public:
+	std::shared_ptr<class LocalResourceABC> local = nullptr;
+
+
+	// unload when destroying
+	virtual ~HostResourceABC() { unload(); }
 };
 
 
@@ -47,10 +39,12 @@ public:
  * resources used for rendering with GPU
  * GPU device local
  */
-class ILocalResource
+class LocalResourceABC : public ResourceABC
 {
-private:
+protected:
+	const class LogicalDevice& device;
+	const HostResourceABC* host;
 
 public:
-	virtual ~ILocalResource() = 0;
+	virtual ~LocalResourceABC() { unload(); }
 };

@@ -9,6 +9,8 @@
 #include "utils/singleton.hpp"
 #include "utils/multithread/globalthreadpool.hpp"
 
+#include "device.hpp"
+
 #include "resource.hpp"
 
 class ResourcesManager : public Utils::Singleton<ResourcesManager>
@@ -16,35 +18,41 @@ class ResourcesManager : public Utils::Singleton<ResourcesManager>
 	SINGLETON(ResourcesManager)
 
 private:
-	std::mutex resourcesMX;
-	std::unordered_map<const char*, std::shared_ptr<IHostResource>> resources;
+	// TODO : is uint64_t really needed?
+	uint64_t resourceCount = 0ULL;
+
+
+	std::mutex resourcesMutex;
+	std::unordered_map<uint64_t, std::shared_ptr<HostResourceABC>> resources;
 
 public:
 	template<class TResource, typename... TArg>
-		requires std::constructible_from<TResource, const char*&&, TArg...>
-	static inline std::shared_ptr<TResource> load(const char*&& name, TArg&&... ctorArgs);
+		requires std::constructible_from<TResource, uint64_t, TArg...>
+	static inline std::shared_ptr<TResource> load(TArg&&... ctorArgs);
 
 	static void clearAllResources();
 };
 
 template<class TResource, typename... TArg>
-	requires std::constructible_from<TResource, const char*&&, TArg...>
-inline std::shared_ptr<TResource> ResourcesManager::load(const char*&& name, TArg&&... ctorArgs)
+	requires std::constructible_from<TResource, uint64_t, TArg...>
+inline std::shared_ptr<TResource> ResourcesManager::load(TArg&&... ctorArgs)
 {
 	ResourcesManager& rm = getInstance();
 
-	std::shared_ptr<IHostResource> rsrc = std::make_shared<TResource>(std::move(name), std::forward<TArg>(ctorArgs)...);
+	// TODO : resource count
+	auto resource = std::make_shared<TResource>(resourceCount, std::forward<TArg>(ctorArgs)...);
 
 	{
-		std::lock_guard<std::mutex> guard(rm.resourcesMX);
-		rm.resources[name] = rsrc;
+		std::lock_guard<std::mutex> guard(rm.resourcesMutex);
+		rm.resources[resourceCount] = resource;
 	}
 
 	Utils::GlobalThreadPool::addTask([=]() {
 		// TODO : multithreaded load
-		rsrc->cpuLoad();
-		rsrc->gpuLoad();
+		resource->load();
+		resource->local->host = resource.get();
+		resource->local->load();
 		});
 
-	return std::dynamic_pointer_cast<TResource>(rsrc);
+	return std::dynamic_pointer_cast<TResource>(resource);
 }

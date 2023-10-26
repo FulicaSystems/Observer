@@ -3,42 +3,33 @@
 #include "mesh.hpp"
 
 
-void Mesh::cpuLoad()
+void Mesh::load()
 {
 	vertices.reserve(3);
 	vertices.push_back(Vertex({ {  0.0f, -0.5f, 0.f }, Color::red }));
 	vertices.push_back(Vertex({ {  0.5f,  0.5f, 0.f }, Color::green }));
 	vertices.push_back(Vertex({ { -0.5f,  0.5f, 0.f }, Color::blue }));
-}
 
-void Mesh::gpuLoad()
-{
-	auto asset = std::make_shared<GPUMesh>();
-	asset->vertexCount = getVertexCount();
-	asset->vertices = getRawData();
-	asset->bufferSize = vertices.size() * sizeof(Vertex);
-	asset->buffer = device.create<Buffer>();
-
-	local = asset;
 	loaded.test_and_set();
 }
 
-void Mesh::cpuUnload()
+void Mesh::unload()
 {
 	vertices.clear();
 }
 
-void Mesh::gpuUnload()
+void GPUMesh::load()
 {
-	device.destroy<Buffer>(((GPUMesh*)local.get())->buffer);
+	auto base = (Mesh*)host;
+	vertexCount = base->getVertexCount();
+	vertices = base->getRawData();
+	bufferSize = base->getDataSize();
+	buffer = device.create<Buffer>();
+
+	loaded.test_and_set();
 }
 
-const uint32_t Mesh::getVertexCount() const
+void GPUMesh::unload()
 {
-	return vertices.size();
-}
-
-constexpr const Vertex* Mesh::getRawData() const
-{
-	return vertices.data();
+	device.destroy<Buffer>(buffer);
 }

@@ -10,28 +10,21 @@
 
 
 
-class Mesh : public IHostResource
+class Mesh : public HostResourceABC
 {
-	SUPER(IHostResource)
+	SUPER(HostResourceABC)
 
 private:
 	std::vector<Vertex> vertices;
 
 public:
-	~Mesh() override
-	{
-		gpuUnload();
-		cpuUnload();
-	}
+	void load() override;
+	void unload() override;
 
-	void cpuLoad() override;
-	void gpuLoad() override;
-	
-	void cpuUnload() override;
-	void gpuUnload() override;
-
-	const uint32_t getVertexCount() const;
-	constexpr const Vertex* getRawData() const;
+	inline const uint32_t getVertexCount() const { return vertices.size(); }
+	inline const size_t getDataSize() const { return vertices.size() * sizeof(Vertex); }
+	inline constexpr const std::vector<Vertex> getData() const { return vertices; }
+	inline constexpr const Vertex* getRawData() const { return vertices.data(); }
 };
 
 
@@ -39,7 +32,7 @@ public:
 // TODO : remove include
 #include "buffer.hpp"
 
-class GPUMesh : public ILocalResource
+class GPUMesh : public LocalResourceABC
 {
 public:
 	// CPU accessible data
@@ -52,4 +45,8 @@ public:
 
 	// GPU data
 	std::shared_ptr<Buffer> buffer;
+
+
+	void load() override;
+	void unload() override;
 };

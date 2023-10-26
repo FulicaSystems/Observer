@@ -5,35 +5,37 @@
 #include "shader.hpp"
 
 
-void Shader::cpuLoad()
+void Shader::load()
 {
 	std::string str = filepath.string();
 	vs = bin::read(str + ".vert.spv");
 	fs = bin::read(str + ".frag.spv");
-}
 
-void Shader::gpuLoad()
-{
-	auto asset = std::make_shared<GPUShader>(vs.size(),
-		fs.size(),
-		vs.data(),
-		fs.data());
-	asset->vsModule = device.create<ShaderModule>();
-	asset->fsModule = device.create<ShaderModule>();
-
-	local = asset;
 	loaded.test_and_set();
-	loaded.notify_all();
 }
 
-void Shader::cpuUnload()
+void Shader::unload()
 {
 	vs.clear();
 	fs.clear();
 }
 
-void Shader::gpuUnload()
+void GPUShader::load()
 {
-	device.destroy<ShaderModule>(((GPUShader*)local.get())->vsModule);
-	device.destroy<ShaderModule>(((GPUShader*)local.get())->fsModule);
+	auto base = (Shader*)host;
+	auto asset = std::make_shared<GPUShader>(base->vs.size(),
+		base->fs.size(),
+		base->vs.data(),
+		base->fs.data());
+	asset->vsModule = device.create<ShaderModule>();
+	asset->fsModule = device.create<ShaderModule>();
+
+	loaded.test_and_set();
+	loaded.notify_all();
+}
+
+void GPUShader::unload()
+{
+	device.destroy<ShaderModule>(vsModule);
+	device.destroy<ShaderModule>(fsModule);
 }
