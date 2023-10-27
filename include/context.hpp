@@ -5,6 +5,23 @@
 
 #include <glad/vulkan.h>
 
+
+// 32 bits
+// 4 bits for major, 12 bits for minor, 16 bits for patch
+// MMMM mmmm mmmm mmmm pppp pppp pppp pppp
+#define VERSION(major, minor, patch) (uint32_t)(major << 28U | minor << 16U | patch << 0U)
+#define MAJOR(version) (uint32_t)((version >> 28U) & 0xfU)
+#define MINOR(version) (uint32_t)((version >> 16U) & 0x0fffU)
+#define PATCH(version) (uint32_t)((version >> 0U) & 0xfU)
+struct version
+{
+	uint32_t major : 4;
+	uint32_t minor : 12;
+	uint32_t patch : 16;
+};
+
+
+
 class Context
 {
 public:
@@ -14,8 +31,9 @@ public:
 		"VK_LAYER_KHRONOS_validation" // validation layer
 	};
 
-private:
+public:
 	VkInstance instance;
+private:
 	VkDebugUtilsMessengerEXT debugMessenger;
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -39,8 +57,14 @@ public:
 		VkApplicationInfo appInfo = {
 			.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
 			.pApplicationName = applicationName,
-			.applicationVersion = applicationVersion,
-			.engineVersion = engineVersion,
+			.applicationVersion = VK_MAKE_API_VERSION(0,
+				MAJOR(applicationVersion),
+				MINOR(applicationVersion),
+				PATCH(applicationVersion)),
+			.engineVersion = VK_MAKE_API_VERSION(0,
+				MAJOR(engineVersion),
+				MINOR(engineVersion),
+				PATCH(engineVersion)),
 			.apiVersion = VK_API_VERSION_1_3
 		};
 

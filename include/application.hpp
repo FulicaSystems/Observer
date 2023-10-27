@@ -3,15 +3,20 @@
 #include <vector>
 
 #include <glfw/glfw3.h>
+#include <glad/vulkan.h>
 
 #include "graphicsapi.hpp"
 #include "format.hpp"
+
+#include "context.hpp"
 
 
 class Application
 {
 private:
 	GLFWwindow* window;
+
+	std::shared_ptr<Context> context;
 
 public:
 	Application(const GraphicsAPI_E api)
@@ -42,6 +47,14 @@ public:
 			std::vector<const char*> requiredExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
 			// TODO : create api structs
+
+			// TODO : clean symbols loading
+			gladLoaderLoadVulkan(nullptr, nullptr, nullptr);
+			context = std::make_shared<Context>("Renderer",
+				VERSION(0, 0, 0),
+				VERSION(0, 0, 0),
+				requiredExtensions);
+			gladLoaderLoadVulkan(context->instance, nullptr, nullptr);
 
 
 			// create a surface using the instance
