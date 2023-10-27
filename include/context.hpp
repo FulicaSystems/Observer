@@ -13,12 +13,16 @@
 #define MAJOR(version) (uint32_t)((version >> 28U) & 0xfU)
 #define MINOR(version) (uint32_t)((version >> 16U) & 0x0fffU)
 #define PATCH(version) (uint32_t)((version >> 0U) & 0xfU)
+#ifdef VERSION_STRUCT
 struct version
 {
 	uint32_t major : 4;
 	uint32_t minor : 12;
 	uint32_t patch : 16;
 };
+#else
+typedef uint32_t version;
+#endif
 
 
 
@@ -50,8 +54,8 @@ private:
 public:
 	Context() = delete;
 	Context(const char* applicationName,
-		const uint32_t applicationVersion,
-		const uint32_t engineVersion,
+		const version applicationVersion,
+		const version engineVersion,
 		std::vector<const char*> additionalExtensions)
 	{
 		VkApplicationInfo appInfo = {
