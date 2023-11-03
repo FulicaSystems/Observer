@@ -147,7 +147,7 @@ public:
 
 
 	PresentationWindow() = delete;
-	PresentationWindow(const GraphicsAPI_E api, const uint32_t width, const uint32_t height)
+	PresentationWindow(const GraphicsAPIE api, const uint32_t width, const uint32_t height)
 		: width(width), height(height)
 	{
 		glfwInit();
@@ -156,7 +156,7 @@ public:
 
 		switch (api)
 		{
-		case GraphicsAPI_E::OPENGL:
+		case GraphicsAPIE::OPENGL:
 		{
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -165,7 +165,7 @@ public:
 
 			break;
 		}
-		case GraphicsAPI_E::VULKAN:
+		case GraphicsAPIE::VULKAN:
 		{
 			// no api specified to create vulkan context
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -185,6 +185,16 @@ public:
 		surface.reset();
 		glfwDestroyWindow(handle);
 		glfwTerminate();
+	}
+
+	const std::vector<const char*> getRequiredExtensions() const
+	{
+		uint32_t count = 0;
+		const char** extensions;
+
+		extensions = glfwGetRequiredInstanceExtensions(&count);
+
+		return std::vector<const char*>(extensions, extensions + count);
 	}
 
 	const Surface& createSurface(const VkInstance& instance)

@@ -21,41 +21,31 @@ private:
 	std::shared_ptr<Context> context;
 
 public:
-	Application(const GraphicsAPI_E api)
+	Application(const GraphicsAPIE api)
 	{
 		window = std::make_unique<PresentationWindow>(api, 1366, 768);
 
 		switch (api)
 		{
-		case GraphicsAPI_E::OPENGL:
+		case GraphicsAPIE::OPENGL:
 		{
 			window->makeContextCurrent();
 			throw std::runtime_error("not yet implemented");
 
 			break;
 		}
-		case GraphicsAPI_E::VULKAN:
+		case GraphicsAPIE::VULKAN:
 		{
 			// init GLFW for Vulkan
 			if (!glfwVulkanSupported())
 				throw std::runtime_error("GLFW failed to find the Vulkan loader");
-
-			// gather Vulkan extensions required by GLFW
-			uint32_t glfwExtensionCount = 0;
-			const char** glfwExtensions;
-
-			glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-			std::vector<const char*> requiredExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-			// TODO : create api structs
 
 			// TODO : clean symbols loading
 			gladLoaderLoadVulkan(nullptr, nullptr, nullptr);
 			context = std::make_shared<Context>("Renderer",
 				VERSION(0, 0, 0),
 				VERSION(0, 0, 0),
-				requiredExtensions);
+				window->getRequiredExtensions());
 			gladLoaderLoadVulkan(context->instance, nullptr, nullptr);
 			context->deviceSelector = std::make_unique<DeviceSelector>(context->instance,
 				[this](const VkPhysicalDevice& physicalDevice) {

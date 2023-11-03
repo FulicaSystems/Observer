@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 	{
 		try
 		{
-			Application app(api >= 0 ? (GraphicsAPI_E)api : GraphicsAPI_E::VULKAN);
+			Application app(api >= 0 ? (GraphicsAPIE)api : GraphicsAPIE::VULKAN);
 			app.run();
 		}
 		catch (const std::exception& ex)
