@@ -93,6 +93,7 @@ public:
 	}
 	~Context()
 	{
+		deviceSelector.reset();
 		vkDestroyInstance(instance, nullptr);
 	}
 

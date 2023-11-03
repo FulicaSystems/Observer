@@ -57,10 +57,10 @@ public:
 				requiredExtensions);
 			gladLoaderLoadVulkan(context->instance, nullptr, nullptr);
 			context->deviceSelector = std::make_unique<DeviceSelector>(context->instance,
-				[/*&*/]() {
-					//gladLoaderLoadVulkan(context->instance,
-					//context->deviceSelector->getPhysicalDevice().handle,
-					//nullptr);
+				[this](const VkPhysicalDevice& physicalDevice) {
+					gladLoaderLoadVulkan(context->instance,
+						physicalDevice,
+						nullptr);
 				});
 			gladLoaderLoadVulkan(context->instance,
 				context->deviceSelector->getPhysicalDevice().handle,

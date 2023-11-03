@@ -5,10 +5,9 @@
 #include <iostream>
 #include <optional>
 #include <set>
+#include <functional>
 
 #include <glad/vulkan.h>
-
-#include "utils/singleton.hpp"
 
 #include "context.hpp"
 
@@ -131,18 +130,21 @@ public:
 
 
 		// retrieve queues
-		vkGetDeviceQueue(out->handle,
-			graphicsFamily.value(),
-			0,
-			&out->graphicsQueue);
-		vkGetDeviceQueue(out->handle,
-			presentFamily.value(),
-			0,
-			&out->presentQueue);
-		//vkGetDeviceQueue(out->handle,
-		//	decodeFamily.value(),
-		//	0,
-		//	&out->decodeQueue);
+		if (graphicsFamily.has_value())
+			vkGetDeviceQueue(out->handle,
+				graphicsFamily.value(),
+				0,
+				&out->graphicsQueue);
+		if (presentFamily.has_value())
+			vkGetDeviceQueue(out->handle,
+				presentFamily.value(),
+				0,
+				&out->presentQueue);
+		//if (decodeFamily.has_value())
+		//	vkGetDeviceQueue(out->handle,
+		//		decodeFamily.value(),
+		//		0,
+		//		&out->decodeQueue);
 
 		return out;
 	}
@@ -184,7 +186,8 @@ private:
 
 public:
 	DeviceSelector() = delete;
-	DeviceSelector(const VkInstance& instance, void(*loader)())
+	DeviceSelector(const VkInstance& instance,
+		const std::function<void(const VkPhysicalDevice& physicalDevice)>& physicalDeviceSymbolsLoader)
 	{
 		// enumerate all physical devices
 		uint32_t deviceCount = 0;
@@ -222,11 +225,11 @@ public:
 			std::cout << "\tPhysical device max memory allocation count : " << limit.maxMemoryAllocationCount << std::endl;
 		}
 
-		if (loader)
-			loader();
+		if (physicalDeviceSymbolsLoader)
+			physicalDeviceSymbolsLoader(getPhysicalDevice().handle);
 
 		// create all logical devices
-		devices.resize(deviceCount);
+		logicalDevices.resize(deviceCount);
 		for (int i = 0; i < physicalDevices.size(); ++i)
 		{
 			logicalDevices[i] = physicalDevices[i].createDevice();
@@ -237,11 +240,11 @@ public:
 		logicalDevices.clear();
 	}
 
-	const PhysicalDevice& getPhysicalDevice()
+	const PhysicalDevice& getPhysicalDevice() const
 	{
 		return physicalDevices[selected];
 	}
-	const LogicalDevice& getLogicalDevice()
+	const LogicalDevice& getLogicalDevice() const
 	{
 		return *logicalDevices[selected];
 	}
