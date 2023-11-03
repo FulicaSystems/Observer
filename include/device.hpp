@@ -175,17 +175,16 @@ public:
 
 
 // TODO : make singleton
-class DeviceSelector : public Utils::Singleton<DeviceSelector>
+class DeviceSelector
 {
-	SINGLETON(DeviceSelector)
-
 private:
 	uint32_t selected = 0;
 	std::vector<PhysicalDevice> physicalDevices;
 	std::vector<std::unique_ptr<LogicalDevice>> logicalDevices;
 
 public:
-	DeviceSelector(const VkInstance& instance)
+	DeviceSelector() = delete;
+	DeviceSelector(const VkInstance& instance, void(*loader)())
 	{
 		// enumerate all physical devices
 		uint32_t deviceCount = 0;
@@ -220,9 +219,11 @@ public:
 
 			// print physical device limits
 			VkPhysicalDeviceLimits limit = physicalDevices[i].properties.limits;
-			std::cout << "Physical device max memory allocation count : " << limit.maxMemoryAllocationCount << std::endl;
+			std::cout << "\tPhysical device max memory allocation count : " << limit.maxMemoryAllocationCount << std::endl;
 		}
 
+		if (loader)
+			loader();
 
 		// create all logical devices
 		devices.resize(deviceCount);
@@ -236,18 +237,18 @@ public:
 		logicalDevices.clear();
 	}
 
-	static const PhysicalDevice& getPhysicalDevice()
+	const PhysicalDevice& getPhysicalDevice()
 	{
-		auto& i = getInstance();
-		return i.physicalDevices[i.selected];
+		return physicalDevices[selected];
 	}
-	static const LogicalDevice& getLogicalDevice()
+	const LogicalDevice& getLogicalDevice()
 	{
-		auto& i = getInstance();
-		return *i.logicalDevices[i.selected];
+		return *logicalDevices[selected];
 	}
 };
 
+
+/*
 
 
 // TODO : move to .cpp
@@ -312,3 +313,5 @@ void LogicalDevice::destroy<ShaderModule>(std::shared_ptr<ShaderModule>& pData) 
 {
 	vkDestroyShaderModule(handle, pData->handle, nullptr);
 }
+
+*/

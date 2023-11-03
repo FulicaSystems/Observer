@@ -9,6 +9,7 @@
 #include "format.hpp"
 
 #include "context.hpp"
+#include "device.hpp"
 
 
 class Application
@@ -55,6 +56,15 @@ public:
 				VERSION(0, 0, 0),
 				requiredExtensions);
 			gladLoaderLoadVulkan(context->instance, nullptr, nullptr);
+			context->deviceSelector = std::make_unique<DeviceSelector>(context->instance,
+				[/*&*/]() {
+					//gladLoaderLoadVulkan(context->instance,
+					//context->deviceSelector->getPhysicalDevice().handle,
+					//nullptr);
+				});
+			gladLoaderLoadVulkan(context->instance,
+				context->deviceSelector->getPhysicalDevice().handle,
+				context->deviceSelector->getLogicalDevice().handle);
 
 
 			// create a surface using the instance

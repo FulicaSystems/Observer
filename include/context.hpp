@@ -52,6 +52,9 @@ private:
 
 
 public:
+	std::unique_ptr<class DeviceSelector> deviceSelector = nullptr;
+
+
 	Context() = delete;
 	Context(const char* applicationName,
 		const version applicationVersion,
