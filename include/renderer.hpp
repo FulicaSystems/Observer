@@ -50,8 +50,8 @@ public:
 		VkAttachmentDescription colorAttachment = {
 			.format = swapchain.imageFormat,
 			.samples = VK_SAMPLE_COUNT_1_BIT,
-			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,		//load : what to do with the already existing image on the framebuffer
-			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,	//store : what to do with the newly rendered image on the framebuffer
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR, // load : what to do with the already existing image on the framebuffer
+			.storeOp = VK_ATTACHMENT_STORE_OP_STORE, // store : what to do with the newly rendered image on the framebuffer
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
 			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
@@ -59,7 +59,7 @@ public:
 		};
 
 		VkAttachmentReference colorAttachmentRef = {
-			.attachment = 0,	//colorAttachment is index 0
+			.attachment = 0,	// colorAttachment is index 0
 			.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 		};
 
@@ -127,7 +127,7 @@ typedef MultiPassRenderer ForwardRenderer;
 class SinglePassRenderer : public RendererABC
 {
 public:
-	SinglePassRenderer() = delete;
+	//SinglePassRenderer() = delete;
 	SinglePassRenderer()
 	{
 

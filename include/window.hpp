@@ -63,8 +63,8 @@ public:
 		};
 
 
-		auto graphicsFamily = physicalDevice.findQueueFamily(VK_QUEUE_GRAPHICS_BIT);
-		auto presentFamily = physicalDevice.findPresentFamily(surface);
+		auto graphicsFamily = physicalDevice.findQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT);
+		auto presentFamily = physicalDevice.findPresentQueueFamilyIndex(surface);
 		uint32_t queueFamilyIndices[] = {
 			graphicsFamily.value(),
 			presentFamily.value(),
