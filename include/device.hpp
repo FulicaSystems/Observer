@@ -222,7 +222,7 @@ public:
 
 			// print physical device limits
 			VkPhysicalDeviceLimits limit = physicalDevices[i].properties.limits;
-			std::cout << "\tPhysical device max memory allocation count : " << limit.maxMemoryAllocationCount << std::endl;
+			std::cout << "\t\tPhysical device max memory allocation count : " << limit.maxMemoryAllocationCount << std::endl;
 		}
 
 		if (physicalDeviceSymbolsLoader)

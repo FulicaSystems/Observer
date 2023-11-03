@@ -7,6 +7,7 @@
 #include "pipeline.hpp"
 #include "window.hpp"
 
+
 class RendererABC
 {
 protected:
@@ -26,6 +27,9 @@ public:
 	//void render(Scene);
 	//void present();
 };
+
+
+
 
 class MultiPassRenderer : public RendererABC
 {
@@ -116,6 +120,7 @@ public:
 		vkDestroyRenderPass(device.handle, renderPass, nullptr);
 	}
 };
+typedef MultiPassRenderer ForwardRenderer;
 
 
 

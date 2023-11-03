@@ -5,8 +5,9 @@
 
 #include "mathematics.hpp"
 
-#include "format.hpp"
 #include "device.hpp"
+
+
 
 struct SwapchainSupport
 {
@@ -72,6 +73,8 @@ struct SwapchainSupport
 		}
 	}
 };
+
+
 
 class Swapchain
 {
@@ -168,6 +171,8 @@ public:
 	}
 };
 
+
+
 class Surface
 {
 private:
@@ -179,12 +184,17 @@ private:
 
 public:
 	Surface() = delete;
-	Surface(const VkInstance& instance, const class PresentationWindow& window);
+	Surface(const VkInstance& instance, const VkSurfaceKHR& surface)
+		: instance(instance), handle(surface)
+	{
+	}
 	~Surface()
 	{
 		vkDestroySurfaceKHR(instance, handle, nullptr);
 	}
 };
+
+
 
 class PresentationWindow
 {
@@ -193,26 +203,72 @@ private:
 	std::unique_ptr<Surface> surface;
 
 public:
+	uint32_t width = 1366;
+	uint32_t height = 768;
+
+	int framebufferWidth;
+	int framebufferHeight;
+
 	GLFWwindow* handle;
 
 
-	//PresentationWindow() = delete;
-	PresentationWindow()
+	PresentationWindow() = delete;
+	PresentationWindow(const GraphicsAPI_E api, const uint32_t width, const uint32_t height)
+		: width(width), height(height)
 	{
+		glfwInit();
 
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+		switch (api)
+		{
+		case GraphicsAPI_E::OPENGL:
+		{
+			glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+			break;
+		}
+		case GraphicsAPI_E::VULKAN:
+		{
+			// no api specified to create vulkan context
+			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+			break;
+		}
+		default:
+			throw std::runtime_error("Invalid graphics API");
+		}
+
+		handle = glfwCreateWindow(width, height, "Renderer", nullptr, nullptr);
+		glfwGetFramebufferSize(handle, &framebufferWidth, &framebufferHeight);
 	}
 	~PresentationWindow()
 	{
+		swapchain.reset();
+		surface.reset();
+		glfwDestroyWindow(handle);
+		glfwTerminate();
+	}
 
+	const Surface& createSurface(const VkInstance& instance)
+	{
+		VkSurfaceKHR surfaceHandle;
+		glfwCreateWindowSurface(instance, handle, nullptr, &surfaceHandle);
+
+		surface = std::make_unique<Surface>(instance, surfaceHandle);
+		return *surface;
+	}
+
+	inline void makeContextCurrent()
+	{
+		glfwMakeContextCurrent(handle);
+	}
+
+	inline bool shouldClose() const
+	{
+		return glfwWindowShouldClose(handle);
 	}
 };
-
-
-
-
-
-Surface::Surface(const VkInstance& instance, const class PresentationWindow& window)
-	: instance(instance)
-{
-	glfwCreateWindowSurface(instance, window.handle, nullptr, &handle);
-}

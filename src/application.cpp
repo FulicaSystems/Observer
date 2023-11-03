@@ -4,7 +4,7 @@
 
 void Application::run()
 {
-	while (!glfwWindowShouldClose(window))
+	while (!window->shouldClose())
 	{
 		glfwPollEvents();
 		Utils::GlobalThreadPool::pollMainQueue();
