@@ -11,6 +11,7 @@
 
 #include "context.hpp"
 #include "device.hpp"
+#include "renderer.hpp"
 
 
 class Application
@@ -18,7 +19,9 @@ class Application
 private:
 	std::unique_ptr<PresentationWindow> window;
 
-	std::shared_ptr<Context> context;
+	std::unique_ptr<Context> context;
+
+	std::unique_ptr<RendererABC> renderer;
 
 public:
 	Application(const GraphicsAPIE api)
@@ -42,7 +45,7 @@ public:
 
 			// TODO : clean symbols loading
 			gladLoaderLoadVulkan(nullptr, nullptr, nullptr);
-			context = std::make_shared<Context>("Renderer",
+			context = std::make_unique<Context>("Renderer",
 				VERSION(0, 0, 0),
 				VERSION(0, 0, 0),
 				window->getRequiredExtensions());
@@ -62,7 +65,12 @@ public:
 			window->createSurface(context->instance);
 
 			// create swapchain
-			window->createSwapchain(*context);
+			auto& swapchain = window->createSwapchain(*context);
+
+
+			// renderer
+			renderer = std::make_unique<ForwardRenderer>(context->deviceSelector->getLogicalDevice(),
+				swapchain);
 
 			break;
 		}
@@ -72,6 +80,7 @@ public:
 	}
 	~Application()
 	{
+		renderer.reset();
 		window.reset();
 		context.reset();
 	}

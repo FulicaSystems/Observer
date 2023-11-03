@@ -8,8 +8,25 @@
 #include "window.hpp"
 
 
+
+enum class MultipleBufferingE
+{
+	SINGLE_BUFFERING = 1,
+	DOUBLE_BUFFERING = 2,
+	TRIPLE_BUFFERING = 3,
+	COUNT,
+};
 class RendererABC
 {
+protected:
+	const LogicalDevice& device;
+
+
+
+protected:
+	MultipleBufferingE bufferingType = MultipleBufferingE::DOUBLE_BUFFERING;
+
+
 protected:
 	VkDescriptorPool descriptorPool;
 	std::unique_ptr<Pipeline> pipeline;
@@ -17,12 +34,56 @@ protected:
 
 	std::vector<VkCommandBuffer> commandBuffers;
 
+	// TODO : abstract semaphores for easier creation and destruction (and support multiple APIs)
 	std::vector<VkSemaphore> drawSemaphores;
 	std::vector<VkSemaphore> presentSemaphores;
+	// TODO : abstract fences for same reasons
 	std::vector<VkFence> inFlightFences;
 
+
+	RendererABC(const LogicalDevice& device,
+		const Swapchain& swapchain)
+		: device(device)
+	{
+		commandBuffers.resize((uint32_t)bufferingType);
+		drawSemaphores.resize((uint32_t)bufferingType);
+		presentSemaphores.resize((uint32_t)bufferingType);
+		inFlightFences.resize((uint32_t)bufferingType);
+
+
+		VkCommandBufferAllocateInfo allocInfo = {
+			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+			.commandPool = device.commandPool,
+			.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+			.commandBufferCount = (uint32_t)bufferingType,
+		};
+		vkAllocateCommandBuffers(device.handle, &allocInfo, commandBuffers.data());
+		for (int i = 0; i < (int)bufferingType; ++i)
+		{
+			VkSemaphoreCreateInfo semaphoreCreateInfo = {
+				.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+			};
+			vkCreateSemaphore(device.handle, &semaphoreCreateInfo, nullptr, &drawSemaphores[i]);
+			vkCreateSemaphore(device.handle, &semaphoreCreateInfo, nullptr, &presentSemaphores[i]);
+
+			VkFenceCreateInfo fenceCreateInfo = {
+				.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+				.flags = VK_FENCE_CREATE_SIGNALED_BIT,
+			};
+			vkCreateFence(device.handle, &fenceCreateInfo, nullptr, &inFlightFences[i]);
+		}
+	}
+
 public:
-	virtual ~RendererABC() = default;
+	virtual ~RendererABC()
+	{
+		for (int i = 0; i < (int)bufferingType; ++i)
+		{
+			vkDestroySemaphore(device.handle, drawSemaphores[i], nullptr);
+			vkDestroySemaphore(device.handle, presentSemaphores[i], nullptr);
+			vkDestroyFence(device.handle, inFlightFences[i], nullptr);
+		}
+	}
 
 	//void render(Scene);
 	//void present();
@@ -34,9 +95,6 @@ public:
 class MultiPassRenderer : public RendererABC
 {
 private:
-	const LogicalDevice& device;
-
-private:
 	VkRenderPass renderPass;
 	std::vector<VkFramebuffer> framebuffers;
 
@@ -44,7 +102,7 @@ public:
 	MultiPassRenderer() = delete;
 	MultiPassRenderer(const LogicalDevice& device,
 		const Swapchain& swapchain)
-		: device(device)
+		: RendererABC(device, swapchain)
 	{
 		// render pass
 		VkAttachmentDescription colorAttachment = {
@@ -111,7 +169,7 @@ public:
 				throw std::runtime_error("Failed to create framebuffer");
 		}
 	}
-	~MultiPassRenderer()
+	~MultiPassRenderer() override
 	{
 		for (VkFramebuffer& framebuffer : framebuffers)
 		{
@@ -127,12 +185,14 @@ typedef MultiPassRenderer ForwardRenderer;
 class SinglePassRenderer : public RendererABC
 {
 public:
-	//SinglePassRenderer() = delete;
-	SinglePassRenderer()
+	SinglePassRenderer() = delete;
+	SinglePassRenderer(const LogicalDevice& device,
+		const Swapchain& swapchain)
+		: RendererABC(device, swapchain)
 	{
-
+		throw std::runtime_error("not yet implemented");
 	}
-	~SinglePassRenderer()
+	~SinglePassRenderer() override
 	{
 
 	}

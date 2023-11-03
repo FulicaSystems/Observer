@@ -4,5 +4,5 @@ enum class GraphicsAPIE
 {
 	NONE = 0,
 	OPENGL = 1,
-	VULKAN = 2
+	VULKAN = 2,
 };
