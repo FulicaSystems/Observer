@@ -22,7 +22,8 @@ set(SOURCES
     src/main.cpp
 
     src/application.cpp
-    src/format.cpp
+
+    src/device.cpp
 
     src/resourcesmanager.cpp
 

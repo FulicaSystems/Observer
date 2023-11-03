@@ -6,7 +6,6 @@
 #include <glfw/glfw3.h>
 
 #include "graphicsapi.hpp"
-#include "format.hpp"
 
 #include "window.hpp"
 
@@ -71,6 +70,9 @@ public:
 
 			// create a surface using the instance
 			window->createSurface(context->instance);
+
+			// create swapchain
+			window->createSwapchain(*context);
 
 			break;
 		}

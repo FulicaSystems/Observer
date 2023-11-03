@@ -9,7 +9,11 @@
 
 #include <glad/vulkan.h>
 
+#include "mathematics.hpp"
+
 #include "context.hpp"
+
+
 
 class LogicalDevice
 {
@@ -47,6 +51,66 @@ public:
 	std::shared_ptr<class ShaderModule> create<class ShaderModule>() const;
 	template<>
 	void destroy<class ShaderModule>(std::shared_ptr<class ShaderModule>& pData) const;
+};
+
+
+
+struct SwapchainSupport
+{
+	VkSurfaceCapabilitiesKHR capabilities;
+	std::vector<VkSurfaceFormatKHR> formats;
+	std::vector<VkPresentModeKHR> presentModes;
+
+	bool tryFindFormat(const VkFormat& targetFormat,
+		const VkColorSpaceKHR& targetColorSpace,
+		VkSurfaceFormatKHR& found)
+	{
+		for (const auto& format : formats)
+		{
+			if (format.format == targetFormat && format.colorSpace == targetColorSpace)
+			{
+				found = format;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	bool tryFindPresentMode(const VkPresentModeKHR& targetPresentMode,
+		VkPresentModeKHR& found)
+	{
+		for (const auto& presentMode : presentModes)
+		{
+			if (presentMode == targetPresentMode)
+			{
+				found = presentMode;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	VkExtent2D getExtent()
+	{
+		if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
+		{
+			return capabilities.currentExtent;
+		}
+		else
+		{
+			// arbitrary values (HD ready)
+			return VkExtent2D{
+				.width = Math::clamp(1366U,
+					capabilities.minImageExtent.width,
+					capabilities.maxImageExtent.width),
+				.height = Math::clamp(768U,
+					capabilities.minImageExtent.height,
+					capabilities.maxImageExtent.height),
+			};
+		}
+	}
 };
 
 class PhysicalDevice
@@ -170,13 +234,35 @@ public:
 		return std::optional<uint32_t>();
 	}
 
-	class SwapchainSupport querySwapchainSupport(const VkSurfaceKHR& surface) const;
+	class SwapchainSupport querySwapchainSupport(const VkSurfaceKHR& surface) const
+	{
+		SwapchainSupport details;
+
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, surface, &details.capabilities);
+
+		uint32_t formatCount;
+		vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, nullptr);
+		if (formatCount != 0)
+		{
+			details.formats.resize(formatCount);
+			vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, details.formats.data());
+		}
+
+		uint32_t modeCount;
+		vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &modeCount, nullptr);
+		if (modeCount != 0)
+		{
+			details.presentModes.resize(modeCount);
+			vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &modeCount, details.presentModes.data());
+		}
+
+		return details;
+	}
 };
 
 
 
 
-// TODO : make singleton
 class DeviceSelector
 {
 private:
@@ -249,72 +335,3 @@ public:
 		return *logicalDevices[selected];
 	}
 };
-
-
-/*
-
-
-// TODO : move to .cpp
-#include "window.hpp"
-SwapchainSupport PhysicalDevice::querySwapchainSupport(const VkSurfaceKHR& surface) const
-{
-	SwapchainSupport details;
-
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, surface, &details.capabilities);
-
-	uint32_t formatCount;
-	vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, nullptr);
-	if (formatCount != 0)
-	{
-		details.formats.resize(formatCount);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, details.formats.data());
-	}
-
-	uint32_t modeCount;
-	vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &modeCount, nullptr);
-	if (modeCount != 0)
-	{
-		details.presentModes.resize(modeCount);
-		vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &modeCount, details.presentModes.data());
-	}
-
-	return details;
-}
-
-// TODO : move to .cpp
-#include "buffer.hpp"
-template<>
-std::shared_ptr<Buffer> LogicalDevice::create<Buffer>() const
-{
-	std::shared_ptr<Buffer> out = std::make_shared<Buffer>();
-
-	VkBufferCreateInfo createInfo = {
-		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-		// TODO : fill this struct with args
-	};
-
-
-	vkCreateBuffer(handle, &createInfo, nullptr, &out->handle);
-
-	return out;
-}
-template<>
-void LogicalDevice::destroy<Buffer>(std::shared_ptr<Buffer>& data) const
-{
-	vkDestroyBuffer(handle, data->handle, nullptr);
-}
-
-#include "shadermodule.hpp"
-template<>
-std::shared_ptr<ShaderModule> LogicalDevice::create<ShaderModule>() const
-{
-	// TODO : create shader module
-	return std::make_shared<ShaderModule>();
-}
-template<>
-void LogicalDevice::destroy<ShaderModule>(std::shared_ptr<ShaderModule>& pData) const
-{
-	vkDestroyShaderModule(handle, pData->handle, nullptr);
-}
-
-*/

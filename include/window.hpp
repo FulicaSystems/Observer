@@ -9,73 +9,6 @@
 
 
 
-struct SwapchainSupport
-{
-	VkSurfaceCapabilitiesKHR capabilities;
-	std::vector<VkSurfaceFormatKHR> formats;
-	std::vector<VkPresentModeKHR> presentModes;
-
-	bool tryFindFormat(const VkFormat& targetFormat,
-		const VkColorSpaceKHR& targetColorSpace,
-		VkSurfaceFormatKHR& found)
-	{
-		for (const auto& format : formats)
-		{
-			if (format.format == targetFormat && format.colorSpace == targetColorSpace)
-			{
-				found = format;
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	bool tryFindPresentMode(const VkPresentModeKHR& targetPresentMode,
-		VkPresentModeKHR& found)
-	{
-		for (const auto& presentMode : presentModes)
-		{
-			if (presentMode == targetPresentMode)
-			{
-				found = presentMode;
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	VkExtent2D getExtent()
-	{
-		if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
-		{
-			return capabilities.currentExtent;
-		}
-		else
-		{
-			const int width = Format::framebufferWidth;
-			const int height = Format::framebufferHeight;
-
-			VkExtent2D extent = {
-				.width = static_cast<uint32_t>(width),
-				.height = static_cast<uint32_t>(height),
-			};
-
-			extent.width = Math::clamp(extent.width,
-				capabilities.minImageExtent.width,
-				capabilities.maxImageExtent.width);
-			extent.height = Math::clamp(extent.height,
-				capabilities.minImageExtent.height,
-				capabilities.maxImageExtent.height);
-
-			return extent;
-		}
-	}
-};
-
-
-
 class Swapchain
 {
 private:
@@ -179,7 +112,7 @@ private:
 	const VkInstance& instance;
 
 
-private:
+public:
 	VkSurfaceKHR handle;
 
 public:
@@ -203,6 +136,7 @@ private:
 	std::unique_ptr<Surface> surface;
 
 public:
+	// default extent : HD ready resolution
 	uint32_t width = 1366;
 	uint32_t height = 768;
 
@@ -260,6 +194,15 @@ public:
 
 		surface = std::make_unique<Surface>(instance, surfaceHandle);
 		return *surface;
+	}
+
+	const Swapchain& createSwapchain(const Context& context)
+	{
+		swapchain = std::make_unique<Swapchain>(context.instance,
+			surface->handle,
+			context.deviceSelector->getPhysicalDevice(),
+			context.deviceSelector->getLogicalDevice());
+		return *swapchain;
 	}
 
 	inline void makeContextCurrent()
