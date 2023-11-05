@@ -49,20 +49,26 @@ public:
 		vkDestroyDevice(handle, nullptr);
 	}
 
+
+
 	template<class TDataType>
-	std::shared_ptr<TDataType> create() const { throw std::runtime_error("Use template specialization"); }
+	std::shared_ptr<TDataType> create(const void* createInfo) const { throw std::runtime_error("Use template specialization"); }
 	template<class TDataType>
 	void destroy(std::shared_ptr<TDataType>& pData) const { throw std::runtime_error("Use template specialization"); }
 
+
+
 	template<>
-	std::shared_ptr<class Buffer> create<class Buffer>() const;
+	std::shared_ptr<class Buffer> create<class Buffer>(const void* createInfo) const;
 	template<>
 	void destroy<class Buffer>(std::shared_ptr<class Buffer>& pData) const;
 
 	template<>
-	std::shared_ptr<class ShaderModule> create<class ShaderModule>() const;
+	std::shared_ptr<class ShaderModule> create<class ShaderModule>(const void* createInfo) const;
 	template<>
 	void destroy<class ShaderModule>(std::shared_ptr<class ShaderModule>& pData) const;
+
+	// TODO : create<Image>
 };
 
 

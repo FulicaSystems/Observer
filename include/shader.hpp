@@ -37,7 +37,7 @@ public:
 	std::shared_ptr<ShaderModule> vsModule = nullptr;
 	std::shared_ptr<ShaderModule> fsModule = nullptr;
 
-	std::array<VkPipelineShaderStageCreateInfo, 2> getCreateInfo()
+	std::array<VkPipelineShaderStageCreateInfo, 2> getShaderStageCreateInfo() const
 	{
 		VkPipelineShaderStageCreateInfo vsStageCreateInfo = {
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,

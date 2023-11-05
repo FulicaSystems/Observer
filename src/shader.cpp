@@ -23,8 +23,21 @@ void Shader::unload()
 void GPUShader::load()
 {
 	auto base = (Shader*)host;
-	vsModule = device.create<ShaderModule>();
-	fsModule = device.create<ShaderModule>();
+
+	// vertex shader module
+	VkShaderModuleCreateInfo vsModuleCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+		.codeSize = base->vs.size(),
+		.pCode = reinterpret_cast<const uint32_t*>(base->vs.data()),
+	};
+	//vsModule = device.create<ShaderModule>(&vsModuleCreateInfo);
+	// fragment shader module
+	VkShaderModuleCreateInfo fsModuleCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+		.codeSize = base->fs.size(),
+		.pCode = reinterpret_cast<const uint32_t*>(base->fs.data()),
+	};
+	//fsModule = device.create<ShaderModule>(&fsModuleCreateInfo);
 
 	loaded.test_and_set();
 	loaded.notify_all();
@@ -32,6 +45,6 @@ void GPUShader::load()
 
 void GPUShader::unload()
 {
-	device.destroy<ShaderModule>(vsModule);
-	device.destroy<ShaderModule>(fsModule);
+	//device.destroy<ShaderModule>(vsModule);
+	//device.destroy<ShaderModule>(fsModule);
 }

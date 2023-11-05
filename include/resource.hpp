@@ -12,6 +12,9 @@ public:
 	std::atomic_flag loaded = ATOMIC_FLAG_INIT;
 
 
+	virtual ~ResourceABC() = default;
+
+
 	virtual void load() = 0;
 	virtual void unload() = 0;
 };
@@ -31,7 +34,7 @@ public:
 
 
 	// unload when destroying
-	virtual ~HostResourceABC() { unload(); }
+	virtual ~HostResourceABC() override = default;
 };
 
 
@@ -45,6 +48,7 @@ protected:
 	const class LogicalDevice& device;
 	const HostResourceABC* host;
 
+
 public:
-	virtual ~LocalResourceABC() { unload(); }
+	virtual ~LocalResourceABC() override = default;
 };

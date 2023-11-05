@@ -6,8 +6,11 @@
 
 #include <glad/vulkan.h>
 
+#include "utils/binary.hpp"
+
 #include "device.hpp"
 #include "vertex.hpp"
+#include "shader.hpp"
 
 class Pipeline
 {
@@ -15,6 +18,10 @@ private:
 	const LogicalDevice& device;
 
 private:
+	// shader containing all the pipeline stage information (vertex shader stage, fragment shader stage, ...)
+	std::shared_ptr<Shader> shaderProgram;
+
+
 	VkDescriptorSetLayout setlayout;
 	std::vector<VkDescriptorSet> sets;
 
@@ -22,13 +29,22 @@ private:
 
 	VkPipeline handle;
 
+
 public:
 	Pipeline() = delete;
 	Pipeline(const LogicalDevice& device,
 		const VkRenderPass renderPass,
+		const char* shaderName,
 		const VkExtent2D& viewportExtent)
 		: device(device)
 	{
+		shaderProgram = std::make_shared<Shader>();
+		shaderProgram->load();
+
+
+
+
+
 		std::vector<VkDynamicState> dynamicStates = {
 			VK_DYNAMIC_STATE_VIEWPORT,
 			VK_DYNAMIC_STATE_SCISSOR
@@ -40,7 +56,7 @@ public:
 			.pDynamicStates = dynamicStates.data()
 		};
 
-		//vertex buffer (enabling the binding for our Vertex structure)
+		// vertex buffer (enabling the binding for our Vertex structure)
 		auto binding = Vertex::getBindingDescription();
 		auto attribs = Vertex::getAttributeDescription();
 		VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {
@@ -51,14 +67,14 @@ public:
 			.pVertexAttributeDescriptions = attribs.data()
 		};
 
-		//draw mode
+		// draw mode
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = {
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
 			.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
 			.primitiveRestartEnable = VK_FALSE
 		};
 
-		//viewport
+		// viewport
 		VkViewport viewport = {
 			.x = 0.f,
 			.y = 0.f,
@@ -79,7 +95,7 @@ public:
 			.scissorCount = 1
 		};
 
-		//rasterizer
+		// rasterizer
 		VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo = {
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
 			.depthClampEnable = VK_FALSE,
@@ -94,7 +110,7 @@ public:
 			.lineWidth = 1.f
 		};
 
-		//multisampling, anti-aliasing
+		// multisampling, anti-aliasing
 		VkPipelineMultisampleStateCreateInfo multisamplingCreateInfo = {
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
 			.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
@@ -105,7 +121,7 @@ public:
 			.alphaToOneEnable = VK_FALSE
 		};
 
-		//color blending
+		// color blending
 		VkPipelineColorBlendAttachmentState colorBlendAttachment = {
 			.blendEnable = VK_TRUE,
 			.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
@@ -126,7 +142,7 @@ public:
 			.blendConstants = { 0.f, 0.f, 0.f, 0.f }
 		};
 
-		//uniforms
+		// uniforms
 		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
 			.setLayoutCount = 0,
@@ -138,13 +154,14 @@ public:
 		if (vkCreatePipelineLayout(device.handle, &pipelineLayoutCreateInfo, nullptr, &layout) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create pipeline layout");
 
+		auto shaderModule = std::dynamic_pointer_cast<GPUShader>(shaderProgram->local);
+		auto shaderStageCreateInfo = shaderModule->getShaderStageCreateInfo();
 		VkGraphicsPipelineCreateInfo pipelineCreateInfo = {
 			.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-			//shader stage
-			.stageCount = 2,
-			// TODO : shader handling
-			//.pStages = std::dynamic_pointer_cast<ShaderModule>(shaderProgram->local)->getCreateInfo().data(),
-			//fixed function stage
+			// shader stage
+			.stageCount = static_cast<uint32_t>(shaderStageCreateInfo.size()),
+			.pStages = shaderStageCreateInfo.data(),
+			// fixed function stage
 			.pVertexInputState = &vertexInputCreateInfo,
 			.pInputAssemblyState = &inputAssemblyCreateInfo,
 			.pViewportState = &viewportStateCreateInfo,
@@ -153,9 +170,10 @@ public:
 			.pDepthStencilState = nullptr,
 			.pColorBlendState = &colorBlendCreateInfo,
 			.pDynamicState = &dynamicStateCreateInfo,
-			//pipeline layout
+			// TODO : descriptor sets
+			// pipeline layout
 			.layout = layout,
-			//render pass
+			// render pass
 			.renderPass = renderPass,
 			.subpass = 0,
 			.basePipelineHandle = VK_NULL_HANDLE,

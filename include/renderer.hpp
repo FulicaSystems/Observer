@@ -150,6 +150,11 @@ public:
 			throw std::runtime_error("Failed to create render pass");
 
 
+		// pipeline
+		pipeline = std::make_unique<Pipeline>(device, renderPass, "triangle", swapchain.imageExtent);
+
+
+
 		// framebuffers
 		framebuffers.resize(swapchain.imageViews.size());
 

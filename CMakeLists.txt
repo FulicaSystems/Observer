@@ -16,6 +16,7 @@ project(Project_O)
 add_subdirectory(externals)
 
 set(HEADERS
+    # TODO : add all header files
 )
 
 set(SOURCES
@@ -28,7 +29,7 @@ set(SOURCES
     src/resourcesmanager.cpp
 
     #src/mesh.cpp
-    #src/shader.cpp
+    src/shader.cpp
 )
 
 add_executable(renderer ${HEADERS} ${SOURCES})
