@@ -12,6 +12,8 @@
 #include "vertex.hpp"
 #include "shader.hpp"
 
+
+
 class Pipeline
 {
 private:
@@ -38,8 +40,10 @@ public:
 		const VkExtent2D& viewportExtent)
 		: device(device)
 	{
-		shaderProgram = std::make_shared<Shader>();
+		shaderProgram = std::make_shared<Shader>(std::filesystem::path("shaders/" + std::string(shaderName)));
 		shaderProgram->load();
+		shaderProgram->local = std::make_shared<GPUShader>(device, shaderProgram.get());
+		shaderProgram->local->load();
 
 
 

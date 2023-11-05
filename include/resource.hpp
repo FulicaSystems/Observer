@@ -29,8 +29,15 @@ protected:
 	const uint64_t index = 0ULL;
 	std::filesystem::path filepath = "";
 
+
 public:
 	std::shared_ptr<class LocalResourceABC> local = nullptr;
+
+
+	HostResourceABC() = delete;
+	// TODO : create info oop
+	HostResourceABC(uint64_t index, const void* createInfo)
+		: index(index) {}
 
 
 	// unload when destroying
@@ -50,5 +57,11 @@ protected:
 
 
 public:
+	LocalResourceABC() = delete;
+	LocalResourceABC(const class LogicalDevice& device, const HostResourceABC* host)
+		: device(device), host(host) {}
+
+
+
 	virtual ~LocalResourceABC() override = default;
 };

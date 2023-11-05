@@ -10,13 +10,22 @@
 
 #include "resource.hpp"
 
+
+
 class Shader : public HostResourceABC
 {
 	SUPER(HostResourceABC)
 
+
 public:
 	std::vector<char> vs;
 	std::vector<char> fs;
+
+	Shader(std::filesystem::path shaderPath)
+		: Super(0ULL, nullptr)
+	{
+		filepath = shaderPath;
+	}
 
 
 	void load() override;
@@ -30,12 +39,20 @@ public:
 
 class GPUShader : public LocalResourceABC
 {
+	SUPER(LocalResourceABC)
+
+
 private:
 
 public:
 	// TODO : vector of modules for multiple pass handling
 	std::shared_ptr<ShaderModule> vsModule = nullptr;
 	std::shared_ptr<ShaderModule> fsModule = nullptr;
+
+
+	GPUShader(const class LogicalDevice& device, const HostResourceABC* host)
+		: Super(device, host) {}
+
 
 	std::array<VkPipelineShaderStageCreateInfo, 2> getShaderStageCreateInfo() const
 	{

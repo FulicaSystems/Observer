@@ -13,6 +13,8 @@
 
 #include "resource.hpp"
 
+
+
 class ResourcesManager : public Utils::Singleton<ResourcesManager>
 {
 	SINGLETON(ResourcesManager)

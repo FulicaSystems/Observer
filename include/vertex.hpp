@@ -7,6 +7,8 @@
 #include "mathematics.hpp"
 #include "types/color.hpp"
 
+
+
 struct Vertex
 {
 	// 2 attributes

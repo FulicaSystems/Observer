@@ -2,6 +2,8 @@
 
 #include "resourcesmanager.hpp"
 
+
+
 void ResourcesManager::clearAllResources()
 {
 	ResourcesManager& rm = getInstance();
