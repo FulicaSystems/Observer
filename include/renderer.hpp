@@ -183,7 +183,7 @@ public:
 		vkDestroyRenderPass(device.handle, renderPass, nullptr);
 	}
 };
-typedef MultiPassRenderer ForwardRenderer;
+typedef MultiPassRenderer RenderPassBasedRenderer;
 
 
 

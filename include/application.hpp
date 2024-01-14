@@ -69,7 +69,7 @@ public:
 
 
 			// renderer
-			renderer = std::make_unique<ForwardRenderer>(context->deviceSelector->getLogicalDevice(),
+			renderer = std::make_unique<RenderPassBasedRenderer>(context->deviceSelector->getLogicalDevice(),
 				swapchain);
 
 			break;
