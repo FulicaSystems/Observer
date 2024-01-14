@@ -21,11 +21,8 @@ public:
 	std::vector<char> vs;
 	std::vector<char> fs;
 
-	Shader(std::filesystem::path shaderPath)
-		: Super(0ULL, nullptr)
-	{
-		filepath = shaderPath;
-	}
+	Shader(const uint64_t index,
+		const ResourceLoadInfoI* loadInfo);
 
 
 	void load() override;

@@ -151,6 +151,7 @@ public:
 
 
 		// pipeline
+
 		pipeline = std::make_unique<Pipeline>(device, renderPass, "triangle", swapchain.imageExtent);
 
 

@@ -26,7 +26,7 @@ set(SOURCES
 
     src/device.cpp
 
-    src/resourcesmanager.cpp
+    src/resourceloader.cpp
 
     #src/mesh.cpp
     src/shader.cpp

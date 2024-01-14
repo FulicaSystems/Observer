@@ -5,6 +5,13 @@
 #include "shader.hpp"
 
 
+Shader::Shader(const uint64_t index, const ResourceLoadInfoI* loadInfo)
+	: Super(index, loadInfo)
+{
+	filepath = loadInfo->filepath;
+	local = std::make_shared<GPUShader>(loadInfo->device, this);
+}
+
 void Shader::load()
 {
 	std::string str = filepath.string();

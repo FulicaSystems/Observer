@@ -15,9 +15,9 @@
 
 
 
-class ResourcesManager : public Utils::Singleton<ResourcesManager>
+class ResourceLoader : public Utils::Singleton<ResourceLoader>
 {
-	SINGLETON(ResourcesManager)
+	SINGLETON(ResourceLoader)
 
 private:
 	// TODO : is uint64_t really needed?
@@ -37,24 +37,29 @@ public:
 
 template<class TResource, typename... TArg>
 	requires std::constructible_from<TResource, uint64_t, TArg...>
-inline std::shared_ptr<TResource> ResourcesManager::load(TArg&&... ctorArgs)
+inline std::shared_ptr<TResource> ResourceLoader::load(TArg&&... ctorArgs)
 {
-	ResourcesManager& rm = getInstance();
+	ResourceLoader& rm = getInstance();
 
 	// TODO : resource count
-	auto resource = std::make_shared<TResource>(resourceCount, std::forward<TArg>(ctorArgs)...);
+	auto resource = std::make_shared<TResource>(rm.resourceCount, std::forward<TArg>(ctorArgs)...);
 
 	{
 		std::lock_guard<std::mutex> guard(rm.resourcesMutex);
-		rm.resources[resourceCount] = resource;
+		rm.resources[rm.resourceCount] = resource;
 	}
 
 	Utils::GlobalThreadPool::addTask([=]() {
-		// TODO : multithreaded load
-		resource->load();
-		resource->local->host = resource.get();
-		resource->local->load();
-		});
+		// TODO : multithreaded load (host then local)
+		{
+			resource->load();
+		}
+		{
+			// create local resource within the host load function
+			assert(resource->local);
+			resource->local->load();
+		}
+		}, false); // TODO : multithread
 
 	return std::dynamic_pointer_cast<TResource>(resource);
 }

@@ -5,6 +5,17 @@
 
 
 
+
+struct ResourceLoadInfoI
+{
+	// device on which the resource will be allocated/created
+	const class LogicalDevice& device;
+
+	// resource path if relevant
+	std::filesystem::path filepath;
+};
+
+
 class ResourceABC
 {
 public:
@@ -28,6 +39,7 @@ class HostResourceABC : public ResourceABC
 protected:
 	const uint64_t index = 0ULL;
 	std::filesystem::path filepath = "";
+	const ResourceLoadInfoI* loadInfo;
 
 
 public:
@@ -35,9 +47,9 @@ public:
 
 
 	HostResourceABC() = delete;
-	// TODO : create info oop
-	HostResourceABC(uint64_t index, const void* createInfo)
-		: index(index) {}
+	HostResourceABC(const uint64_t index,
+		const ResourceLoadInfoI* loadInfo)
+		: index(index), loadInfo(loadInfo) {}
 
 
 	// unload when destroying
