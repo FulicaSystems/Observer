@@ -1,3 +1,7 @@
+# TODO : render in fbo instead of swapchain image directly (google search "bgra vs rgba")
+# TODO : clean la compilation et l’installation (glslc, install)
+
+
 #include <iostream>
 
 #include "client/application.hpp"
