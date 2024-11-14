@@ -9,7 +9,7 @@ Shader::Shader(const uint64_t index, const ResourceLoadInfoI* loadInfo)
 	: Super(index, loadInfo)
 {
 	filepath = loadInfo->filepath;
-	local = std::make_shared<GPUShader>(loadInfo->device, this);
+	local = std::make_shared<GPUShader>(loadInfo->deviceptr, this);
 }
 
 void Shader::load()

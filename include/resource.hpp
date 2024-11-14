@@ -9,7 +9,7 @@
 struct ResourceLoadInfoI
 {
 	// device on which the resource will be allocated/created
-	const class LogicalDevice& device;
+	const class LogicalDevice* deviceptr;
 
 	// resource path if relevant
 	std::filesystem::path filepath;
@@ -51,6 +51,8 @@ public:
 		const ResourceLoadInfoI* loadInfo)
 		: index(index), loadInfo(loadInfo) {}
 
+
+	inline uint64_t getIndex() const { return index; }
 
 	// unload when destroying
 	virtual ~HostResourceABC() override = default;

@@ -44,11 +44,10 @@ public:
 		const VkExtent2D& viewportExtent)
 		: device(device)
 	{
-		ResourceLoadInfoI shaderLoadInfo = {
-			.device = device,
+		shaderProgram = ResourceLoader::load<Shader>(ResourceLoadInfoI{
+			.deviceptr = &device,
 			.filepath = std::filesystem::path("shaders/" + std::string(shaderName)),
-		};
-		shaderProgram = ResourceLoader::load<Shader>(&shaderLoadInfo);
+			});
 
 
 		auto createPipeline = [this, &renderPass, &device, &viewportExtent]() {

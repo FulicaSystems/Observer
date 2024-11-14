@@ -25,28 +25,30 @@ private:
 
 
 	std::mutex resourcesMutex;
-	std::unordered_map<uint64_t, std::shared_ptr<HostResourceABC>> resources;
+	std::unordered_map<ResourceLoadInfoI, std::shared_ptr<HostResourceABC>> resources;
 
 public:
-	template<class TResource, typename... TArg>
-		requires std::constructible_from<TResource, uint64_t, TArg...>
-	static inline std::shared_ptr<TResource> load(TArg&&... ctorArgs);
+	template<class TResource>
+		requires std::constructible_from<TResource, uint64_t, ResourceLoadInfoI*>
+	static inline std::shared_ptr<TResource> load(const ResourceLoadInfoI& loadInfo);
 
 	static void clearAllResources();
 };
 
-template<class TResource, typename... TArg>
-	requires std::constructible_from<TResource, uint64_t, TArg...>
-inline std::shared_ptr<TResource> ResourceLoader::load(TArg&&... ctorArgs)
+template<class TResource>
+	requires std::constructible_from<TResource, uint64_t, ResourceLoadInfoI*>
+inline std::shared_ptr<TResource> ResourceLoader::load(const ResourceLoadInfoI& loadInfo)
 {
 	ResourceLoader& rm = getInstance();
 
 	// TODO : resource count
-	auto resource = std::make_shared<TResource>(rm.resourceCount, std::forward<TArg>(ctorArgs)...);
+	auto resource = std::make_shared<TResource>(rm.resourceCount++, &loadInfo);
+	// create local resource within the host resource constructor (pair)
+	assert(resource->local);
 
 	{
 		std::lock_guard<std::mutex> guard(rm.resourcesMutex);
-		rm.resources[rm.resourceCount] = resource;
+		rm.resources[loadInfo] = resource;
 	}
 
 	Utils::GlobalThreadPool::addTask([=]() {
@@ -55,8 +57,6 @@ inline std::shared_ptr<TResource> ResourceLoader::load(TArg&&... ctorArgs)
 			resource->load();
 		}
 		{
-			// create local resource within the host load function
-			assert(resource->local);
 			resource->local->load();
 		}
 		}, false); // TODO : multithread

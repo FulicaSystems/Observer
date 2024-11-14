@@ -12,7 +12,8 @@ void ResourceLoader::clearAllResources()
 	for (auto& r : rm.resources)
 	{
 		// TODO : clear (unload) one by one
-		std::cout << "Clearing " << r.first << " : " << r.second.use_count() << " use" << std::endl;
+		std::cout << "Clearing " << r.second->getIndex() <<
+			" : " << r.second.use_count() << " use" << std::endl;
 	}
 	rm.resources.clear();
 }
