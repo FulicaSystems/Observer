@@ -1,9 +1,6 @@
 [submodule "externals/glfw"]
 	path = externals/glfw
 	url = https://github.com/glfw/glfw.git
-[submodule "externals/libraries"]
-	path = externals/libraries
-	url = https://github.com/SJarod/libraries.git
 [submodule "externals/shaderc"]
 	path = externals/shaderc
 	url = https://github.com/google/shaderc.git
@@ -19,6 +16,12 @@
 [submodule "externals/vulkanmemoryallocator"]
 	path = externals/vulkanmemoryallocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
-[submodule "externals/glad"]
-	path = externals/glad
-	url = https://github.com/Dav1dde/glad.git
+[submodule "externals/Vulkan-Headers"]
+	path = externals/Vulkan-Headers
+	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+[submodule "externals/mathematics"]
+	path = externals/mathematics
+	url = https://github.com/sjarod/mathematics
+[submodule "externals/utilities"]
+	path = externals/utilities
+	url = https://github.com/sjarod/utilities
