@@ -1,6 +1,6 @@
 #pragma once
 
-enum class GraphicsApiE
+enum class GraphicsAPIE
 {
 	NONE = 0,
 	OPENGL = 1 << 0,

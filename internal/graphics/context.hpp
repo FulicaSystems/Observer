@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <vector>
 #include <memory>
 #include <string>
@@ -46,33 +45,19 @@ private:
 
 	std::unique_ptr<Instance> m_instance;
 
-	std::unique_ptr<VkDebugUtilsMessengerEXT> m_debugMessenger;
-
 	//std::unique_ptr<class DeviceSelector> deviceSelector = nullptr;
-
-private:
-	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-		VkDebugUtilsMessageTypeFlagsEXT messageType,
-		const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
-		void* userData)
-	{
-		std::cerr << "[Validation Layer] : " << callbackData->pMessage << std::endl;
-		return VK_FALSE;
-	}
-
-	void createDebugMessenger();
-	void destroyDebugMessenger();
 
 public:
 	Context(const char* applicationName,
 		const version applicationVersion,
 		const version engineVersion,
 		std::vector<const char*> additionalExtensions);
-	~Context();
 
 	void addLayer(const char* layer);
 	void addInstanceExtension(const char* extension);
+
+	void enumerateAvailableInstanceLayers();
+	void enumerateAvailableInstanceExtensions();
 
 public:
 	inline const std::string& getApplicationName() const
@@ -87,9 +72,14 @@ public:
 	{ return m_instanceExtensions; }
 
 public:
+	// base functions
 	PFN_DECLARE(PFN_, vkCreateInstance);
 	PFN_DECLARE(PFN_, vkDestroyInstance);
 	PFN_DECLARE(PFN_, vkGetInstanceProcAddr);
+	PFN_DECLARE(PFN_, vkEnumerateInstanceLayerProperties);
+	PFN_DECLARE(PFN_, vkEnumerateInstanceExtensionProperties);
+
+	// instance
 	PFN_DECLARE(PFN_, vkCreateDebugUtilsMessengerEXT);
 	PFN_DECLARE(PFN_, vkDestroyDebugUtilsMessengerEXT);
 };

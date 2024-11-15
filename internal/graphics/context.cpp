@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include "context.hpp"
 
 Context::Context(const char* applicationName,
@@ -12,6 +14,8 @@ Context::Context(const char* applicationName,
 	GET_PROC_ADDR(*m_loader, PFN_, vkCreateInstance);
 	GET_PROC_ADDR(*m_loader, PFN_, vkDestroyInstance);
 	GET_PROC_ADDR(*m_loader, PFN_, vkGetInstanceProcAddr);
+	GET_PROC_ADDR(*m_loader, PFN_, vkEnumerateInstanceLayerProperties);
+	GET_PROC_ADDR(*m_loader, PFN_, vkEnumerateInstanceExtensionProperties);
 
 	for (const auto& ae : additionalExtensions)
 	{
@@ -26,38 +30,36 @@ Context::Context(const char* applicationName,
 	VK_GET_INSTANCE_PROC_ADDR(m_instance->getHandle(), vkCreateDebugUtilsMessengerEXT);
 	VK_GET_INSTANCE_PROC_ADDR(m_instance->getHandle(), vkDestroyDebugUtilsMessengerEXT);
 
-	createDebugMessenger();
+	enumerateAvailableInstanceLayers();
+	enumerateAvailableInstanceExtensions();
 }
 
-Context::~Context()
+void Context::addLayer(const char* layer)
 {
-	destroyDebugMessenger();
+	m_layers.push_back(layer);
+}
+void Context::addInstanceExtension(const char* extension)
+{
+	m_instanceExtensions.push_back(extension);
 }
 
-void Context::createDebugMessenger()
+void Context::enumerateAvailableInstanceLayers()
 {
-	VkDebugUtilsMessengerCreateInfoEXT createInfo = {
-		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-		.messageSeverity =
-			VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-			VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-			VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT
-			,
-		.messageType =
-			VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-			VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-			VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT
-			,
-		.pfnUserCallback = debugCallback,
-		.pUserData = nullptr
-	};
-
-	VkDebugUtilsMessengerEXT handle;
-	if (vkCreateDebugUtilsMessengerEXT(m_instance->getHandle(), &createInfo, nullptr, &handle) != VK_SUCCESS)
-		throw std::runtime_error("Failed to set up debug messenger");
-	m_debugMessenger = std::make_unique<VkDebugUtilsMessengerEXT>(handle);
+	uint32_t layerCount = 0;
+	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+	std::vector<VkLayerProperties> layers(layerCount);
+	vkEnumerateInstanceLayerProperties(&layerCount, layers.data());
+	std::cout << "available layers : " << layerCount << '\n';
+	for (const auto& layer : layers)
+		std::cout << '\t' << layer.layerName << '\n';
 }
-void Context::destroyDebugMessenger()
+void Context::enumerateAvailableInstanceExtensions()
 {
-	vkDestroyDebugUtilsMessengerEXT(m_instance->getHandle(), *m_debugMessenger, nullptr);
+	uint32_t extensionCount = 0;
+	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+	std::vector<VkExtensionProperties> extensions(extensionCount);
+	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+	std::cout << "available instance extensions : " << extensionCount << '\n';
+	for (const auto& extension : extensions)
+		std::cout << '\t' << extension.extensionName << '\n';
 }
