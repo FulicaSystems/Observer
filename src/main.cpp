@@ -1,12 +1,10 @@
 #include <iostream>
 
-#include "application.hpp"
+#include "client/application.hpp"
 
 #define CHKLK_OVERRIDE_NEW_OP
-#include "utils/checkleak.hpp"
+#include "checkleak.hpp"
 #include <Windows.h>
-
-
 
 // argv[0] : exe path
 // argv[1] : first parameter
@@ -48,7 +46,7 @@ int main(int argc, char** argv)
 	{
 		try
 		{
-			Application app(api >= 0 ? (GraphicsAPIE)api : GraphicsAPIE::VULKAN);
+			Application app/*(api >= 0 ? (GraphicsApiE)api : GraphicsApiE::VULKAN)*/;
 			app.run();
 		}
 		catch (const std::exception& ex)

@@ -1,77 +1,95 @@
-WindowGLFW::PresentationWindow(const GraphicsAPIE api, const uint32_t width, const uint32_t height)
-		: width(width), height(height)
-	{
-		glfwInit();
+#include <stdexcept>
 
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+#include "window.hpp"
 
-		switch (api)
-		{
-		case GraphicsAPIE::OPENGL:
-		{
-			glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+int WSILoaderGLFW::init()
+{
+	return glfwInit();
+}
 
-			break;
-		}
-		case GraphicsAPIE::VULKAN:
-		{
-			// no api specified to create vulkan context
-			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+void WSILoaderGLFW::terminate()
+{
+	glfwTerminate();
+}
 
-			break;
-		}
-		default:
-			throw std::runtime_error("Invalid graphics API");
-		}
+WindowGLFW::WindowGLFW(const uint32_t width, const uint32_t height, const bool resizable)
+	: m_width(width), m_height(height), m_resizable(resizable)
+{
+	glfwWindowHint(GLFW_RESIZABLE, (int)m_resizable);
 
-		handle = glfwCreateWindow(width, height, "Renderer", nullptr, nullptr);
-		glfwGetFramebufferSize(handle, &framebufferWidth, &framebufferHeight);
-	}
-	WindowGLFW::~PresentationWindow()
-	{
-		swapchain.reset();
-		surface.reset();
-		glfwDestroyWindow(handle);
-		glfwTerminate();
-	}
+	// TODO : find a way to move these specific calls to a dll
 
-	const std::vector<const char*> WindowGLFW::getRequiredExtensions() const
-	{
-		uint32_t count = 0;
-		const char** extensions;
+	// switch (api)
+	// {
+	// case GraphicsApiE::OPENGL:
+	// {
+	// 	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+	// 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	// 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	// 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-		extensions = glfwGetRequiredInstanceExtensions(&count);
+	// 	break;
+	// }
+	// case GraphicsApiE::VULKAN:
+	// {
+	if (!glfwVulkanSupported())
+		throw std::runtime_error("GLFW failed to find the Vulkan loader");
 
-		return std::vector<const char*>(extensions, extensions + count);
-	}
+	// no api specified to create vulkan context
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-	const Surface& WindowGLFW::createSurface(const VkInstance& instance)
-	{
-		VkSurfaceKHR surfaceHandle;
-		glfwCreateWindowSurface(instance, handle, nullptr, &surfaceHandle);
+	// 	break;
+	// }
+	// default:
+	// 	throw std::runtime_error("Invalid graphics API");
+	// }
 
-		surface = std::make_unique<Surface>(instance, surfaceHandle);
-		return *surface;
-	}
+	m_handle = glfwCreateWindow(m_width, m_height, "Renderer", nullptr, nullptr);
 
-	const Swapchain& WindowGLFW::createSwapchain(const Context& context)
-	{
-		swapchain = std::make_unique<Swapchain>(context.instance,
-			surface->handle,
-			context.deviceSelector->getPhysicalDevice(),
-			context.deviceSelector->getLogicalDevice());
-		return *swapchain;
-	}
+	glfwGetFramebufferSize(m_handle, &m_framebufferWidth, &m_framebufferHeight);
+}
+WindowGLFW::~WindowGLFW()
+{
+	//swapchain.reset();
+	//surface.reset();
+	glfwDestroyWindow(m_handle);
+}
 
-	inline void WindowGLFW::makeContextCurrent()
-	{
-		glfwMakeContextCurrent(handle);
-	}
+const std::vector<const char*> WindowGLFW::getRequiredExtensions() const
+{
+	uint32_t count = 0;
+	const char** extensions;
 
-	inline bool WindowGLFW::shouldClose() const
-	{
-		return glfwWindowShouldClose(handle);
-	}
+	extensions = glfwGetRequiredInstanceExtensions(&count);
+
+	return std::vector<const char*>(extensions, extensions + count);
+}
+
+void WindowGLFW::makeContextCurrent()
+{
+	glfwMakeContextCurrent(m_handle);
+}
+
+bool WindowGLFW::shouldClose() const
+{
+	return glfwWindowShouldClose(m_handle);
+}
+
+void WindowGLFW::swapBuffers()
+{
+	glfwSwapBuffers(m_handle);
+}
+
+void WindowGLFW::pollEvents()
+{
+	glfwPollEvents();
+}
+
+//const Surface& WindowGLFW::createSurface(const Instance& instance)
+//{
+//	VkSurfaceKHR surface;
+//	glfwCreateWindowSurface(instance->m_handle, m_handle, nullptr, &surface);
+
+//	m_surface = std::make_unique<Surface>(instance->m_handle, surface);
+//	return *m_surface;
+//}

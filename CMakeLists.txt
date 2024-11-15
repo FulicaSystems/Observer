@@ -11,33 +11,10 @@ if(NOT GIT_RESULT EQUAL "0")
     message(FATAL_ERROR "Failed to update submodules, ${GIT_RESULT}")
 endif()
 
-project(Project_O)
+set(PROJECT_NAME Project_O)
+
+project(${PROJECT_NAME})
 
 add_subdirectory(externals)
-
-set(HEADERS
-    # TODO : add all header files
-)
-
-set(SOURCES
-    src/main.cpp
-
-    src/application.cpp
-
-    src/device.cpp
-
-    src/resourceloader.cpp
-
-    #src/mesh.cpp
-    src/shader.cpp
-)
-
-add_executable(renderer ${HEADERS} ${SOURCES})
-target_include_directories(renderer PRIVATE include)
-target_link_libraries(renderer
-    PUBLIC glad_vk_13
-    PUBLIC glad_gl_core_46
-    PUBLIC glfw
-    PUBLIC libraries
-    PUBLIC VulkanMemoryAllocator
-)
+add_subdirectory(internal)
+add_subdirectory(src)

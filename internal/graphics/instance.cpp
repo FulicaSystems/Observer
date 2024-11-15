@@ -3,35 +3,44 @@
 #include "instance.hpp"
 
 Instance::Instance(const Context& cx)
+	: cx(cx)
 {
-		VkApplicationInfo appInfo = {
-			.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-			.pApplicationName = applicationName,
-			.applicationVersion = VK_MAKE_API_VERSION(0,
-				MAJOR(applicationVersion),
-				MINOR(applicationVersion),
-				PATCH(applicationVersion)),
-			.engineVersion = VK_MAKE_API_VERSION(0,
-				MAJOR(engineVersion),
-				MINOR(engineVersion),
-				PATCH(engineVersion)),
-			.apiVersion = VK_API_VERSION_1_3
-		};
+	version appv = cx.getApplicationVersion();
+	version engv = cx.getEngineVersion();
 
-#ifndef NDEBUG
-		additionalExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-#endif
+	VkApplicationInfo appInfo = {
+		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+		.pApplicationName = cx.getApplicationName().c_str(),
+		.applicationVersion = VK_MAKE_API_VERSION(0,
+			MAJOR(appv),
+			MINOR(appv),
+			PATCH(appv)),
+		.engineVersion = VK_MAKE_API_VERSION(0,
+			MAJOR(engv),
+			MINOR(engv),
+			PATCH(engv)),
+		.apiVersion = VK_API_VERSION_1_3
+	};
 
-		VkInstanceCreateInfo createInfo = {
-			.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-			.pApplicationInfo = &appInfo,
-			.enabledLayerCount = layerCount,
-			.ppEnabledLayerNames = &layers,
-			.enabledExtensionCount = static_cast<uint32_t>(additionalExtensions.size()),
-			.ppEnabledExtensionNames = additionalExtensions.data()
-		};
+	auto layers = cx.getLayers();
+	auto instanceExtensions = cx.getInstanceExtensions();
+	VkInstanceCreateInfo createInfo = {
+		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+		.pApplicationInfo = &appInfo,
+		.enabledLayerCount = static_cast<uint32_t>(layers.size()),
+		.ppEnabledLayerNames = layers.data(),
+		.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size()),
+		.ppEnabledExtensionNames = instanceExtensions.data()
+	};
 
-		if (cx.vkCreateInstance(&createInfo, nullptr, &m_handle) != VK_SUCCESS)
-			throw std::runtime_error("Failed to create Vulkan instance");
+	VkInstance handle;
+	if (cx.vkCreateInstance(&createInfo, nullptr, &handle) != VK_SUCCESS)
+		throw std::runtime_error("Failed to create Vulkan instance");
 
+	m_handle = std::make_unique<VkInstance>(handle);
+}
+
+Instance::~Instance()
+{
+	cx.vkDestroyInstance(*m_handle, nullptr);
 }

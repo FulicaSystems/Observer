@@ -1,6 +1,16 @@
 #pragma once
 
+#include <iostream>
+#include <vector>
+#include <memory>
+#include <string>
+
 #include <vulkan/vulkan.h>
+
+#include <binary/dynamic_library_loader.hpp>
+
+#include "instance.hpp"
+
 
 // 32 bits
 // 4 bits for major, 12 bits for minor, 16 bits for patch
@@ -20,9 +30,15 @@ struct version
 typedef uint32_t version;
 #endif
 
+#define VK_GET_INSTANCE_PROC_ADDR(instance, funcName) funcName = (PFN_##funcName)vkGetInstanceProcAddr(instance, #funcName)
+
 class Context
 {
-public:
+private:
+	std::string m_applicationName;
+	version m_applicationVersion;
+	version m_engineVersion;
+
 	std::vector<const char*> m_layers;
 	std::vector<const char*> m_instanceExtensions;
 
@@ -30,7 +46,11 @@ public:
 
 	std::unique_ptr<Instance> m_instance;
 
+	std::unique_ptr<VkDebugUtilsMessengerEXT> m_debugMessenger;
 
+	//std::unique_ptr<class DeviceSelector> deviceSelector = nullptr;
+
+private:
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -41,18 +61,35 @@ public:
 		return VK_FALSE;
 	}
 
-	VkDebugUtilsMessengerEXT debugMessenger;
+	void createDebugMessenger();
+	void destroyDebugMessenger();
 
-	std::unique_ptr<class DeviceSelector> deviceSelector = nullptr;
-
+public:
 	Context(const char* applicationName,
 		const version applicationVersion,
 		const version engineVersion,
 		std::vector<const char*> additionalExtensions);
 	~Context();
 
-	void createDebugMessenger();
-	void destroyDebugMessenger();
+	void addLayer(const char* layer);
+	void addInstanceExtension(const char* extension);
 
-	PFN_vkCreateInstance vkCreateInstance;
+public:
+	inline const std::string& getApplicationName() const
+	{ return m_applicationName; }
+	inline const version getApplicationVersion() const
+	{ return m_applicationVersion; }
+	inline const version getEngineVersion() const
+	{ return m_engineVersion; }
+	inline const std::vector<const char*> getLayers() const
+	{ return m_layers; }
+	inline const std::vector<const char*> getInstanceExtensions() const
+	{ return m_instanceExtensions; }
+
+public:
+	PFN_DECLARE(PFN_, vkCreateInstance);
+	PFN_DECLARE(PFN_, vkDestroyInstance);
+	PFN_DECLARE(PFN_, vkGetInstanceProcAddr);
+	PFN_DECLARE(PFN_, vkCreateDebugUtilsMessengerEXT);
+	PFN_DECLARE(PFN_, vkDestroyDebugUtilsMessengerEXT);
 };

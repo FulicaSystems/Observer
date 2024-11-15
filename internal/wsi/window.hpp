@@ -1,33 +1,55 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include <memory>
+#include <vector>
 
-class WindowGLFW
+#include <GLFW/glfw3.h>
+
+class WSILoaderI
+{
+public:
+	virtual int init() = 0;
+	virtual void terminate() = 0;
+};
+
+class WSILoaderGLFW : public WSILoaderI
+{
+public:
+	int init() override;
+	void terminate() override;
+};
+
+class Window
+{
+
+};
+
+class WindowGLFW : public Window
 {
 private:
-	std::unique_ptr<Swapchain> swapchain;
-	std::unique_ptr<Surface> surface;
+	//std::unique_ptr<Swapchain> m_swapchain;
+	//std::unique_ptr<Surface> m_surface;
 
-public:
-	// default extent : HD ready resolution
-	uint32_t width = 1366;
-	uint32_t height = 768;
+	bool m_resizable = false;
 
-	int framebufferWidth;
-	int framebufferHeight;
+	uint32_t m_width = 1366;
+	uint32_t m_height = 768;
+
+	int m_framebufferWidth;
+	int m_framebufferHeight;
 
 	GLFWwindow* m_handle;
 
-	PresentationWindow(const GraphicsAPIE api, const uint32_t width, const uint32_t height);
-	~PresentationWindow();
+public:
+	WindowGLFW(const uint32_t width, const uint32_t height, const bool resizable = false);
+	~WindowGLFW();
 
 	const std::vector<const char*> getRequiredExtensions() const;
 
-	const Surface& createSurface(const VkInstance& instance);
+	void makeContextCurrent();
+	void swapBuffers();
+	void pollEvents();
+	bool shouldClose() const;
 
-	const Swapchain& createSwapchain(const Context& context);
-
-	inline void makeContextCurrent();
-
-	inline bool shouldClose() const;
+	//const Surface& createSurface(const Instance& instance);
 };

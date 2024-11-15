@@ -1,10 +1,14 @@
 # glfw
 add_subdirectory(glfw)
 
+# vulkan headers
+add_subdirectory(Vulkan-Headers)
+
 # mathematics
 add_subdirectory(mathematics)
 
 # utilities
+set(BUILD_AI_UTILS OFF)
 add_subdirectory(utilities)
 
 # glslc
