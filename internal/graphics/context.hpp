@@ -48,6 +48,7 @@ private:
 	//std::unique_ptr<class DeviceSelector> deviceSelector = nullptr;
 
 public:
+    Context() = delete;
 	Context(const char* applicationName,
 		const version applicationVersion,
 		const version engineVersion,
@@ -58,6 +59,7 @@ public:
 
 	void enumerateAvailableInstanceLayers();
 	void enumerateAvailableInstanceExtensions();
+	void enumerateAvailablePhysicalDevices();
 
 public:
 	inline const std::string& getApplicationName() const
@@ -79,7 +81,10 @@ public:
 	PFN_DECLARE(PFN_, vkEnumerateInstanceLayerProperties);
 	PFN_DECLARE(PFN_, vkEnumerateInstanceExtensionProperties);
 
+	PFN_DECLARE(PFN_, vkGetPhysicalDeviceProperties);
+
 	// instance
 	PFN_DECLARE(PFN_, vkCreateDebugUtilsMessengerEXT);
 	PFN_DECLARE(PFN_, vkDestroyDebugUtilsMessengerEXT);
+	PFN_DECLARE(PFN_, vkEnumeratePhysicalDevices);
 };

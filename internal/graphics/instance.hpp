@@ -51,7 +51,14 @@ private:
 
 
 public:
+    Instance() = delete;
+    Instance(const Instance&) = delete;
+    Instance& operator=(const Instance&) = delete;
+    Instance(Instance&&) = delete;
+    Instance& operator=(Instance&&) = delete;
+
     Instance(const Context& cx);
+	
     ~Instance();
 
     inline VkInstance getHandle() const { return *m_handle; }

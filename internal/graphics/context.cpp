@@ -17,6 +17,8 @@ Context::Context(const char* applicationName,
 	GET_PROC_ADDR(*m_loader, PFN_, vkEnumerateInstanceLayerProperties);
 	GET_PROC_ADDR(*m_loader, PFN_, vkEnumerateInstanceExtensionProperties);
 
+	GET_PROC_ADDR(*m_loader, PFN_, vkGetPhysicalDeviceProperties);
+
 	for (const auto& ae : additionalExtensions)
 	{
 		m_instanceExtensions.push_back(ae);
@@ -30,8 +32,11 @@ Context::Context(const char* applicationName,
 	VK_GET_INSTANCE_PROC_ADDR(m_instance->getHandle(), vkCreateDebugUtilsMessengerEXT);
 	VK_GET_INSTANCE_PROC_ADDR(m_instance->getHandle(), vkDestroyDebugUtilsMessengerEXT);
 
+	VK_GET_INSTANCE_PROC_ADDR(m_instance->getHandle(), vkEnumeratePhysicalDevices);
+
 	enumerateAvailableInstanceLayers();
 	enumerateAvailableInstanceExtensions();
+	enumerateAvailablePhysicalDevices();
 }
 
 void Context::addLayer(const char* layer)
@@ -62,4 +67,20 @@ void Context::enumerateAvailableInstanceExtensions()
 	std::cout << "available instance extensions : " << extensionCount << '\n';
 	for (const auto& extension : extensions)
 		std::cout << '\t' << extension.extensionName << '\n';
+}
+void Context::enumerateAvailablePhysicalDevices()
+{
+	uint32_t deviceCount = 0;
+	vkEnumeratePhysicalDevices(m_instance->getHandle(), &deviceCount, nullptr);
+	std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
+	vkEnumeratePhysicalDevices(m_instance->getHandle(), &deviceCount, physicalDevices.data());
+
+	std::cout << "available physical devices : " << deviceCount << '\n';
+
+	for (const auto& physicalDevice : physicalDevices)
+	{
+		VkPhysicalDeviceProperties props;
+		vkGetPhysicalDeviceProperties(physicalDevice, &props);	
+		std::cout << '\t' << props.deviceName << '\n';
+	}
 }

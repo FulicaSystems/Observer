@@ -41,7 +41,14 @@ private:
 	GLFWwindow* m_handle;
 
 public:
+	WindowGLFW() = delete;
+    WindowGLFW(const WindowGLFW&) = delete;
+    WindowGLFW& operator=(const WindowGLFW&) = delete;
+    WindowGLFW(WindowGLFW&&) = delete;
+    WindowGLFW& operator=(WindowGLFW&&) = delete;
+
 	WindowGLFW(const uint32_t width, const uint32_t height, const bool resizable = false);
+
 	~WindowGLFW();
 
 	const std::vector<const char*> getRequiredExtensions() const;
