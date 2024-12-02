@@ -57,9 +57,9 @@ public:
 	void addLayer(const char* layer);
 	void addInstanceExtension(const char* extension);
 
-	void enumerateAvailableInstanceLayers();
-	void enumerateAvailableInstanceExtensions();
-	void enumerateAvailablePhysicalDevices();
+	std::vector<const char*> enumerateAvailableInstanceLayers(const bool bDump = true);
+	std::vector<const char*> enumerateAvailableInstanceExtensions(const bool bDump = true);
+	std::vector<VkPhysicalDevice> enumerateAvailablePhysicalDevices(const bool bDump = true);
 
 public:
 	inline const std::string& getApplicationName() const

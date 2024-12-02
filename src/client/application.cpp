@@ -11,6 +11,11 @@ Application::Application()
 		VERSION(0, 0, 0),
 		VERSION(0, 0, 0),
 		window->getRequiredExtensions());
+
+	// for (const auto& physicalDevice : context->enumerateAvailablePhysicalDevices())
+	// {
+	// 	physicalDevices.emplace_back(std::make_shared<PhysicalDevice>(physicalDevice));
+	// }
 }
 
 void Application::run()

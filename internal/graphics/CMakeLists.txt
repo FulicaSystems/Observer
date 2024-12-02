@@ -23,15 +23,17 @@ target_sources(${component}
     swapchain.cpp
 )
 
+#add_subdirectory(asset)
+add_subdirectory(device)
+#add_subdirectory(device_memory)
+#add_subdirectory(renderer)
+
 target_link_libraries(${component}
     PUBLIC Vulkan-Headers
     PUBLIC Utilities
-)
 
-#add_subdirectory(asset)
-#add_subdirectory(device)
-#add_subdirectory(device_memory)
-#add_subdirectory(renderer)
+    PUBLIC graphics::device
+)
 
 target_include_directories(${component} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 target_include_directories(${component} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/..")

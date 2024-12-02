@@ -7,9 +7,8 @@ target_sources(${component}
     main.cpp
 )
 
+add_subdirectory(client)
+
 target_link_libraries(${component}
     PUBLIC client
-    PUBLIC Utilities
 )
-
-add_subdirectory(client)

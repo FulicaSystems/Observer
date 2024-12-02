@@ -48,27 +48,47 @@ void Context::addInstanceExtension(const char* extension)
 	m_instanceExtensions.push_back(extension);
 }
 
-void Context::enumerateAvailableInstanceLayers()
+std::vector<const char*> Context::enumerateAvailableInstanceLayers(const bool bDump)
 {
+
 	uint32_t layerCount = 0;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+
+	std::vector<const char*> out;
+	out.reserve(layerCount);
+
 	std::vector<VkLayerProperties> layers(layerCount);
 	vkEnumerateInstanceLayerProperties(&layerCount, layers.data());
 	std::cout << "available layers : " << layerCount << '\n';
 	for (const auto& layer : layers)
-		std::cout << '\t' << layer.layerName << '\n';
+	{
+		if (bDump)
+				std::cout << '\t' << layer.layerName << '\n';
+		out.push_back(layer.layerName);
+	}
+return out;
 }
-void Context::enumerateAvailableInstanceExtensions()
+std::vector<const char*> Context::enumerateAvailableInstanceExtensions(const bool bDump)
 {
 	uint32_t extensionCount = 0;
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+
+		std::vector<const char*> out;
+	out.reserve(extensionCount);
+
 	std::vector<VkExtensionProperties> extensions(extensionCount);
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
 	std::cout << "available instance extensions : " << extensionCount << '\n';
 	for (const auto& extension : extensions)
+	{
+		if (bDump)
 		std::cout << '\t' << extension.extensionName << '\n';
+		out.push_back(extension.extensionName);
+
+	}
+return out;
 }
-void Context::enumerateAvailablePhysicalDevices()
+std::vector<VkPhysicalDevice> Context::enumerateAvailablePhysicalDevices(const bool bDump)
 {
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(m_instance->getHandle(), &deviceCount, nullptr);
@@ -83,4 +103,5 @@ void Context::enumerateAvailablePhysicalDevices()
 		vkGetPhysicalDeviceProperties(physicalDevice, &props);	
 		std::cout << '\t' << props.deviceName << '\n';
 	}
+return physicalDevices;
 }

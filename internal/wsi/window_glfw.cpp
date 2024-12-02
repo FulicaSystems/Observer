@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-#include "window.hpp"
+#include "window_glfw.hpp"
 
 int WSILoaderGLFW::init()
 {

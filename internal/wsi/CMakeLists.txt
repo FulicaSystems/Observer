@@ -5,12 +5,16 @@ add_library(${component} STATIC "")
 set_property(TARGET ${component}
     PROPERTY PUBLIC_HEADER
     window.hpp
+    
+    window_glfw.hpp
 )
 
 target_sources(${component}
     PRIVATE
-    window.cpp
     window.hpp
+
+    window_glfw.hpp
+    window_glfw.cpp
 )
 
 target_link_libraries(${component}

@@ -1,9 +1,6 @@
 #pragma once
 
-#include <memory>
 #include <vector>
-
-#include <GLFW/glfw3.h>
 
 class WSILoaderI
 {
@@ -12,51 +9,13 @@ public:
 	virtual void terminate() = 0;
 };
 
-class WSILoaderGLFW : public WSILoaderI
+class WindowI
 {
 public:
-	int init() override;
-	void terminate() override;
-};
+	virtual const std::vector<const char*> getRequiredExtensions() const = 0;
 
-class Window
-{
-
-};
-
-class WindowGLFW : public Window
-{
-private:
-	//std::unique_ptr<Swapchain> m_swapchain;
-	//std::unique_ptr<Surface> m_surface;
-
-	bool m_resizable = false;
-
-	uint32_t m_width = 1366;
-	uint32_t m_height = 768;
-
-	int m_framebufferWidth;
-	int m_framebufferHeight;
-
-	GLFWwindow* m_handle;
-
-public:
-	WindowGLFW() = delete;
-    WindowGLFW(const WindowGLFW&) = delete;
-    WindowGLFW& operator=(const WindowGLFW&) = delete;
-    WindowGLFW(WindowGLFW&&) = delete;
-    WindowGLFW& operator=(WindowGLFW&&) = delete;
-
-	WindowGLFW(const uint32_t width, const uint32_t height, const bool resizable = false);
-
-	~WindowGLFW();
-
-	const std::vector<const char*> getRequiredExtensions() const;
-
-	void makeContextCurrent();
-	void swapBuffers();
-	void pollEvents();
-	bool shouldClose() const;
-
-	//const Surface& createSurface(const Instance& instance);
+	virtual void makeContextCurrent() = 0;
+	virtual void swapBuffers() = 0;
+	virtual void pollEvents() = 0;
+	virtual bool shouldClose() const = 0;
 };

@@ -1,2 +1,9 @@
 #include "device.hpp"
-#include "device.inl"
+
+LogicalDevice::~LogicalDevice()
+    	{
+		vkDestroyCommandPool(handle, commandPoolDecode, nullptr);
+		vkDestroyCommandPool(handle, commandPoolTransient, nullptr);
+		vkDestroyCommandPool(handle, commandPool, nullptr);
+		vkDestroyDevice(handle, nullptr);
+	}
