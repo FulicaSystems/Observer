@@ -4,88 +4,88 @@
 
 int WSILoaderGLFW::init()
 {
-	return glfwInit();
+    return glfwInit();
 }
 
 void WSILoaderGLFW::terminate()
 {
-	glfwTerminate();
+    glfwTerminate();
 }
 
 WindowGLFW::WindowGLFW(const uint32_t width, const uint32_t height, const bool resizable)
-	: m_width(width), m_height(height), m_resizable(resizable)
+    : m_width(width), m_height(height), m_resizable(resizable)
 {
-	glfwWindowHint(GLFW_RESIZABLE, (int)m_resizable);
+    glfwWindowHint(GLFW_RESIZABLE, (int)m_resizable);
 
-	// TODO : find a way to move these specific calls to a dll
+    // TODO : find a way to move these specific calls to a dll
 
-	// switch (api)
-	// {
-	// case GraphicsApiE::OPENGL:
-	// {
-	// 	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
-	// 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	// 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	// 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // switch (api)
+    // {
+    // case GraphicsApiE::OPENGL:
+    // {
+    // 	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+    // 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    // 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    // 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	// 	break;
-	// }
-	// case GraphicsApiE::VULKAN:
-	// {
-	if (!glfwVulkanSupported())
-		throw std::runtime_error("GLFW failed to find the Vulkan loader");
+    // 	break;
+    // }
+    // case GraphicsApiE::VULKAN:
+    // {
+    if (!glfwVulkanSupported())
+        throw std::runtime_error("GLFW failed to find the Vulkan loader");
 
-	// no api specified to create vulkan context
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    // no api specified to create vulkan context
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-	// 	break;
-	// }
-	// default:
-	// 	throw std::runtime_error("Invalid graphics API");
-	// }
+    // 	break;
+    // }
+    // default:
+    // 	throw std::runtime_error("Invalid graphics API");
+    // }
 
-	m_handle = glfwCreateWindow(m_width, m_height, "Renderer", nullptr, nullptr);
+    m_handle = glfwCreateWindow(m_width, m_height, "Renderer", nullptr, nullptr);
 
-	glfwGetFramebufferSize(m_handle, &m_framebufferWidth, &m_framebufferHeight);
+    glfwGetFramebufferSize(m_handle, &m_framebufferWidth, &m_framebufferHeight);
 }
 WindowGLFW::~WindowGLFW()
 {
-	//swapchain.reset();
-	//surface.reset();
-	glfwDestroyWindow(m_handle);
+    // swapchain.reset();
+    // surface.reset();
+    glfwDestroyWindow(m_handle);
 }
 
-const std::vector<const char*> WindowGLFW::getRequiredExtensions() const
+const std::vector<const char *> WindowGLFW::getRequiredExtensions() const
 {
-	uint32_t count = 0;
-	const char** extensions;
+    uint32_t count = 0;
+    const char **extensions;
 
-	extensions = glfwGetRequiredInstanceExtensions(&count);
+    extensions = glfwGetRequiredInstanceExtensions(&count);
 
-	return std::vector<const char*>(extensions, extensions + count);
+    return std::vector<const char *>(extensions, extensions + count);
 }
 
 void WindowGLFW::makeContextCurrent()
 {
-	glfwMakeContextCurrent(m_handle);
+    glfwMakeContextCurrent(m_handle);
 }
 
 bool WindowGLFW::shouldClose() const
 {
-	return glfwWindowShouldClose(m_handle);
+    return glfwWindowShouldClose(m_handle);
 }
 
 void WindowGLFW::swapBuffers()
 {
-	glfwSwapBuffers(m_handle);
+    glfwSwapBuffers(m_handle);
 }
 
 void WindowGLFW::pollEvents()
 {
-	glfwPollEvents();
+    glfwPollEvents();
 }
 
-//const Surface& WindowGLFW::createSurface(const Instance& instance)
+// const Surface& WindowGLFW::createSurface(const Instance& instance)
 //{
 //	VkSurfaceKHR surface;
 //	glfwCreateWindowSurface(instance->m_handle, m_handle, nullptr, &surface);

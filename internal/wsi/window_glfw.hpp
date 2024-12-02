@@ -6,44 +6,44 @@
 
 class WSILoaderGLFW final : public WSILoaderI
 {
-public:
-	int init() override;
-	void terminate() override;
+  public:
+    int init() override;
+    void terminate() override;
 };
 
 class WindowGLFW final : public WindowI
 {
-private:
-	//std::unique_ptr<Swapchain> m_swapchain;
-	//std::unique_ptr<Surface> m_surface;
+  private:
+    // std::unique_ptr<Swapchain> m_swapchain;
+    // std::unique_ptr<Surface> m_surface;
 
-	bool m_resizable = false;
+    bool m_resizable = false;
 
-	uint32_t m_width = 1366;
-	uint32_t m_height = 768;
+    uint32_t m_width = 1366;
+    uint32_t m_height = 768;
 
-	int m_framebufferWidth;
-	int m_framebufferHeight;
+    int m_framebufferWidth;
+    int m_framebufferHeight;
 
-	GLFWwindow* m_handle;
+    GLFWwindow *m_handle;
 
-public:
-	WindowGLFW() = delete;
-    WindowGLFW(const WindowGLFW&) = delete;
-    WindowGLFW& operator=(const WindowGLFW&) = delete;
-    WindowGLFW(WindowGLFW&&) = delete;
-    WindowGLFW& operator=(WindowGLFW&&) = delete;
+  public:
+    WindowGLFW() = delete;
+    WindowGLFW(const WindowGLFW &) = delete;
+    WindowGLFW &operator=(const WindowGLFW &) = delete;
+    WindowGLFW(WindowGLFW &&) = delete;
+    WindowGLFW &operator=(WindowGLFW &&) = delete;
 
-	WindowGLFW(const uint32_t width, const uint32_t height, const bool resizable = false);
+    WindowGLFW(const uint32_t width, const uint32_t height, const bool resizable = false);
 
-	~WindowGLFW();
+    ~WindowGLFW();
 
-	const std::vector<const char*> getRequiredExtensions() const override;
+    const std::vector<const char *> getRequiredExtensions() const override;
 
-	void makeContextCurrent() override;
-	void swapBuffers() override;
-	void pollEvents() override;
-	bool shouldClose() const override;
+    void makeContextCurrent() override;
+    void swapBuffers() override;
+    void pollEvents() override;
+    bool shouldClose() const override;
 
-	//const Surface& createSurface(const Instance& instance);
+    // const Surface& createSurface(const Instance& instance);
 };

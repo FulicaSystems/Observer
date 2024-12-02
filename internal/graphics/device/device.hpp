@@ -4,49 +4,44 @@
 
 class LogicalDevice
 {
-public:
-	VkDevice handle;
+  public:
+    VkDevice handle;
 
-	VkQueue graphicsQueue;
-	VkQueue presentQueue;
-	VkQueue decodeQueue;
+    VkQueue graphicsQueue;
+    VkQueue presentQueue;
+    VkQueue decodeQueue;
 
-	// reset command pool
-	VkCommandPool commandPool;
-	// transient command pool
-	VkCommandPool commandPoolTransient;
-	// decode reset command pool
-	VkCommandPool commandPoolDecode;
+    // reset command pool
+    VkCommandPool commandPool;
+    // transient command pool
+    VkCommandPool commandPoolTransient;
+    // decode reset command pool
+    VkCommandPool commandPoolDecode;
 
-	LogicalDevice() = delete;
-    LogicalDevice(const LogicalDevice& copy) = delete;
-    LogicalDevice& operator=(const LogicalDevice& copy) = delete;
-    LogicalDevice(LogicalDevice&& move) = delete;
-    LogicalDevice& operator=(LogicalDevice&& move) = delete;
-	~LogicalDevice();
+    LogicalDevice() = delete;
+    LogicalDevice(const LogicalDevice &copy) = delete;
+    LogicalDevice &operator=(const LogicalDevice &copy) = delete;
+    LogicalDevice(LogicalDevice &&move) = delete;
+    LogicalDevice &operator=(LogicalDevice &&move) = delete;
+    ~LogicalDevice();
 
+    // template<class TDataType>
+    // std::shared_ptr<TDataType> create(const void* createInfo) const { throw std::runtime_error("Use template
+    // specialization"); } template<class TDataType> void destroy(std::shared_ptr<TDataType>& pData) const { throw
+    // std::runtime_error("Use template specialization"); }
 
-	// template<class TDataType>
-	// std::shared_ptr<TDataType> create(const void* createInfo) const { throw std::runtime_error("Use template specialization"); }
-	// template<class TDataType>
-	// void destroy(std::shared_ptr<TDataType>& pData) const { throw std::runtime_error("Use template specialization"); }
+    // template<>
+    // std::shared_ptr<class Buffer> create<class Buffer>(const void* createInfo) const;
+    // template<>
+    // void destroy<class Buffer>(std::shared_ptr<class Buffer>& pData) const;
 
+    // template<>
+    // std::shared_ptr<class ShaderModule> create<class ShaderModule>(const void* createInfo) const;
+    // template<>
+    // void destroy<class ShaderModule>(std::shared_ptr<class ShaderModule>& pData) const;
 
-
-	// template<>
-	// std::shared_ptr<class Buffer> create<class Buffer>(const void* createInfo) const;
-	// template<>
-	// void destroy<class Buffer>(std::shared_ptr<class Buffer>& pData) const;
-
-	// template<>
-	// std::shared_ptr<class ShaderModule> create<class ShaderModule>(const void* createInfo) const;
-	// template<>
-	// void destroy<class ShaderModule>(std::shared_ptr<class ShaderModule>& pData) const;
-
-	// TODO : create<Image>
+    // TODO : create<Image>
 };
-
-
 
 // struct SwapchainSupport
 // {

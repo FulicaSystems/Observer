@@ -4,5 +4,5 @@
 
 struct Image
 {
-	VkImage handle;
+    VkImage handle;
 };

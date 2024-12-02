@@ -4,9 +4,9 @@
 
 struct Buffer
 {
-	VkBuffer handle;
+    VkBuffer handle;
 
-	// allocation
-	//	- custom
-	//	- vma
+    // allocation
+    //	- custom
+    //	- vma
 };

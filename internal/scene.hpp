@@ -4,16 +4,15 @@
 
 #include "buffer.hpp"
 
-
 class Scene
 {
-private:
-	// TODO : store Objects, Meshes or VBOs
-	std::vector<const Buffer&> VBOs;
+  private:
+    // TODO : store Objects, Meshes or VBOs
+    std::vector<const Buffer &> VBOs;
 
-public:
-	void addVBO(const Buffer& ref)
-	{
-		VBOs.push_back(ref);
-	}
+  public:
+    void addVBO(const Buffer &ref)
+    {
+        VBOs.push_back(ref);
+    }
 };

@@ -11,16 +11,16 @@
 
 class Application
 {
-private:
-	std::unique_ptr<WSILoaderI> wsi;
-	std::unique_ptr<WindowGLFW> window;
+  private:
+    std::unique_ptr<WSILoaderI> wsi;
+    std::unique_ptr<WindowGLFW> window;
 
-	std::unique_ptr<Context> context;
+    std::unique_ptr<Context> context;
 
-	std::vector<std::shared_ptr<PhysicalDevice>> physicalDevices;
+    std::vector<std::shared_ptr<PhysicalDevice>> physicalDevices;
 
-public:
-	Application();
+  public:
+    Application();
 
-	void run();
+    void run();
 };
