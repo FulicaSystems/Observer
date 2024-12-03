@@ -10,10 +10,10 @@ Application::Application()
     context =
         std::make_unique<Context>("Renderer", VERSION(0, 0, 0), VERSION(0, 0, 0), window->getRequiredExtensions());
 
-    // for (const auto& physicalDevice : context->enumerateAvailablePhysicalDevices())
-    // {
-    // 	physicalDevices.emplace_back(std::make_shared<PhysicalDevice>(physicalDevice));
-    // }
+    for (const char *physicalDeviceName : context->enumerateAvailablePhysicalDevices(false))
+    {
+        physicalDevices.emplace_back(std::make_shared<PhysicalDevice>(*context, physicalDeviceName));
+    }
 }
 
 void Application::run()

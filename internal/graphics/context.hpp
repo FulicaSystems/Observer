@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -55,9 +56,20 @@ class Context
     void addLayer(const char *layer);
     void addInstanceExtension(const char *extension);
 
-    std::vector<const char *> enumerateAvailableInstanceLayers(const bool bDump = true);
-    std::vector<const char *> enumerateAvailableInstanceExtensions(const bool bDump = true);
-    std::vector<VkPhysicalDevice> enumerateAvailablePhysicalDevices(const bool bDump = true);
+    /**
+     * returns an array with all the instance layer names
+     */
+    std::vector<const char *> enumerateAvailableInstanceLayers(const bool bDump = true) const;
+    /**
+     * returns an array with all the instance extension names
+     */
+    std::vector<const char *> enumerateAvailableInstanceExtensions(const bool bDump = true) const;
+    /**
+     * returns an array with all the physical device names
+     */
+    std::vector<const char *> enumerateAvailablePhysicalDevices(const bool bDump = true) const;
+
+    std::optional<VkPhysicalDevice> getPhysicalDeviceHandleByName(const char *deviceName) const;
 
   public:
     inline const std::string &getApplicationName() const

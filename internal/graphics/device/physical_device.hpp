@@ -1,8 +1,17 @@
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include <vulkan/vulkan.h>
 
 class Context;
+
+// TODO : use this instead of raw Vulkan handle
+struct PhysicalDeviceHandleT
+{
+    VkPhysicalDevice handle;
+};
 
 class PhysicalDevice
 {
@@ -14,28 +23,23 @@ class PhysicalDevice
     const Context &cx;
 
   private:
+    char deviceName[256];
+
     std::shared_ptr<VkPhysicalDevice> m_handle;
 
     VkPhysicalDeviceProperties properties;
-    VkPhysicalDeviceLimits limit;
+    VkPhysicalDeviceLimits limits;
 
     std::vector<VkQueueFamilyProperties> queueFamilies;
 
   public:
     PhysicalDevice() = delete;
-    PhysicalDevice(const PhysicalDevice &copy) : cx(copy.cx)
-    {
-    }
-    PhysicalDevice &operator=(const PhysicalDevice &copy)
-    {
-        return *this;
-    }
+    PhysicalDevice(const PhysicalDevice &copy) = delete;
+    PhysicalDevice &operator=(const PhysicalDevice &copy) = delete;
     PhysicalDevice(PhysicalDevice &&) = delete;
     PhysicalDevice &operator=(PhysicalDevice &&) = delete;
 
-    PhysicalDevice(const Context &cx) : cx(cx)
-    {
-    }
+    PhysicalDevice(const Context &cx, const char *deviceName);
 
     // std::unique_ptr<LogicalDevice> createDevice(const VkSurfaceKHR* presentationSurface = nullptr)
 

@@ -2,6 +2,23 @@
 
 #include "physical_device.hpp"
 
+PhysicalDevice::PhysicalDevice(const Context &cx, const char *deviceName) : cx(cx)
+{
+    auto handle = cx.getPhysicalDeviceHandleByName(deviceName);
+    if (!handle.has_value())
+        return;
+
+    m_handle = std::make_shared<VkPhysicalDevice>(handle.value());
+
+    memcpy(this->deviceName, deviceName, 256);
+    VkPhysicalDeviceProperties props;
+    cx.vkGetPhysicalDeviceProperties(*m_handle, &props);
+    properties = props;
+    limits = properties.limits;
+
+    // TODO : init queue family properties
+}
+
 // std::unique_ptr<LogicalDevice> PhysicalDevice::createDevice(const VkSurfaceKHR* presentationSurface = nullptr)
 //{
 //	auto graphicsFamily = findQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT);
