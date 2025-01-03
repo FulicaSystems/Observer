@@ -1,11 +1,23 @@
 #pragma once
 
+#include <vector>
+
 #include <vulkan/vulkan.h>
+
+#include "binary/dynamic_library_loader.hpp"
+
+
+#define VK_GET_DEVICE_PROC_ADDR(device, funcName) \
+    funcName = (PFN_##funcName)vkGetDeviceProcAddr(device, #funcName)
 
 class LogicalDevice
 {
+  private:
+    std::vector<const char *> m_deviceExtensions;
+
   public:
-    VkDevice handle;
+    // TODO : abstraction handle  
+    VkDevice m_handle;
 
     VkQueue graphicsQueue;
     VkQueue presentQueue;
@@ -18,12 +30,14 @@ class LogicalDevice
     // decode reset command pool
     VkCommandPool commandPoolDecode;
 
-    LogicalDevice() = delete;
+    LogicalDevice();
     LogicalDevice(const LogicalDevice &copy) = delete;
     LogicalDevice &operator=(const LogicalDevice &copy) = delete;
     LogicalDevice(LogicalDevice &&move) = delete;
     LogicalDevice &operator=(LogicalDevice &&move) = delete;
     ~LogicalDevice();
+
+    void loadDeviceFunctions();
 
     // template<class TDataType>
     // std::shared_ptr<TDataType> create(const void* createInfo) const { throw std::runtime_error("Use template
@@ -41,6 +55,15 @@ class LogicalDevice
     // void destroy<class ShaderModule>(std::shared_ptr<class ShaderModule>& pData) const;
 
     // TODO : create<Image>
+
+    public:
+
+    inline VkDevice getHandle() const { return m_handle; }
+
+    public:
+
+    PFN_DECLARE(PFN_, vkGetDeviceQueue);
+    PFN_DECLARE(PFN_, vkCreateCommandPool);
 };
 
 // struct SwapchainSupport

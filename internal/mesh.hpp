@@ -3,8 +3,6 @@
 #include <memory>
 #include <vector>
 
-#include "utils/derived.hpp"
-
 #include "resource.hpp"
 #include "vertex.hpp"
 

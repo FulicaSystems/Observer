@@ -6,10 +6,10 @@
 
 #include <mutex>
 
-#include "utils/multithread/globalthreadpool.hpp"
-#include "utils/singleton.hpp"
+#include "multithread/globalthreadpool.hpp"
+#include "singleton.hpp"
 
-#include "device.hpp"
+#include "graphics/device/device.hpp"
 
 #include "resource.hpp"
 

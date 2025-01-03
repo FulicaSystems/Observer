@@ -15,8 +15,8 @@ target_sources(${component}
     physical_device.hpp
     physical_device.cpp
 
-    device.cpp
     device.hpp
+    device.cpp
 )
 
 target_link_libraries(${component}

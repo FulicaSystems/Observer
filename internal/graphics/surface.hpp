@@ -1,20 +1,32 @@
 #pragma once
 
+#include <vulkan/vulkan.h>
+
+class Context;
+
 class Surface
 {
   private:
-    const VkInstance &instance;
+    const Context& cx;
 
-  public:
-    VkSurfaceKHR handle;
+  private:
+    VkSurfaceKHR m_handle;
 
   public:
     Surface() = delete;
-    Surface(const VkInstance &instance, const VkSurfaceKHR &surface) : instance(instance), handle(surface)
+    /**
+     * create a surface with an already existing handle
+     */
+    Surface(const Context &cx, const VkSurfaceKHR &surface) : cx(cx), m_handle(surface)
     {
     }
-    ~Surface()
-    {
-        vkDestroySurfaceKHR(instance, handle, nullptr);
-    }
+    Surface(const Surface&) = delete;
+    Surface& operator=(const Surface&) = delete;
+    Surface(Surface&&) = delete;
+    Surface& operator=(Surface&&) = delete;
+
+    ~Surface();
+
+    public:
+    inline VkSurfaceKHR getHandle() const { return m_handle; }
 };

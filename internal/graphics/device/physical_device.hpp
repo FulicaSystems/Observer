@@ -1,11 +1,15 @@
 #pragma once
 
 #include <memory>
-#include <vector>
+#include <optional>
 
 #include <vulkan/vulkan.h>
 
+#include "binary/dynamic_library_loader.hpp"
+
 class Context;
+class LogicalDevice;
+class Surface;
 
 // TODO : use this instead of raw Vulkan handle
 struct PhysicalDeviceHandleT
@@ -27,10 +31,10 @@ class PhysicalDevice
 
     std::shared_ptr<VkPhysicalDevice> m_handle;
 
-    VkPhysicalDeviceProperties properties;
-    VkPhysicalDeviceLimits limits;
+    VkPhysicalDeviceProperties m_properties;
+    VkPhysicalDeviceLimits m_limits;
 
-    std::vector<VkQueueFamilyProperties> queueFamilies;
+    std::vector<VkQueueFamilyProperties> m_queueFamilies;
 
   public:
     PhysicalDevice() = delete;
@@ -41,10 +45,10 @@ class PhysicalDevice
 
     PhysicalDevice(const Context &cx, const char *deviceName);
 
-    // std::unique_ptr<LogicalDevice> createDevice(const VkSurfaceKHR* presentationSurface = nullptr)
+    std::unique_ptr<LogicalDevice> createDevice(const Surface* presentationSurface = nullptr);
 
-    // std::optional<uint32_t> findQueueFamilyIndex(const VkQueueFlags& capabilities) const
-    // std::optional<uint32_t> findPresentQueueFamilyIndex(const VkSurfaceKHR& surface) const
+    std::optional<uint32_t> findQueueFamilyIndex(const VkQueueFlags& capabilities) const;
+    std::optional<uint32_t> findPresentQueueFamilyIndex(const Surface& surface) const;
 
-    // class SwapchainSupport querySwapchainSupport(const VkSurfaceKHR& surface) const
+    // class SwapchainSupport querySwapchainSupport(const VkSurfaceKHR& surface) const;
 };

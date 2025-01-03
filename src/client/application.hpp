@@ -3,11 +3,11 @@
 #include <memory>
 #include <vector>
 
-#include "wsi/window_glfw.hpp"
-
-#include "graphics/context.hpp"
-
-#include "graphics/device/physical_device.hpp"
+class WSILoaderI;
+class WindowGLFW;
+class Context;
+class PhysicalDevice;
+class LogicalDevice;
 
 class Application
 {
@@ -18,6 +18,8 @@ class Application
     std::unique_ptr<Context> context;
 
     std::vector<std::shared_ptr<PhysicalDevice>> physicalDevices;
+
+    std::vector<std::shared_ptr<LogicalDevice>> devices;
 
   public:
     Application();

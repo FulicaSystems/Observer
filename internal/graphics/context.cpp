@@ -9,13 +9,7 @@ Context::Context(const char *applicationName, const version applicationVersion, 
     : m_applicationName(applicationName), m_applicationVersion(applicationVersion), m_engineVersion(engineVersion)
 {
     m_loader = std::make_unique<Utils::bin::DynamicLibraryLoader>("vulkan-1");
-    GET_PROC_ADDR(*m_loader, PFN_, vkCreateInstance);
-    GET_PROC_ADDR(*m_loader, PFN_, vkDestroyInstance);
-    GET_PROC_ADDR(*m_loader, PFN_, vkGetInstanceProcAddr);
-    GET_PROC_ADDR(*m_loader, PFN_, vkEnumerateInstanceLayerProperties);
-    GET_PROC_ADDR(*m_loader, PFN_, vkEnumerateInstanceExtensionProperties);
-
-    GET_PROC_ADDR(*m_loader, PFN_, vkGetPhysicalDeviceProperties);
+    loadAPIFunctions();
 
     for (const auto &ae : additionalExtensions)
     {
@@ -27,10 +21,8 @@ Context::Context(const char *applicationName, const version applicationVersion, 
 
     m_instance = std::make_unique<Instance>(*this);
 
-    VK_GET_INSTANCE_PROC_ADDR(m_instance->getHandle(), vkCreateDebugUtilsMessengerEXT);
-    VK_GET_INSTANCE_PROC_ADDR(m_instance->getHandle(), vkDestroyDebugUtilsMessengerEXT);
-
-    VK_GET_INSTANCE_PROC_ADDR(m_instance->getHandle(), vkEnumeratePhysicalDevices);
+    loadInstanceFunctions();
+    loadPhysicalDeviceFunctions();
 
     enumerateAvailableInstanceLayers();
     enumerateAvailableInstanceExtensions();
@@ -44,6 +36,39 @@ void Context::addLayer(const char *layer)
 void Context::addInstanceExtension(const char *extension)
 {
     m_instanceExtensions.push_back(extension);
+}
+
+void Context::addDeviceExtension(const char *extension)
+{
+    m_deviceExtensions.push_back(extension);
+}
+
+void Context::loadAPIFunctions()
+{
+    GET_PROC_ADDR(*m_loader, PFN_, vkCreateInstance);
+    GET_PROC_ADDR(*m_loader, PFN_, vkDestroyInstance);
+    GET_PROC_ADDR(*m_loader, PFN_, vkGetInstanceProcAddr);
+    GET_PROC_ADDR(*m_loader, PFN_, vkEnumerateInstanceLayerProperties);
+    GET_PROC_ADDR(*m_loader, PFN_, vkEnumerateInstanceExtensionProperties);
+
+    GET_PROC_ADDR(*m_loader, PFN_, vkGetPhysicalDeviceProperties);
+}
+
+void Context::loadInstanceFunctions()
+{
+    VK_GET_INSTANCE_PROC_ADDR(m_instance->getHandle(), vkCreateDebugUtilsMessengerEXT);
+    VK_GET_INSTANCE_PROC_ADDR(m_instance->getHandle(), vkDestroyDebugUtilsMessengerEXT);
+
+    VK_GET_INSTANCE_PROC_ADDR(m_instance->getHandle(), vkEnumeratePhysicalDevices);
+
+    VK_GET_INSTANCE_PROC_ADDR(m_instance->getHandle(), vkDestroySurfaceKHR);
+}
+
+void Context::loadPhysicalDeviceFunctions()
+{
+    GET_PROC_ADDR(*m_loader, PFN_, vkGetPhysicalDeviceQueueFamilyProperties);
+    GET_PROC_ADDR(*m_loader, PFN_, vkCreateDevice);
+    GET_PROC_ADDR(*m_loader, PFN_, vkGetPhysicalDeviceSurfaceSupportKHR);
 }
 
 std::vector<const char *> Context::enumerateAvailableInstanceLayers(const bool bDump) const

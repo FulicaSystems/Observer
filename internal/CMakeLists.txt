@@ -22,6 +22,10 @@ target_sources(${component}
 target_include_directories(${component} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 target_include_directories(${component} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/..")
 
+target_link_libraries(${component}
+    PUBLIC Utilities
+)
+
 add_subdirectory(graphics)
 add_subdirectory(wsi)
 

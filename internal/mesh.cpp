@@ -1,4 +1,4 @@
-#include "device.hpp"
+#include "graphics/device/device.hpp"
 
 #include "mesh.hpp"
 

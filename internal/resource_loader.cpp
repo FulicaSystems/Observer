@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "resourceloader.hpp"
+#include "resource_loader.hpp"
 
 void ResourceLoader::clearAllResources()
 {
