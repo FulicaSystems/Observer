@@ -19,10 +19,6 @@ struct PhysicalDeviceHandleT
 
 class PhysicalDevice
 {
-  public:
-    static constexpr const uint32_t deviceExtensionCount = 1;
-    static constexpr const char *deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-
   private:
     const Context &cx;
 
@@ -36,6 +32,13 @@ class PhysicalDevice
 
     std::vector<VkQueueFamilyProperties> m_queueFamilies;
 
+    std::optional<uint32_t> m_graphicsFamilyIndex;
+    std::optional<uint32_t> m_presentFamilyIndex;
+#ifdef ENABLE_VIDEO_TRANSCODE
+    std::optional<uint32_t> m_decodeFamilyIndex;
+    std::optional<uint32_t> m_encodeFamilyIndex;
+#endif
+
   public:
     PhysicalDevice() = delete;
     PhysicalDevice(const PhysicalDevice &copy) = delete;
@@ -45,10 +48,32 @@ class PhysicalDevice
 
     PhysicalDevice(const Context &cx, const char *deviceName);
 
+    std::vector<std::string> enumerateAvailableDeviceExtensions(const bool bDump = true) const;
+
     std::unique_ptr<LogicalDevice> createDevice(const Surface *presentationSurface = nullptr);
 
     std::optional<uint32_t> findQueueFamilyIndex(const VkQueueFlags &capabilities) const;
-    std::optional<uint32_t> findPresentQueueFamilyIndex(const Surface* surface) const;
+    std::optional<uint32_t> findPresentQueueFamilyIndex(const Surface *surface) const;
 
     // class SwapchainSupport querySwapchainSupport(const VkSurfaceKHR& surface) const;
+
+  public:
+    inline std::optional<uint32_t> getGraphicsFamilyIndex() const
+    {
+        return m_graphicsFamilyIndex;
+    }
+    inline std::optional<uint32_t> getPresentFamilyIndex() const
+    {
+        return m_presentFamilyIndex;
+    }
+#ifdef ENABLE_VIDEO_TRANSCODE
+    inline std::optional<uint32_t> getDecodeFamilyIndex() const
+    {
+        return m_decodeFamilyIndex;
+    }
+    inline std::optional<uint32_t> getEncodeFamilyIndex() const
+    {
+        return m_encodeFamilyIndex;
+    }
+#endif
 };

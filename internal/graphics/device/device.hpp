@@ -14,26 +14,38 @@ class PhysicalDevice;
 class LogicalDevice
 {
   private:
-    const Context& cx;
-    const PhysicalDevice& physicalHandle;
+    const Context &cx;
+    const PhysicalDevice &physicalHandle;
 
   private:
     std::vector<const char *> m_deviceExtensions;
+
+    void loadDeviceFunctions();
+
+    void retrieveQueues();
+    void createCommandPools();
 
   public:
     // TODO : abstraction handle
     VkDevice m_handle;
 
-    VkQueue graphicsQueue;
-    VkQueue presentQueue;
-    VkQueue decodeQueue;
+    VkQueue graphicsQueue = nullptr;
+    VkQueue presentQueue = nullptr;
+#ifdef ENABLE_VIDEO_TRANSCODE
+    VkQueue decodeQueue = nullptr;
+    VkQueue encodeQueue = nullptr;
+#endif
 
     // reset command pool
     VkCommandPool commandPool;
     // transient command pool
     VkCommandPool commandPoolTransient;
+#ifdef ENABLE_VIDEO_TRANSCODE
     // decode reset command pool
     VkCommandPool commandPoolDecode;
+    // encode reset command pool
+    VkCommandPool commandPoolEncode;
+#endif
 
     LogicalDevice() = delete;
 
@@ -42,10 +54,10 @@ class LogicalDevice
     LogicalDevice(LogicalDevice &&move) = delete;
     LogicalDevice &operator=(LogicalDevice &&move) = delete;
 
-    LogicalDevice(const Context& cx, const PhysicalDevice& physicalDevice);
+    LogicalDevice(const Context &cx, const PhysicalDevice &physicalDevice);
     ~LogicalDevice();
 
-    void loadDeviceFunctions();
+    void readyUp();
 
     // template<class TDataType>
     // std::shared_ptr<TDataType> create(const void* createInfo) const { throw std::runtime_error("Use template

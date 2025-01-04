@@ -19,14 +19,10 @@ Context::Context(const char *applicationName, const version applicationVersion, 
     m_instanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
-    m_instance = std::make_unique<Instance>(*this);
-
-    loadInstanceFunctions();
     loadPhysicalDeviceFunctions();
 
     enumerateAvailableInstanceLayers();
     enumerateAvailableInstanceExtensions();
-    enumerateAvailablePhysicalDevices();
 }
 
 void Context::addLayer(const char *layer)
@@ -67,9 +63,20 @@ void Context::loadInstanceFunctions()
 
 void Context::loadPhysicalDeviceFunctions()
 {
+    GET_PROC_ADDR(*m_loader, PFN_, vkEnumerateDeviceExtensionProperties);
+
     GET_PROC_ADDR(*m_loader, PFN_, vkGetPhysicalDeviceQueueFamilyProperties);
     GET_PROC_ADDR(*m_loader, PFN_, vkCreateDevice);
     GET_PROC_ADDR(*m_loader, PFN_, vkGetPhysicalDeviceSurfaceSupportKHR);
+}
+
+void Context::createInstance()
+{
+    m_instance = std::make_unique<Instance>(*this);
+
+    loadInstanceFunctions();
+
+    enumerateAvailablePhysicalDevices();
 }
 
 std::vector<std::string> Context::enumerateAvailableInstanceLayers(const bool bDump) const

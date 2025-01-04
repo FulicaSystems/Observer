@@ -24,18 +24,53 @@ PhysicalDevice::PhysicalDevice(const Context &cx, const char *deviceName) : cx(c
     cx.vkGetPhysicalDeviceQueueFamilyProperties(*m_handle, &queueFamilyPropertiesCount, nullptr);
     m_queueFamilies.resize(queueFamilyPropertiesCount);
     cx.vkGetPhysicalDeviceQueueFamilyProperties(*m_handle, &queueFamilyPropertiesCount, m_queueFamilies.data());
+
+    enumerateAvailableDeviceExtensions();
+}
+
+std::vector<std::string> PhysicalDevice::enumerateAvailableDeviceExtensions(const bool bDump) const
+{
+    uint32_t extensionCount = 0;
+    cx.vkEnumerateDeviceExtensionProperties(*m_handle, nullptr, &extensionCount, nullptr);
+
+    std::vector<std::string> out;
+    out.reserve(extensionCount);
+
+    std::vector<VkExtensionProperties> extensions(extensionCount);
+    cx.vkEnumerateDeviceExtensionProperties(*m_handle, nullptr, &extensionCount, extensions.data());
+    if (bDump)
+        std::cout << "available device extensions for " << deviceName << " : " << extensionCount << '\n';
+    for (const auto &extension : extensions)
+    {
+        if (bDump)
+            std::cout << '\t' << extension.extensionName << '\n';
+
+        out.push_back(extension.extensionName);
+    }
+    return out;
 }
 
 std::unique_ptr<LogicalDevice> PhysicalDevice::createDevice(const Surface *presentationSurface)
 {
-    auto graphicsFamily = findQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT);
-    auto presentFamily =
+    m_graphicsFamilyIndex = findQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT);
+    m_presentFamilyIndex =
         presentationSurface ? findPresentQueueFamilyIndex(presentationSurface) : std::optional<uint32_t>();
+#ifdef ENABLE_VIDEO_TRANSCODE
+    m_decodeFamilyIndex = findQueueFamilyIndex(VK_QUEUE_VIDEO_DECODE_BIT_KHR);
+    m_encodeFamilyIndex = findQueueFamilyIndex(VK_QUEUE_VIDEO_ENCODE_BIT_KHR);
+#endif
     std::set<uint32_t> uniqueQueueFamilies;
-    if (graphicsFamily.has_value())
-        uniqueQueueFamilies.insert(graphicsFamily.value());
-    if (presentFamily.has_value())
-        uniqueQueueFamilies.insert(presentFamily.value());
+
+    if (m_graphicsFamilyIndex.has_value())
+        uniqueQueueFamilies.insert(m_graphicsFamilyIndex.value());
+    if (m_presentFamilyIndex.has_value())
+        uniqueQueueFamilies.insert(m_presentFamilyIndex.value());
+#ifdef ENABLE_VIDEO_TRANSCODE
+    if (m_decodeFamilyIndex.has_value())
+        uniqueQueueFamilies.insert(m_decodeFamilyIndex.value());
+    if (m_encodeFamilyIndex.has_value())
+        uniqueQueueFamilies.insert(m_encodeFamilyIndex.value());
+#endif
 
     float queuePriority = 1.f;
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -48,55 +83,25 @@ std::unique_ptr<LogicalDevice> PhysicalDevice::createDevice(const Surface *prese
         queueCreateInfos.emplace_back(queueCreateInfo);
     }
 
+    std::vector<const char *> layers = cx.getLayers();
+    std::vector<const char *> deviceExtensions = cx.getDeviceExtensions();
+
     VkDeviceCreateInfo createInfo = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
         .pQueueCreateInfos = queueCreateInfos.data(),
-        .enabledLayerCount = cx.getLayers().size(),
-        .ppEnabledLayerNames = cx.getLayers().data(),
-        .enabledExtensionCount = deviceExtensionCount,
-        .ppEnabledExtensionNames = &deviceExtensions,
+        .enabledLayerCount = layers.size(),
+        .ppEnabledLayerNames = layers.data(),
+        .enabledExtensionCount = deviceExtensions.size(),
+        .ppEnabledExtensionNames = deviceExtensions.data(),
     };
 
     // create device
     std::unique_ptr<LogicalDevice> out = std::make_unique<LogicalDevice>(cx, *this);
     if (cx.vkCreateDevice(*m_handle, &createInfo, nullptr, &out->m_handle) != VK_SUCCESS)
         throw std::runtime_error("Failed to create logical device");
-    out->loadDeviceFunctions();
 
-    // retrieve queues
-    if (graphicsFamily.has_value())
-        out->vkGetDeviceQueue(out->m_handle, graphicsFamily.value(), 0, &out->graphicsQueue);
-    if (presentFamily.has_value())
-        out->vkGetDeviceQueue(out->m_handle, presentFamily.value(), 0, &out->presentQueue);
-    // if (decodeFamily.has_value())
-    //	out->vkGetDeviceQueue(out->m_handle,
-    //		decodeFamily.value(),
-    //		0,
-    //		&out->decodeQueue);
-
-    VkCommandPoolCreateInfo resetCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-        .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-        .queueFamilyIndex = findQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT).value(),
-    };
-    if (out->vkCreateCommandPool(out->m_handle, &resetCreateInfo, nullptr, &out->commandPool))
-        throw std::runtime_error("Failed to create reset command pool");
-    VkCommandPoolCreateInfo transientCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-        .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
-        .queueFamilyIndex = findQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT).value(),
-    };
-    if (out->vkCreateCommandPool(out->m_handle, &transientCreateInfo, nullptr, &out->commandPoolTransient))
-        throw std::runtime_error("Failed to create transient command pool");
-    // VkCommandPoolCreateInfo decodeCreateInfo = {
-    //	.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-    //	.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-    //	.queueFamilyIndex = findQueueFamilyIndex(VK_QUEUE_VIDEO_DECODE_BIT_KHR).value(),
-    // };
-    // if (out->vkCreateCommandPool(out->m_handle, &resetCreateInfo, nullptr, &out->commandPoolDecode))
-    //	throw std::runtime_error("Failed to create reset command pool");
-
+    out->readyUp();
     return std::move(out);
 }
 

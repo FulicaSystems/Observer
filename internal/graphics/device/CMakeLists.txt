@@ -1,5 +1,12 @@
 set(component device)
 
+option(OPTION_ENABLE_VIDEO_TRANSCODE "enable video transcoding" OFF)
+
+if (OPTION_ENABLE_VIDEO_TRANSCODE)
+    add_compile_definitions(ENABLE_VIDEO_TRANSCODE)
+endif()
+
+
 add_library(${component} STATIC "")
 add_library(graphics::device ALIAS ${component})
 

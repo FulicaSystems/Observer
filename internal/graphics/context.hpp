@@ -32,6 +32,9 @@ typedef uint32_t version;
 #define VK_GET_INSTANCE_PROC_ADDR(instance, funcName)                                                                  \
     funcName = (PFN_##funcName)this->vkGetInstanceProcAddr(instance, #funcName)
 
+/**
+ * the constructor does not create the instance, user must call the createInstance member function afterwards.
+ */
 class Context
 {
   private:
@@ -61,6 +64,8 @@ class Context
     void loadAPIFunctions();
     void loadInstanceFunctions();
     void loadPhysicalDeviceFunctions();
+
+    void createInstance();
 
     /**
      * returns an array with all the instance layer names
@@ -112,7 +117,7 @@ class Context
     PFN_DECLARE(PFN_, vkCreateInstance);
     PFN_DECLARE(PFN_, vkDestroyInstance);
     PFN_DECLARE(PFN_, vkGetInstanceProcAddr);
-    
+
     PFN_DECLARE(PFN_, vkEnumerateInstanceLayerProperties);
     PFN_DECLARE(PFN_, vkEnumerateInstanceExtensionProperties);
 
@@ -128,6 +133,8 @@ class Context
     PFN_DECLARE(PFN_, vkDestroySurfaceKHR);
 
     // physicalDevice
+    PFN_DECLARE(PFN_, vkEnumerateDeviceExtensionProperties);
+
     PFN_DECLARE(PFN_, vkGetPhysicalDeviceQueueFamilyProperties);
     PFN_DECLARE(PFN_, vkCreateDevice);
     PFN_DECLARE(PFN_, vkGetPhysicalDeviceSurfaceSupportKHR);
