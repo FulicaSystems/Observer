@@ -19,10 +19,11 @@ class Application
 
     std::vector<std::shared_ptr<PhysicalDevice>> physicalDevices;
 
-    std::vector<std::shared_ptr<LogicalDevice>> devices;
+    std::vector<std::unique_ptr<LogicalDevice>> devices;
 
   public:
     Application();
+    ~Application();
 
     void run();
 };

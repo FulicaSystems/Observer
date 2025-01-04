@@ -1,3 +1,5 @@
+#include "context.hpp"
+
 #include "surface.hpp"
 
 Surface::~Surface()

@@ -1,7 +1,9 @@
-#include <wsi/window_glfw.hpp>
-#include <graphics/context.hpp>
-#include <graphics/device/physical_device.hpp>
+#include <cassert>
+
 #include <graphics/device/device.hpp>
+#include <graphics/device/physical_device.hpp>
+#include <graphics/context.hpp>
+#include <wsi/window_glfw.hpp>
 
 #include "application.hpp"
 
@@ -15,12 +17,24 @@ Application::Application()
     context =
         std::make_unique<Context>("Renderer", VERSION(0, 0, 0), VERSION(0, 0, 0), window->getRequiredExtensions());
 
-    for (const char *physicalDeviceName : context->enumerateAvailablePhysicalDevices(false))
+    for (const std::string& physicalDeviceName : context->enumerateAvailablePhysicalDevices(false))
     {
-        physicalDevices.emplace_back(std::make_shared<PhysicalDevice>(*context, physicalDeviceName));
-        devices.emplace_back((*physicalDevices.end())->createDevice());
-    }
+        std::shared_ptr<PhysicalDevice> physicalDevice = std::make_shared<PhysicalDevice>(*context, physicalDeviceName.c_str());
+        assert(physicalDevice);
 
+        physicalDevices.push_back(physicalDevice);
+        devices.emplace_back(physicalDevice->createDevice());
+    }
+}
+
+Application::~Application()
+{
+    devices.clear();
+    physicalDevices.clear();
+    context.reset();
+    
+    window.reset();
+    wsi.reset();
 }
 
 void Application::run()

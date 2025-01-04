@@ -1,4 +1,4 @@
-set(component asset)
+set(component device_asset)
 
 add_library(${component} STATIC "")
 

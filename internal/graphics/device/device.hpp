@@ -6,17 +6,22 @@
 
 #include "binary/dynamic_library_loader.hpp"
 
+class Context;
+class PhysicalDevice;
 
-#define VK_GET_DEVICE_PROC_ADDR(device, funcName) \
-    funcName = (PFN_##funcName)vkGetDeviceProcAddr(device, #funcName)
+#define VK_GET_DEVICE_PROC_ADDR(device, funcName) funcName = (PFN_##funcName)cx.vkGetDeviceProcAddr(device, #funcName)
 
 class LogicalDevice
 {
   private:
+    const Context& cx;
+    const PhysicalDevice& physicalHandle;
+
+  private:
     std::vector<const char *> m_deviceExtensions;
 
   public:
-    // TODO : abstraction handle  
+    // TODO : abstraction handle
     VkDevice m_handle;
 
     VkQueue graphicsQueue;
@@ -30,11 +35,14 @@ class LogicalDevice
     // decode reset command pool
     VkCommandPool commandPoolDecode;
 
-    LogicalDevice();
+    LogicalDevice() = delete;
+
     LogicalDevice(const LogicalDevice &copy) = delete;
     LogicalDevice &operator=(const LogicalDevice &copy) = delete;
     LogicalDevice(LogicalDevice &&move) = delete;
     LogicalDevice &operator=(LogicalDevice &&move) = delete;
+
+    LogicalDevice(const Context& cx, const PhysicalDevice& physicalDevice);
     ~LogicalDevice();
 
     void loadDeviceFunctions();
@@ -56,14 +64,18 @@ class LogicalDevice
 
     // TODO : create<Image>
 
-    public:
+  public:
+    inline VkDevice getHandle() const
+    {
+        return m_handle;
+    }
 
-    inline VkDevice getHandle() const { return m_handle; }
-
-    public:
-
+  public:
     PFN_DECLARE(PFN_, vkGetDeviceQueue);
+    PFN_DECLARE(PFN_, vkDestroyDevice);
+
     PFN_DECLARE(PFN_, vkCreateCommandPool);
+    PFN_DECLARE(PFN_, vkDestroyCommandPool);
 };
 
 // struct SwapchainSupport

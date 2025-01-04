@@ -45,10 +45,10 @@ class PhysicalDevice
 
     PhysicalDevice(const Context &cx, const char *deviceName);
 
-    std::unique_ptr<LogicalDevice> createDevice(const Surface* presentationSurface = nullptr);
+    std::unique_ptr<LogicalDevice> createDevice(const Surface *presentationSurface = nullptr);
 
-    std::optional<uint32_t> findQueueFamilyIndex(const VkQueueFlags& capabilities) const;
-    std::optional<uint32_t> findPresentQueueFamilyIndex(const Surface& surface) const;
+    std::optional<uint32_t> findQueueFamilyIndex(const VkQueueFlags &capabilities) const;
+    std::optional<uint32_t> findPresentQueueFamilyIndex(const Surface* surface) const;
 
     // class SwapchainSupport querySwapchainSupport(const VkSurfaceKHR& surface) const;
 };

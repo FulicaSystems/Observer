@@ -52,6 +52,7 @@ void Context::loadAPIFunctions()
     GET_PROC_ADDR(*m_loader, PFN_, vkEnumerateInstanceExtensionProperties);
 
     GET_PROC_ADDR(*m_loader, PFN_, vkGetPhysicalDeviceProperties);
+    GET_PROC_ADDR(*m_loader, PFN_, vkGetDeviceProcAddr);
 }
 
 void Context::loadInstanceFunctions()
@@ -71,12 +72,12 @@ void Context::loadPhysicalDeviceFunctions()
     GET_PROC_ADDR(*m_loader, PFN_, vkGetPhysicalDeviceSurfaceSupportKHR);
 }
 
-std::vector<const char *> Context::enumerateAvailableInstanceLayers(const bool bDump) const
+std::vector<std::string> Context::enumerateAvailableInstanceLayers(const bool bDump) const
 {
     uint32_t layerCount = 0;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
-    std::vector<const char *> out;
+    std::vector<std::string> out;
     out.reserve(layerCount);
 
     std::vector<VkLayerProperties> layers(layerCount);
@@ -92,12 +93,12 @@ std::vector<const char *> Context::enumerateAvailableInstanceLayers(const bool b
     }
     return out;
 }
-std::vector<const char *> Context::enumerateAvailableInstanceExtensions(const bool bDump) const
+std::vector<std::string> Context::enumerateAvailableInstanceExtensions(const bool bDump) const
 {
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
-    std::vector<const char *> out;
+    std::vector<std::string> out;
     out.reserve(extensionCount);
 
     std::vector<VkExtensionProperties> extensions(extensionCount);
@@ -113,12 +114,12 @@ std::vector<const char *> Context::enumerateAvailableInstanceExtensions(const bo
     }
     return out;
 }
-std::vector<const char *> Context::enumerateAvailablePhysicalDevices(const bool bDump) const
+std::vector<std::string> Context::enumerateAvailablePhysicalDevices(const bool bDump) const
 {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(m_instance->getHandle(), &deviceCount, nullptr);
 
-    std::vector<const char *> out;
+    std::vector<std::string> out;
     out.reserve(deviceCount);
 
     std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
@@ -147,7 +148,8 @@ std::optional<VkPhysicalDevice> Context::getPhysicalDeviceHandleByName(const cha
     {
         VkPhysicalDeviceProperties props;
         vkGetPhysicalDeviceProperties(physicalDevice, &props);
-        if (props.deviceName == deviceName)
+
+        if (std::strcmp(props.deviceName, deviceName))
             return physicalDevice;
     }
     return std::optional<VkPhysicalDevice>();

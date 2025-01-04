@@ -1,8 +1,8 @@
 #pragma once
 
-#include "window.hpp"
-
 #include <GLFW/glfw3.h>
+
+#include "window.hpp"
 
 class WSILoaderGLFW final : public WSILoaderI
 {

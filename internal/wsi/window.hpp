@@ -12,6 +12,8 @@ class WSILoaderI
 class WindowI
 {
   public:
+    virtual ~WindowI() = default;
+
     virtual const std::vector<const char *> getRequiredExtensions() const = 0;
 
     virtual void makeContextCurrent() = 0;

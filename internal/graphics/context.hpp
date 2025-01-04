@@ -29,8 +29,8 @@ struct version
 typedef uint32_t version;
 #endif
 
-#define VK_GET_INSTANCE_PROC_ADDR(instance, funcName) \
-    funcName = (PFN_##funcName)vkGetInstanceProcAddr(instance, #funcName)
+#define VK_GET_INSTANCE_PROC_ADDR(instance, funcName)                                                                  \
+    funcName = (PFN_##funcName)this->vkGetInstanceProcAddr(instance, #funcName)
 
 class Context
 {
@@ -65,15 +65,15 @@ class Context
     /**
      * returns an array with all the instance layer names
      */
-    std::vector<const char *> enumerateAvailableInstanceLayers(const bool bDump = true) const;
+    std::vector<std::string> enumerateAvailableInstanceLayers(const bool bDump = true) const;
     /**
      * returns an array with all the instance extension names
      */
-    std::vector<const char *> enumerateAvailableInstanceExtensions(const bool bDump = true) const;
+    std::vector<std::string> enumerateAvailableInstanceExtensions(const bool bDump = true) const;
     /**
      * returns an array with all the physical device names
      */
-    std::vector<const char *> enumerateAvailablePhysicalDevices(const bool bDump = true) const;
+    std::vector<std::string> enumerateAvailablePhysicalDevices(const bool bDump = true) const;
 
     std::optional<VkPhysicalDevice> getPhysicalDeviceHandleByName(const char *deviceName) const;
 
@@ -112,10 +112,13 @@ class Context
     PFN_DECLARE(PFN_, vkCreateInstance);
     PFN_DECLARE(PFN_, vkDestroyInstance);
     PFN_DECLARE(PFN_, vkGetInstanceProcAddr);
+    
     PFN_DECLARE(PFN_, vkEnumerateInstanceLayerProperties);
     PFN_DECLARE(PFN_, vkEnumerateInstanceExtensionProperties);
 
     PFN_DECLARE(PFN_, vkGetPhysicalDeviceProperties);
+
+    PFN_DECLARE(PFN_, vkGetDeviceProcAddr);
 
     // instance
     PFN_DECLARE(PFN_, vkCreateDebugUtilsMessengerEXT);
