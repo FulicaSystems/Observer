@@ -6,6 +6,33 @@
 
 #include "physical_device.hpp"
 
+void PhysicalDevice::initPhysicalDeviceProperties()
+{
+    VkPhysicalDeviceProperties props;
+    cx.vkGetPhysicalDeviceProperties(*m_handle, &props);
+    m_properties = props;
+    m_limits = m_properties.limits;
+}
+
+void PhysicalDevice::initQueueFamilyProperties()
+{
+    uint32_t queueFamilyPropertiesCount;
+    cx.vkGetPhysicalDeviceQueueFamilyProperties(*m_handle, &queueFamilyPropertiesCount, nullptr);
+    m_queueFamilies.resize(queueFamilyPropertiesCount);
+    cx.vkGetPhysicalDeviceQueueFamilyProperties(*m_handle, &queueFamilyPropertiesCount, m_queueFamilies.data());
+}
+
+void PhysicalDevice::initQueueFamilyIndices(const Surface *presentationSurface)
+{
+    m_graphicsFamilyIndex = findQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT);
+    m_presentFamilyIndex =
+        presentationSurface ? findPresentQueueFamilyIndex(presentationSurface) : std::optional<uint32_t>();
+#ifdef ENABLE_VIDEO_TRANSCODE
+    m_decodeFamilyIndex = findQueueFamilyIndex(VK_QUEUE_VIDEO_DECODE_BIT_KHR);
+    m_encodeFamilyIndex = findQueueFamilyIndex(VK_QUEUE_VIDEO_ENCODE_BIT_KHR);
+#endif
+}
+
 PhysicalDevice::PhysicalDevice(const Context &cx, const char *deviceName) : cx(cx)
 {
     std::optional<VkPhysicalDevice> handle = cx.getPhysicalDeviceHandleByName(deviceName);
@@ -15,15 +42,10 @@ PhysicalDevice::PhysicalDevice(const Context &cx, const char *deviceName) : cx(c
     m_handle = std::make_shared<VkPhysicalDevice>(handle.value());
 
     memcpy(this->deviceName, deviceName, 256);
-    VkPhysicalDeviceProperties props;
-    cx.vkGetPhysicalDeviceProperties(*m_handle, &props);
-    m_properties = props;
-    m_limits = m_properties.limits;
 
-    uint32_t queueFamilyPropertiesCount;
-    cx.vkGetPhysicalDeviceQueueFamilyProperties(*m_handle, &queueFamilyPropertiesCount, nullptr);
-    m_queueFamilies.resize(queueFamilyPropertiesCount);
-    cx.vkGetPhysicalDeviceQueueFamilyProperties(*m_handle, &queueFamilyPropertiesCount, m_queueFamilies.data());
+    initPhysicalDeviceProperties();
+    initQueueFamilyProperties();
+    initQueueFamilyIndices();
 
     enumerateAvailableDeviceExtensions();
 }
@@ -50,15 +72,8 @@ std::vector<std::string> PhysicalDevice::enumerateAvailableDeviceExtensions(cons
     return out;
 }
 
-std::unique_ptr<LogicalDevice> PhysicalDevice::createDevice(const Surface *presentationSurface)
+std::unique_ptr<LogicalDevice> PhysicalDevice::createDevice() const
 {
-    m_graphicsFamilyIndex = findQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT);
-    m_presentFamilyIndex =
-        presentationSurface ? findPresentQueueFamilyIndex(presentationSurface) : std::optional<uint32_t>();
-#ifdef ENABLE_VIDEO_TRANSCODE
-    m_decodeFamilyIndex = findQueueFamilyIndex(VK_QUEUE_VIDEO_DECODE_BIT_KHR);
-    m_encodeFamilyIndex = findQueueFamilyIndex(VK_QUEUE_VIDEO_ENCODE_BIT_KHR);
-#endif
     std::set<uint32_t> uniqueQueueFamilies;
 
     if (m_graphicsFamilyIndex.has_value())
@@ -98,7 +113,7 @@ std::unique_ptr<LogicalDevice> PhysicalDevice::createDevice(const Surface *prese
 
     // create device
     std::unique_ptr<LogicalDevice> out = std::make_unique<LogicalDevice>(cx, *this);
-    if (cx.vkCreateDevice(*m_handle, &createInfo, nullptr, &out->m_handle) != VK_SUCCESS)
+    if (cx.vkCreateDevice(*m_handle, &createInfo, nullptr, &out->getHandle()) != VK_SUCCESS)
         throw std::runtime_error("Failed to create logical device");
 
     out->readyUp();
@@ -129,27 +144,27 @@ std::optional<uint32_t> PhysicalDevice::findPresentQueueFamilyIndex(const Surfac
     return std::optional<uint32_t>();
 }
 
-// class SwapchainSupport PhysicalDevice::querySwapchainSupport(const VkSurfaceKHR& surface) const
-//{
-//	SwapchainSupport details;
+SurfaceDetailsT PhysicalDevice::querySurfaceDetails(const Surface& surface) const
+{
+	SurfaceDetailsT details;
 
-//	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, surface, &details.capabilities);
+	cx.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(*m_handle, surface.getHandle(), &details.capabilities);
 
-//	uint32_t formatCount;
-//	vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, nullptr);
-//	if (formatCount != 0)
-//	{
-//		details.formats.resize(formatCount);
-//		vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, details.formats.data());
-//	}
+	uint32_t formatCount;
+	cx.vkGetPhysicalDeviceSurfaceFormatsKHR(*m_handle, surface.getHandle(), &formatCount, nullptr);
+	if (formatCount != 0)
+	{
+		details.formats.resize(formatCount);
+		cx.vkGetPhysicalDeviceSurfaceFormatsKHR(*m_handle, surface.getHandle(), &formatCount, details.formats.data());
+	}
 
-//	uint32_t modeCount;
-//	vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &modeCount, nullptr);
-//	if (modeCount != 0)
-//	{
-//		details.presentModes.resize(modeCount);
-//		vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &modeCount, details.presentModes.data());
-//	}
+	uint32_t modeCount;
+	cx.vkGetPhysicalDeviceSurfacePresentModesKHR(*m_handle, surface.getHandle(), &modeCount, nullptr);
+	if (modeCount != 0)
+	{
+		details.presentModes.resize(modeCount);
+		cx.vkGetPhysicalDeviceSurfacePresentModesKHR(*m_handle, surface.getHandle(), &modeCount, details.presentModes.data());
+	}
 
-//	return details;
-//}
+	return details;
+}

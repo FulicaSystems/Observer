@@ -45,9 +45,6 @@ class Instance
         return VK_FALSE;
     }
 
-    void createDebugMessenger();
-    void destroyDebugMessenger();
-
   public:
     Instance() = delete;
     Instance(const Instance &) = delete;
@@ -59,7 +56,11 @@ class Instance
 
     ~Instance();
 
-    inline VkInstance getHandle() const
+    void createDebugMessenger();
+    void destroyDebugMessenger();
+
+  public:
+    [[nodiscard]] inline VkInstance getHandle() const
     {
         return *m_handle;
     }

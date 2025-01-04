@@ -9,7 +9,9 @@
 
 class Context;
 class LogicalDevice;
+
 class Surface;
+struct SurfaceDetailsT;
 
 // TODO : use this instead of raw Vulkan handle
 struct PhysicalDeviceHandleT
@@ -39,6 +41,13 @@ class PhysicalDevice
     std::optional<uint32_t> m_encodeFamilyIndex;
 #endif
 
+    void initPhysicalDeviceProperties();
+    void initQueueFamilyProperties();
+    /**
+     * specify a surface if one wants this physical device to support presentation
+     */
+    void initQueueFamilyIndices(const Surface *presentationSurface = nullptr);
+
   public:
     PhysicalDevice() = delete;
     PhysicalDevice(const PhysicalDevice &copy) = delete;
@@ -50,28 +59,28 @@ class PhysicalDevice
 
     std::vector<std::string> enumerateAvailableDeviceExtensions(const bool bDump = true) const;
 
-    std::unique_ptr<LogicalDevice> createDevice(const Surface *presentationSurface = nullptr);
+    [[nodiscard]] std::unique_ptr<LogicalDevice> createDevice() const;
 
-    std::optional<uint32_t> findQueueFamilyIndex(const VkQueueFlags &capabilities) const;
-    std::optional<uint32_t> findPresentQueueFamilyIndex(const Surface *surface) const;
+    [[nodiscard]] std::optional<uint32_t> findQueueFamilyIndex(const VkQueueFlags &capabilities) const;
+    [[nodiscard]] std::optional<uint32_t> findPresentQueueFamilyIndex(const Surface *surface) const;
 
-    // class SwapchainSupport querySwapchainSupport(const VkSurfaceKHR& surface) const;
+    [[nodiscard]] SurfaceDetailsT querySurfaceDetails(const Surface& surface) const;
 
   public:
-    inline std::optional<uint32_t> getGraphicsFamilyIndex() const
+    [[nodiscard]] inline std::optional<uint32_t> getGraphicsFamilyIndex() const
     {
         return m_graphicsFamilyIndex;
     }
-    inline std::optional<uint32_t> getPresentFamilyIndex() const
+    [[nodiscard]] inline std::optional<uint32_t> getPresentFamilyIndex() const
     {
         return m_presentFamilyIndex;
     }
 #ifdef ENABLE_VIDEO_TRANSCODE
-    inline std::optional<uint32_t> getDecodeFamilyIndex() const
+    [[nodiscard]] inline std::optional<uint32_t> getDecodeFamilyIndex() const
     {
         return m_decodeFamilyIndex;
     }
-    inline std::optional<uint32_t> getEncodeFamilyIndex() const
+    [[nodiscard]] inline std::optional<uint32_t> getEncodeFamilyIndex() const
     {
         return m_encodeFamilyIndex;
     }

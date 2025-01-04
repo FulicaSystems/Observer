@@ -68,6 +68,10 @@ void Context::loadPhysicalDeviceFunctions()
     GET_PROC_ADDR(*m_loader, PFN_, vkGetPhysicalDeviceQueueFamilyProperties);
     GET_PROC_ADDR(*m_loader, PFN_, vkCreateDevice);
     GET_PROC_ADDR(*m_loader, PFN_, vkGetPhysicalDeviceSurfaceSupportKHR);
+
+    GET_PROC_ADDR(*m_loader, PFN_, vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
+    GET_PROC_ADDR(*m_loader, PFN_, vkGetPhysicalDeviceSurfaceFormatsKHR);
+    GET_PROC_ADDR(*m_loader, PFN_, vkGetPhysicalDeviceSurfacePresentModesKHR);
 }
 
 void Context::createInstance()
@@ -75,6 +79,8 @@ void Context::createInstance()
     m_instance = std::make_unique<Instance>(*this);
 
     loadInstanceFunctions();
+
+    m_instance->createDebugMessenger();
 
     enumerateAvailablePhysicalDevices();
 }

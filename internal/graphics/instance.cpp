@@ -27,8 +27,6 @@ Instance::Instance(const Context &cx) : cx(cx)
         throw std::runtime_error("Failed to create Vulkan instance");
 
     m_handle = std::make_unique<VkInstance>(handle);
-
-    // createDebugMessenger();
 }
 
 Instance::~Instance()

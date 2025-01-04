@@ -50,8 +50,6 @@ class Context
 
     std::unique_ptr<Instance> m_instance;
 
-    // std::unique_ptr<class DeviceSelector> deviceSelector = nullptr;
-
   public:
     Context() = delete;
     Context(const char *applicationName, const version applicationVersion, const version engineVersion,
@@ -138,4 +136,8 @@ class Context
     PFN_DECLARE(PFN_, vkGetPhysicalDeviceQueueFamilyProperties);
     PFN_DECLARE(PFN_, vkCreateDevice);
     PFN_DECLARE(PFN_, vkGetPhysicalDeviceSurfaceSupportKHR);
+
+    PFN_DECLARE(PFN_, vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
+    PFN_DECLARE(PFN_, vkGetPhysicalDeviceSurfaceFormatsKHR);
+    PFN_DECLARE(PFN_, vkGetPhysicalDeviceSurfacePresentModesKHR);
 };

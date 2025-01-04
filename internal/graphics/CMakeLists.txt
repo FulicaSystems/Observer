@@ -23,7 +23,7 @@ target_sources(${component}
     swapchain.cpp
 )
 
-#add_subdirectory(asset)
+#add_subdirectory(device_asset)
 add_subdirectory(device)
 #add_subdirectory(device_memory)
 #add_subdirectory(renderer)
@@ -33,6 +33,8 @@ target_link_libraries(${component}
     PUBLIC Utilities
 
     PUBLIC graphics::device
+
+    PUBLIC mathematics
 )
 
 target_include_directories(${component} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")

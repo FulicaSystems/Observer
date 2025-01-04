@@ -9,6 +9,9 @@
 class Context;
 class PhysicalDevice;
 
+class Surface;
+class SwapChain;
+
 #define VK_GET_DEVICE_PROC_ADDR(device, funcName) funcName = (PFN_##funcName)cx.vkGetDeviceProcAddr(device, #funcName)
 
 class LogicalDevice
@@ -18,6 +21,9 @@ class LogicalDevice
     const PhysicalDevice &physicalHandle;
 
   private:
+    // TODO : abstraction handle
+    VkDevice m_handle;
+
     std::vector<const char *> m_deviceExtensions;
 
     void loadDeviceFunctions();
@@ -26,9 +32,6 @@ class LogicalDevice
     void createCommandPools();
 
   public:
-    // TODO : abstraction handle
-    VkDevice m_handle;
-
     VkQueue graphicsQueue = nullptr;
     VkQueue presentQueue = nullptr;
 #ifdef ENABLE_VIDEO_TRANSCODE
@@ -54,10 +57,17 @@ class LogicalDevice
     LogicalDevice(LogicalDevice &&move) = delete;
     LogicalDevice &operator=(LogicalDevice &&move) = delete;
 
-    LogicalDevice(const Context &cx, const PhysicalDevice &physicalDevice);
+    LogicalDevice(const Context &cx, const PhysicalDevice &physicalDevice) : cx(cx), physicalHandle(physicalDevice)
+    {
+    }
     ~LogicalDevice();
 
     void readyUp();
+
+    /**
+     * create a swapchain for a specified surface
+     */
+    [[nodiscard]] std::unique_ptr<SwapChain> createSwapChain(const Surface *presentationSurface) const;
 
     // template<class TDataType>
     // std::shared_ptr<TDataType> create(const void* createInfo) const { throw std::runtime_error("Use template
@@ -77,73 +87,27 @@ class LogicalDevice
     // TODO : create<Image>
 
   public:
-    inline VkDevice getHandle() const
+    [[nodiscard]] inline VkDevice &getHandle()
+    {
+        return m_handle;
+    }
+    [[nodiscard]] inline const VkDevice &getHandle() const
     {
         return m_handle;
     }
 
   public:
+    // device utils functions
     PFN_DECLARE(PFN_, vkGetDeviceQueue);
     PFN_DECLARE(PFN_, vkDestroyDevice);
 
     PFN_DECLARE(PFN_, vkCreateCommandPool);
     PFN_DECLARE(PFN_, vkDestroyCommandPool);
-};
 
-// struct SwapchainSupport
-// {
-// 	VkSurfaceCapabilitiesKHR capabilities;
-// 	std::vector<VkSurfaceFormatKHR> formats;
-// 	std::vector<VkPresentModeKHR> presentModes;
+    // swapchain functions
+    PFN_DECLARE(PFN_, vkCreateSwapchainKHR);
+    PFN_DECLARE(PFN_, vkGetSwapchainImagesKHR);
+    PFN_DECLARE(PFN_, vkDestroyImageView);
+    PFN_DECLARE(PFN_, vkDestroySwapchainKHR);
 
-// 	bool tryFindFormat(const VkFormat& targetFormat,
-// 		const VkColorSpaceKHR& targetColorSpace,
-// 		VkSurfaceFormatKHR& found)
-// 	{
-// 		for (const auto& format : formats)
-// 		{
-// 			if (format.format == targetFormat && format.colorSpace == targetColorSpace)
-// 			{
-// 				found = format;
-// 				return true;
-// 			}
-// 		}
-
-// 		return false;
-// 	}
-
-// 	bool tryFindPresentMode(const VkPresentModeKHR& targetPresentMode,
-// 		VkPresentModeKHR& found)
-// 	{
-// 		for (const auto& presentMode : presentModes)
-// 		{
-// 			if (presentMode == targetPresentMode)
-// 			{
-// 				found = presentMode;
-// 				return true;
-// 			}
-// 		}
-
-// 		return false;
-// 	}
-
-// 	VkExtent2D getExtent()
-// 	{
-// 		if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
-// 		{
-// 			return capabilities.currentExtent;
-// 		}
-// 		else
-// 		{
-// 			// arbitrary values (HD ready)
-// 			return VkExtent2D{
-// 				.width = Math::clamp(1366U,
-// 					capabilities.minImageExtent.width,
-// 					capabilities.maxImageExtent.width),
-// 				.height = Math::clamp(768U,
-// 					capabilities.minImageExtent.height,
-// 					capabilities.maxImageExtent.height),
-// 			};
-// 		}
-// 	}
-// };
+} typedef Device;
