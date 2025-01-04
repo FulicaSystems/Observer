@@ -9,6 +9,7 @@ add_subdirectory(mathematics)
 
 # utilities
 set(BUILD_AI_UTILS OFF)
+set(BUILD_TESTS OFF)
 add_subdirectory(utilities)
 
 # glslc
