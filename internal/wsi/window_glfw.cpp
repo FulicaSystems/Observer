@@ -1,5 +1,8 @@
 #include <stdexcept>
 
+#include "graphics/context.hpp"
+#include "graphics/surface.hpp"
+
 #include "window_glfw.hpp"
 
 int WSILoaderGLFW::init()
@@ -68,6 +71,15 @@ const std::vector<const char *> WindowGLFW::getRequiredExtensions() const
 void WindowGLFW::makeContextCurrent()
 {
     glfwMakeContextCurrent(m_handle);
+}
+
+std::unique_ptr<Surface> WindowGLFW::createSurface(const Context &cx)
+{
+    VkSurfaceKHR surface;
+    if (glfwCreateWindowSurface(cx.getInstanceHandle(), m_handle, nullptr, &surface) != VK_SUCCESS)
+        throw std::runtime_error("Could not create window surface");
+
+    return std::make_unique<Surface>(cx, surface);
 }
 
 bool WindowGLFW::shouldClose() const
