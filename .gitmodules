@@ -21,7 +21,7 @@
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
 [submodule "externals/mathematics"]
 	path = externals/mathematics
-	url = https://github.com/sjarod/mathematics
+	url = https://github.com/FulicaSystems/Mathematics.git
 [submodule "externals/utilities"]
 	path = externals/utilities
-	url = https://github.com/sjarod/utilities
+	url = https://github.com/FulicaSystems/Utilities.git
