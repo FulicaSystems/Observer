@@ -30,11 +30,11 @@ add_subdirectory(device)
 
 target_link_libraries(${component}
     PUBLIC Vulkan-Headers
-    PUBLIC Utilities
+    PUBLIC FuUtilities
 
     PUBLIC graphics::device
 
-    PUBLIC mathematics
+    PUBLIC FuMathematics
 )
 
 target_include_directories(${component} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")

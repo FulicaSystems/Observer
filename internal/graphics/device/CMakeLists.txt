@@ -1,8 +1,8 @@
 set(component device)
 
-option(OPTION_ENABLE_VIDEO_TRANSCODE "enable video transcoding" OFF)
+option(OBSERVER_OPTION_ENABLE_VIDEO_TRANSCODE "enable video transcoding" OFF)
 
-if (OPTION_ENABLE_VIDEO_TRANSCODE)
+if (OBSERVER_OPTION_ENABLE_VIDEO_TRANSCODE)
     add_compile_definitions(ENABLE_VIDEO_TRANSCODE)
 endif()
 
@@ -28,7 +28,7 @@ target_sources(${component}
 
 target_link_libraries(${component}
     PUBLIC Vulkan-Headers
-    PUBLIC Utilities
+    PUBLIC FuUtilities
 )
 
 target_include_directories(${component} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")

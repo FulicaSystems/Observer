@@ -2,7 +2,7 @@
 
 #define STD_INT
 #define STD_LIMITS
-#include "mathematics/mathematics.hpp"
+#include "fumathematics/mathematics.hpp"
 
 #include "surface.hpp"
 

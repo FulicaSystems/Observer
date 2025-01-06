@@ -5,11 +5,12 @@ add_subdirectory(glfw)
 add_subdirectory(Vulkan-Headers)
 
 # mathematics
+set(MATHEMATICS_BUILD_TESTS OFF)
 add_subdirectory(mathematics)
 
 # utilities
-set(BUILD_AI_UTILS OFF)
-set(BUILD_TESTS OFF)
+set(UTILITIES_BUILD_AI_UTILS OFF)
+set(UTILITIES_BUILD_TESTS OFF)
 add_subdirectory(utilities)
 
 # glslc
