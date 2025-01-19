@@ -7,6 +7,8 @@
 #include "mathematics.hpp"
 #include "types/color.hpp"
 
+// TODO : move desc function to a vertex_desc.hpp file
+
 struct Vertex
 {
     // 2 attributes
