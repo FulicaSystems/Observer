@@ -75,7 +75,7 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(const Surface *present
         createInfo.pQueueFamilyIndices = nullptr;
     }
 
-    std::unique_ptr<SwapChain> out = std::make_unique<SwapChain>(cx, *this, *presentationSurface);
+    std::unique_ptr<SwapChain> out = std::make_unique<SwapChain>(*cx, *this, *presentationSurface);
     if (vkCreateSwapchainKHR(m_handle, &createInfo, nullptr, &out->getHandle()) != VK_SUCCESS)
         throw std::runtime_error("Failed to create swapchain");
 

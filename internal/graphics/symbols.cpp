@@ -1,7 +1,7 @@
 #pragma once
 
 #include "context.hpp"
-#include "device.hpp"
+#include "device/device.hpp"
 #include "instance.hpp"
 
 #include "symbols.hpp"
@@ -41,7 +41,7 @@ void DeviceSymbolsT::load(Utils::bin::DynamicLibraryLoader *loader)
     GET_PROC_ADDR(*loader, PFN_, vkGetPhysicalDeviceSurfacePresentModesKHR);
 }
 
-void DeviceSymbolsT::load(const Context *cx, const Device *device)
+void DeviceSymbols2T::load(const Context *cx, const LogicalDevice *device)
 {
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkGetDeviceQueue);
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkDestroyDevice);
@@ -50,7 +50,7 @@ void DeviceSymbolsT::load(const Context *cx, const Device *device)
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkDestroyCommandPool);
 }
 
-void DeviceSymbolsT::load(const Context *cx, const Device *device)
+void SwapchainSymbolsT::load(const Context *cx, const LogicalDevice *device)
 {
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkCreateSwapchainKHR);
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkGetSwapchainImagesKHR);
