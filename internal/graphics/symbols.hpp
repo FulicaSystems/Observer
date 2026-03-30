@@ -6,9 +6,13 @@
 
 class Context;
 class Instance;
+class LogicalDevice;
 
 #define VK_GET_INSTANCE_PROC_ADDR(contextPtr, instance, funcName)                                                                  \
     funcName = (PFN_##funcName)contextPtr->vkGetInstanceProcAddr(instance, #funcName)
+
+#define VK_GET_DEVICE_PROC_ADDR(contextPtr, device, funcName)                                                          \
+    funcName = (PFN_##funcName)contextPtr->vkGetDeviceProcAddr(device, #funcName)
 
 /**
  * @brief used to load api functions
@@ -21,6 +25,7 @@ struct SymbolsI
     virtual void load(Utils::bin::DynamicLibraryLoader *loader) = 0;
     public:
     virtual void load(const Context* cx, const Instance* instance) = 0;
+    virtual void load(const Context *cx, const LogicalDevice *device) = 0;
 };
 
 /**
@@ -45,6 +50,9 @@ struct InstanceSymbolsT : public SymbolsI
     void load(Utils::bin::DynamicLibraryLoader *loader) override;
     public:
     void load(const Context* cx, const Instance* instance) override{}
+    void load(const Context *cx, const LogicalDevice *device) override
+    {
+    }
 };
 
 /**
@@ -63,6 +71,9 @@ struct InstanceSymbols2T : public SymbolsI
     void load(Utils::bin::DynamicLibraryLoader *loader) override{}
     public:
     void load(const Context* cx, const Instance* instance) override;
+    void load(const Context *cx, const LogicalDevice *device) override
+    {
+    }
 };
 
 /**
@@ -86,4 +97,48 @@ struct DeviceSymbolsT : public SymbolsI
     void load(Utils::bin::DynamicLibraryLoader *loader) override;
     public:
     void load(const Context* cx, const Instance* instance) override{}
+    void load(const Context *cx, const LogicalDevice *device) override
+    {
+    }
+};
+
+struct DeviceSymbols2T : public SymbolsI
+{
+
+    PFN_DECLARE(PFN_, vkGetDeviceQueue);
+    PFN_DECLARE(PFN_, vkDestroyDevice);
+
+    PFN_DECLARE(PFN_, vkCreateCommandPool);
+    PFN_DECLARE(PFN_, vkDestroyCommandPool);
+
+  protected:
+    void load(Utils::bin::DynamicLibraryLoader *loader) override
+    {
+    }
+
+  public:
+    void load(const Context *cx, const Instance *instance) override
+    {
+    }
+    void load(const Context *cx, const LogicalDevice *device) override;
+};
+
+struct SwapchainSymbolsT : public SymbolsI
+{
+
+    PFN_DECLARE(PFN_, vkCreateSwapchainKHR);
+    PFN_DECLARE(PFN_, vkGetSwapchainImagesKHR);
+    PFN_DECLARE(PFN_, vkDestroyImageView);
+    PFN_DECLARE(PFN_, vkDestroySwapchainKHR);
+
+  protected:
+    void load(Utils::bin::DynamicLibraryLoader *loader) override
+    {
+    }
+
+  public:
+    void load(const Context *cx, const Instance *instance) override
+    {
+    }
+    void load(const Context *cx, const LogicalDevice *device) override;
 };

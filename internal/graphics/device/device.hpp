@@ -6,19 +6,26 @@
 
 #include "binary/dynamic_library_loader.hpp"
 
+#include "physical_device.hpp"
+
 class Context;
-class PhysicalDevice;
 
 class Surface;
 class SwapChain;
 
-#define VK_GET_DEVICE_PROC_ADDR(device, funcName) funcName = (PFN_##funcName)cx.vkGetDeviceProcAddr(device, #funcName)
+struct LogicalDeviceCreateInfoT
+{
+    const Context *context;
+    const PhysicalDevice *physicalHandle;
+
+} typedef DeviceCreateInfoT;
 
 class LogicalDevice
 {
+
   private:
-    const Context &cx;
-    const PhysicalDevice &physicalHandle;
+    const Context *cx;
+    const PhysicalDevice *physicalHandle;
 
   private:
     // TODO : abstraction handle
@@ -51,15 +58,15 @@ class LogicalDevice
 #endif
 
     LogicalDevice() = delete;
-
+    LogicalDevice(const LogicalDeviceCreateInfoT createInfo)
+        : cx(createInfo.context), physicalHandle(createInfo.physicalHandle)
+    {
+    }
     LogicalDevice(const LogicalDevice &copy) = delete;
     LogicalDevice &operator=(const LogicalDevice &copy) = delete;
     LogicalDevice(LogicalDevice &&move) = delete;
     LogicalDevice &operator=(LogicalDevice &&move) = delete;
 
-    LogicalDevice(const Context &cx, const PhysicalDevice &physicalDevice) : cx(cx), physicalHandle(physicalDevice)
-    {
-    }
     ~LogicalDevice();
 
     void readyUp();
@@ -95,19 +102,5 @@ class LogicalDevice
     {
         return m_handle;
     }
-
-  public:
-    // device utils functions
-    PFN_DECLARE(PFN_, vkGetDeviceQueue);
-    PFN_DECLARE(PFN_, vkDestroyDevice);
-
-    PFN_DECLARE(PFN_, vkCreateCommandPool);
-    PFN_DECLARE(PFN_, vkDestroyCommandPool);
-
-    // swapchain functions
-    PFN_DECLARE(PFN_, vkCreateSwapchainKHR);
-    PFN_DECLARE(PFN_, vkGetSwapchainImagesKHR);
-    PFN_DECLARE(PFN_, vkDestroyImageView);
-    PFN_DECLARE(PFN_, vkDestroySwapchainKHR);
 
 } typedef Device;

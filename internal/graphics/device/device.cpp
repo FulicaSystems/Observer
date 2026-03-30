@@ -31,7 +31,7 @@ void LogicalDevice::readyUp()
 
 std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(const Surface *presentationSurface) const
 {
-    SurfaceDetailsT details = physicalHandle.querySurfaceDetails(*presentationSurface);
+    SurfaceDetailsT details = physicalHandle->querySurfaceDetails(*presentationSurface);
 
     VkSurfaceFormatKHR surfaceFormat;
     details.tryFindFormat(VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR, surfaceFormat);
@@ -59,10 +59,10 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(const Surface *present
                                            .oldSwapchain = VK_NULL_HANDLE};
 
     uint32_t queueFamilyIndices[] = {
-        physicalHandle.getGraphicsFamilyIndex().value(),
-        physicalHandle.getPresentFamilyIndex().value(),
+        physicalHandle->getGraphicsFamilyIndex().value(),
+        physicalHandle->getPresentFamilyIndex().value(),
     };
-    if (physicalHandle.getGraphicsFamilyIndex().value() != physicalHandle.getPresentFamilyIndex().value())
+    if (physicalHandle->getGraphicsFamilyIndex().value() != physicalHandle->getPresentFamilyIndex().value())
     {
         createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         createInfo.queueFamilyIndexCount = 2;
@@ -93,25 +93,15 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(const Surface *present
 
 void LogicalDevice::loadDeviceFunctions()
 {
-    VK_GET_DEVICE_PROC_ADDR(m_handle, vkGetDeviceQueue);
-    VK_GET_DEVICE_PROC_ADDR(m_handle, vkDestroyDevice);
-
-    VK_GET_DEVICE_PROC_ADDR(m_handle, vkCreateCommandPool);
-    VK_GET_DEVICE_PROC_ADDR(m_handle, vkDestroyCommandPool);
-
-    VK_GET_DEVICE_PROC_ADDR(m_handle, vkCreateSwapchainKHR);
-    VK_GET_DEVICE_PROC_ADDR(m_handle, vkGetSwapchainImagesKHR);
-    VK_GET_DEVICE_PROC_ADDR(m_handle, vkDestroyImageView);
-    VK_GET_DEVICE_PROC_ADDR(m_handle, vkDestroySwapchainKHR);
 }
 
 void LogicalDevice::retrieveQueues()
 {
-    auto graphicsFamilyIndex = physicalHandle.getGraphicsFamilyIndex();
-    auto presentFamilyIndex = physicalHandle.getPresentFamilyIndex();
+    auto graphicsFamilyIndex = physicalHandle->getGraphicsFamilyIndex();
+    auto presentFamilyIndex = physicalHandle->getPresentFamilyIndex();
 #ifdef ENABLE_VIDEO_TRANSCODE
-    auto decodeFamilyIndex = physicalHandle.getDecodeFamilyIndex();
-    auto encodeFamilyIndex = physicalHandle.getEncodeFamilyIndex();
+    auto decodeFamilyIndex = physicalHandle->getDecodeFamilyIndex();
+    auto encodeFamilyIndex = physicalHandle->getEncodeFamilyIndex();
 #endif
 
     if (graphicsFamilyIndex.has_value())
@@ -131,7 +121,7 @@ void LogicalDevice::createCommandPools()
     VkCommandPoolCreateInfo resetCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-        .queueFamilyIndex = physicalHandle.findQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT).value(),
+        .queueFamilyIndex = physicalHandle->findQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT).value(),
     };
 
     if (graphicsQueue)
@@ -141,7 +131,7 @@ void LogicalDevice::createCommandPools()
         VkCommandPoolCreateInfo transientCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
-            .queueFamilyIndex = physicalHandle.findQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT).value(),
+            .queueFamilyIndex = physicalHandle->findQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT).value(),
         };
         if (vkCreateCommandPool(m_handle, &transientCreateInfo, nullptr, &commandPoolTransient))
             throw std::runtime_error("Failed to create transient command pool");
@@ -153,7 +143,7 @@ void LogicalDevice::createCommandPools()
         VkCommandPoolCreateInfo decodeCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-            .queueFamilyIndex = physicalHandle.findQueueFamilyIndex(VK_QUEUE_VIDEO_DECODE_BIT_KHR).value(),
+            .queueFamilyIndex = physicalHandle->findQueueFamilyIndex(VK_QUEUE_VIDEO_DECODE_BIT_KHR).value(),
         };
         if (vkCreateCommandPool(m_handle, &resetCreateInfo, nullptr, &commandPoolDecode))
             throw std::runtime_error("Failed to create reset command pool");
@@ -164,7 +154,7 @@ void LogicalDevice::createCommandPools()
         VkCommandPoolCreateInfo encodeCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-            .queueFamilyIndex = physicalHandle.findQueueFamilyIndex(VK_QUEUE_VIDEO_ENCODE_BIT_KHR).value(),
+            .queueFamilyIndex = physicalHandle->findQueueFamilyIndex(VK_QUEUE_VIDEO_ENCODE_BIT_KHR).value(),
         };
         if (vkCreateCommandPool(m_handle, &resetCreateInfo, nullptr, &commandPoolEncode))
             throw std::runtime_error("Failed to create reset command pool");

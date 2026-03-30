@@ -113,7 +113,8 @@ std::unique_ptr<LogicalDevice> PhysicalDevice::createDevice() const
     };
 
     // create device
-    std::unique_ptr<LogicalDevice> out = std::make_unique<LogicalDevice>(cx, *this);
+    std::unique_ptr<LogicalDevice> out =
+        std::make_unique<LogicalDevice>(DeviceCreateInfoT{.context = cx, .physicalHandle = this});
     if (cx->vkCreateDevice(*m_handle, &createInfo, nullptr, &out->getHandle()) != VK_SUCCESS)
         throw std::runtime_error("Failed to create logical device");
 

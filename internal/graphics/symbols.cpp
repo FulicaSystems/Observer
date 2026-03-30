@@ -1,6 +1,7 @@
 #pragma once
 
 #include "context.hpp"
+#include "device.hpp"
 #include "instance.hpp"
 
 #include "symbols.hpp"
@@ -17,7 +18,7 @@ void InstanceSymbolsT::load(Utils::bin::DynamicLibraryLoader *loader)
     GET_PROC_ADDR(*loader, PFN_, vkGetDeviceProcAddr);
 }
 
-void InstanceSymbols2T::load(const Context* cx, const Instance *instance)
+void InstanceSymbols2T::load(const Context *cx, const Instance *instance)
 {
     VK_GET_INSTANCE_PROC_ADDR(cx, instance->getHandle(), vkCreateDebugUtilsMessengerEXT);
     VK_GET_INSTANCE_PROC_ADDR(cx, instance->getHandle(), vkDestroyDebugUtilsMessengerEXT);
@@ -38,4 +39,21 @@ void DeviceSymbolsT::load(Utils::bin::DynamicLibraryLoader *loader)
     GET_PROC_ADDR(*loader, PFN_, vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
     GET_PROC_ADDR(*loader, PFN_, vkGetPhysicalDeviceSurfaceFormatsKHR);
     GET_PROC_ADDR(*loader, PFN_, vkGetPhysicalDeviceSurfacePresentModesKHR);
+}
+
+void DeviceSymbolsT::load(const Context *cx, const Device *device)
+{
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkGetDeviceQueue);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkDestroyDevice);
+
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkCreateCommandPool);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkDestroyCommandPool);
+}
+
+void DeviceSymbolsT::load(const Context *cx, const Device *device)
+{
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkCreateSwapchainKHR);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkGetSwapchainImagesKHR);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkDestroyImageView);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkDestroySwapchainKHR);
 }
