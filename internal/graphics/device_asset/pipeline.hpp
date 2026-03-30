@@ -135,8 +135,12 @@ class Pipeline
                                                                    .pushConstantRangeCount = 0,
                                                                    .pPushConstantRanges = nullptr};
 
-            if (vkCreatePipelineLayout(device.handle, &pipelineLayoutCreateInfo, nullptr, &layout) != VK_SUCCESS)
-                throw std::runtime_error("Failed to create pipeline layout");
+            VkResult res = vkCreatePipelineLayout(device.handle, &pipelineLayoutCreateInfo, nullptr, &layout);
+            if (res != VK_SUCCESS)
+            {
+                std::cerr << "Failed to create pipeline layout : " << res << std::endl;
+                return;
+            }
 
             auto shaderModule = std::dynamic_pointer_cast<GPUShader>(shaderProgram->local);
             auto shaderStageCreateInfo = shaderModule->getShaderStageCreateInfo();
@@ -164,9 +168,13 @@ class Pipeline
                 .basePipelineIndex = -1,
             };
 
-            if (vkCreateGraphicsPipelines(device.handle, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr,
-                                          &this->handle) != VK_SUCCESS)
-                throw std::runtime_error("Failed to create graphics pipeline");
+            res = vkCreateGraphicsPipelines(device.handle, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr,
+                                            &this->handle);
+            if (res != VK_SUCCESS)
+            {
+                std::cerr << "Failed to create graphics pipeline : " << res << std::endl;
+                return;
+            }
         };
 
         if (shaderProgram->local->loaded.test())

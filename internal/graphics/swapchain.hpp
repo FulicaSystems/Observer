@@ -10,9 +10,12 @@ class Surface;
 
 struct SwapChainCreateInfoT
 {
-    const Context *cx;
-    const LogicalDevice *device;
+    std::optional<const LogicalDevice *> device;
     const Surface *surface;
+
+    VkSurfaceFormatKHR surfaceFormat;
+    VkPresentModeKHR presentMode;
+    VkExtent2D extent;
 };
 
 class SwapChain

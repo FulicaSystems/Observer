@@ -48,6 +48,8 @@ void DeviceSymbols2T::load(const Context *cx, const LogicalDevice *device)
 
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkCreateCommandPool);
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkDestroyCommandPool);
+
+    SwapchainSymbolsT::load(cx, device);
 }
 
 void SwapchainSymbolsT::load(const Context *cx, const LogicalDevice *device)

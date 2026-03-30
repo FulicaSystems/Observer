@@ -12,6 +12,7 @@ class Context;
 
 class Surface;
 class SwapChain;
+struct SwapChainCreateInfoT;
 
 struct LogicalDeviceCreateInfoT
 {
@@ -68,7 +69,7 @@ class LogicalDevice
     /**
      * create a swapchain for a specified surface
      */
-    [[nodiscard]] std::unique_ptr<SwapChain> createSwapChain(const Surface *presentationSurface) const;
+    [[nodiscard]] std::unique_ptr<SwapChain> createSwapChain(SwapChainCreateInfoT ci) const;
     /**
      * @brief destroys the swapchain handle with image view resources
      *

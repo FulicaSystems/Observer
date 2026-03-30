@@ -4,10 +4,8 @@
 
 #include "window.hpp"
 
-class SwapChain;
 class Context;
 class Instance;
-class Surface;
 
 class WSILoaderGLFW final : public WSILoaderI
 {
@@ -16,12 +14,9 @@ class WSILoaderGLFW final : public WSILoaderI
     void terminate() override;
 };
 
-class WindowGLFW final : public WindowI
+class WindowGLFW final : public WindowI, public PresentWindowABC
 {
   private:
-    // std::unique_ptr<SwapChain> m_swapchain;
-    std::unique_ptr<Surface> m_surface;
-
     bool m_resizable = false;
 
     uint32_t m_width = 1366;
@@ -46,12 +41,10 @@ class WindowGLFW final : public WindowI
     const std::vector<const char *> getRequiredExtensions() const override;
 
     void makeContextCurrent() override;
-    std::unique_ptr<Surface> createSurface(const Context *cx, const Instance *inst) override;
+    Surface *createSurface(const Context *cx, const Instance *inst) override;
 
     void swapBuffers() override;
     void pollEvents() override;
 
     bool shouldClose() const override;
-
-    // const Surface& createSurface(const Instance& instance);
 };

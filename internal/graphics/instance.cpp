@@ -26,8 +26,12 @@ Instance::Instance(const InstanceCreateInfoT createInfo) : cx(createInfo.cx)
                                .ppEnabledExtensionNames = instanceExtensions.data()};
 
     VkInstance handle;
-    if (cx->vkCreateInstance(&ci, nullptr, &handle) != VK_SUCCESS)
-        throw std::runtime_error("Failed to create Vulkan instance");
+    VkResult res = cx->vkCreateInstance(&ci, nullptr, &handle);
+    if (res != VK_SUCCESS)
+    {
+        std::cerr << "Failed to create Vulkan instance : " << res << std::endl;
+        return;
+    }
 
     m_handle = std::make_unique<VkInstance>(handle);
 
@@ -61,8 +65,12 @@ void Instance::createDebugMessenger()
         .pUserData = nullptr};
 
     VkDebugUtilsMessengerEXT handle;
-    if (cx->vkCreateDebugUtilsMessengerEXT(*m_handle, &createInfo, nullptr, &handle) != VK_SUCCESS)
-        throw std::runtime_error("Failed to set up debug messenger");
+    VkResult res = cx->vkCreateDebugUtilsMessengerEXT(*m_handle, &createInfo, nullptr, &handle);
+    if (res != VK_SUCCESS)
+    {
+        std::cerr << "Failed to set up debug messenger : " << res << std::endl;
+        return;
+    }
     m_debugMessenger = std::make_unique<VkDebugUtilsMessengerEXT>(handle);
 }
 

@@ -25,6 +25,7 @@ struct PhysicalDeviceCreateInfoT
     Context *cx;
     const Instance *inst;
     const char *deviceName;
+    Surface *surface;
 };
 
 class PhysicalDevice
@@ -34,8 +35,6 @@ class PhysicalDevice
     const Instance *inst;
 
   private:
-    char deviceName[256];
-
     std::shared_ptr<VkPhysicalDevice> m_handle;
 
     VkPhysicalDeviceProperties m_properties;
@@ -73,7 +72,8 @@ class PhysicalDevice
     [[nodiscard]] std::optional<uint32_t> findQueueFamilyIndex(const VkQueueFlags &capabilities) const;
     [[nodiscard]] std::optional<uint32_t> findPresentQueueFamilyIndex(const Surface *surface) const;
 
-    [[nodiscard]] SurfaceDetailsT querySurfaceDetails(const Surface &surface) const;
+    [[nodiscard]] VkSurfaceCapabilitiesKHR getSurfaceCapabilities(const Surface &surface) const;
+    [[deprecated, nodiscard]] SurfaceDetailsT getSurfaceDetails(const Surface &surface) const;
 
   public:
     [[nodiscard]] inline VkPhysicalDevice getHandle() const
@@ -99,4 +99,14 @@ class PhysicalDevice
         return m_encodeFamilyIndex;
     }
 #endif
+
+    [[nodiscard]] VkPhysicalDeviceType getDeviceType() const
+    {
+        return m_properties.deviceType;
+    }
+
+    [[nodiscard]] const char *getDeviceName() const
+    {
+        return m_properties.deviceName;
+    }
 };

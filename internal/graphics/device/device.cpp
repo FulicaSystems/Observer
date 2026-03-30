@@ -9,9 +9,13 @@
 LogicalDevice::LogicalDevice(const LogicalDeviceCreateInfoT createInfo)
     : cx(createInfo.context), physicalHandle(createInfo.physicalHandle)
 {
-    if (cx->vkCreateDevice(physicalHandle->getHandle(), (VkDeviceCreateInfo *)createInfo.createInfo, nullptr,
-                           &m_handle) != VK_SUCCESS)
-        throw std::runtime_error("Failed to create logical device");
+    VkResult res = cx->vkCreateDevice(physicalHandle->getHandle(), (VkDeviceCreateInfo *)createInfo.createInfo, nullptr,
+                                      &m_handle);
+    if (res != VK_SUCCESS)
+    {
+        std::cerr << "Failed to create logical device : " << res << std::endl;
+        return;
+    }
 
     cx->DeviceSymbols2T::load(cx, this);
 
@@ -34,44 +38,51 @@ LogicalDevice::~LogicalDevice()
     cx->vkDestroyDevice(m_handle, nullptr);
 }
 
-std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(const Surface *presentationSurface) const
+std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(SwapChainCreateInfoT ci) const
 {
-    SurfaceDetailsT details = physicalHandle->querySurfaceDetails(*presentationSurface);
+    VkSurfaceCapabilitiesKHR capabilities = physicalHandle->getSurfaceCapabilities(*ci.surface);
+    auto compatibility = physicalHandle->getSurfaceDetails(*ci.surface);
+    auto surfaceFormat = compatibility.formats[0];
+    auto presentMode = compatibility.presentModes[0];
+    int temp;
+    auto surfaceFormatOpt = compatibility.findFormat(ci.surfaceFormat.format, ci.surfaceFormat.colorSpace, temp);
+    if (surfaceFormatOpt.has_value())
+        surfaceFormat = surfaceFormatOpt.value();
+    auto presentModeOpt = compatibility.findPresentMode(ci.presentMode, temp);
+    if (presentModeOpt.has_value())
+        presentMode = presentModeOpt.value();
+    auto extent = compatibility.findExtent(ci.extent.width, ci.extent.height);
 
-    VkSurfaceFormatKHR surfaceFormat;
-    details.tryFindFormat(VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR, surfaceFormat);
-    VkPresentModeKHR presentMode;
-    details.tryFindPresentMode(VK_PRESENT_MODE_MAILBOX_KHR, presentMode);
-    // TODO : remove arbitraty value (hd ready)
-    VkExtent2D extent = details.findExtent(1366U, 768U);
-
-    uint32_t imageCount = details.capabilities.minImageCount + 1;
-    if (details.capabilities.maxImageCount > 0 && details.capabilities.maxImageCount < imageCount)
-        imageCount = details.capabilities.maxImageCount;
+    uint32_t imageCount = capabilities.minImageCount + 1;
+    if (capabilities.maxImageCount > 0 && capabilities.maxImageCount < imageCount)
+        imageCount = capabilities.maxImageCount;
 
     VkSwapchainCreateInfoKHR createInfo = {.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-                                           .surface = presentationSurface->getHandle(),
+                                           .surface = ci.surface->getHandle(),
                                            .minImageCount = imageCount,
                                            .imageFormat = surfaceFormat.format,
                                            .imageColorSpace = surfaceFormat.colorSpace,
                                            .imageExtent = extent,
                                            .imageArrayLayers = 1,
                                            .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                                           .preTransform = details.capabilities.currentTransform,
+                                           .preTransform = capabilities.currentTransform,
                                            .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
                                            .presentMode = presentMode,
                                            .clipped = VK_TRUE,
                                            .oldSwapchain = VK_NULL_HANDLE};
 
-    uint32_t queueFamilyIndices[] = {
-        physicalHandle->getGraphicsFamilyIndex().value(),
-        physicalHandle->getPresentFamilyIndex().value(),
-    };
-    if (physicalHandle->getGraphicsFamilyIndex().value() != physicalHandle->getPresentFamilyIndex().value())
+    std::vector<uint32_t> queueFamilyIndices;
+    if (physicalHandle->getGraphicsFamilyIndex().has_value())
+        queueFamilyIndices.emplace_back(physicalHandle->getGraphicsFamilyIndex().value());
+    if (physicalHandle->getPresentFamilyIndex().has_value())
+        queueFamilyIndices.emplace_back(physicalHandle->getPresentFamilyIndex().value());
+
+    if ((physicalHandle->getGraphicsFamilyIndex().has_value() && physicalHandle->getPresentFamilyIndex().has_value()) &&
+        physicalHandle->getGraphicsFamilyIndex().value() != physicalHandle->getPresentFamilyIndex().value())
     {
         createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         createInfo.queueFamilyIndexCount = 2;
-        createInfo.pQueueFamilyIndices = queueFamilyIndices;
+        createInfo.pQueueFamilyIndices = queueFamilyIndices.data();
     }
     else
     {
@@ -80,11 +91,14 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(const Surface *present
         createInfo.pQueueFamilyIndices = nullptr;
     }
 
-    std::unique_ptr<SwapChain> out =
-        std::make_unique<SwapChain>(SwapChainCreateInfoT{.cx = cx, .device = this, .surface = presentationSurface});
-    if (cx->vkCreateSwapchainKHR(m_handle, &createInfo, nullptr, &out->getHandle()) != VK_SUCCESS)
-        throw std::runtime_error("Failed to create swapchain");
-
+    ci.device = std::make_optional<const LogicalDevice *>(this);
+    std::unique_ptr<SwapChain> out = std::make_unique<SwapChain>(ci);
+    VkResult res = cx->vkCreateSwapchainKHR(m_handle, &createInfo, nullptr, &out->getHandle());
+    if (res != VK_SUCCESS)
+    {
+        std::cerr << "Failed to create swapchain : " << res << std::endl;
+        return nullptr;
+    }
 
     // prepare the swapchain object
     cx->vkGetSwapchainImagesKHR(m_handle, out->getHandle(), &imageCount, nullptr);
@@ -137,15 +151,23 @@ void LogicalDevice::createCommandPools()
 
     if (graphicsQueue)
     {
-        if (cx->vkCreateCommandPool(m_handle, &resetCreateInfo, nullptr, &commandPool))
-            throw std::runtime_error("Failed to create reset command pool");
+        VkResult res = cx->vkCreateCommandPool(m_handle, &resetCreateInfo, nullptr, &commandPool);
+        if (res != VK_SUCCESS)
+        {
+            std::cerr << "Failed to create reset command pool : " << res << std::endl;
+            return;
+        }
         VkCommandPoolCreateInfo transientCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
             .queueFamilyIndex = physicalHandle->findQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT).value(),
         };
-        if (cx->vkCreateCommandPool(m_handle, &transientCreateInfo, nullptr, &commandPoolTransient))
-            throw std::runtime_error("Failed to create transient command pool");
+        res = cx->vkCreateCommandPool(m_handle, &transientCreateInfo, nullptr, &commandPoolTransient);
+        if (res != VK_SUCCESS)
+        {
+            std::cerr << "Failed to create transient command pool : " << res << std::endl;
+            return;
+        }
     }
 
 #ifdef ENABLE_VIDEO_TRANSCODE
@@ -156,8 +178,12 @@ void LogicalDevice::createCommandPools()
             .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
             .queueFamilyIndex = physicalHandle->findQueueFamilyIndex(VK_QUEUE_VIDEO_DECODE_BIT_KHR).value(),
         };
-        if (cx->vkCreateCommandPool(m_handle, &resetCreateInfo, nullptr, &commandPoolDecode))
-            throw std::runtime_error("Failed to create reset command pool");
+        res = cx->vkCreateCommandPool(m_handle, &resetCreateInfo, nullptr, &commandPoolDecode);
+        if (res != VK_SUCCESS)
+        {
+            std::cerr << "Failed to create reset command pool : " << res << std::endl;
+            return;
+        }
     }
 
     if (encodeQueue)
@@ -167,8 +193,12 @@ void LogicalDevice::createCommandPools()
             .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
             .queueFamilyIndex = physicalHandle->findQueueFamilyIndex(VK_QUEUE_VIDEO_ENCODE_BIT_KHR).value(),
         };
-        if (cx->vkCreateCommandPool(m_handle, &resetCreateInfo, nullptr, &commandPoolEncode))
-            throw std::runtime_error("Failed to create reset command pool");
+        res = cx->vkCreateCommandPool(m_handle, &resetCreateInfo, nullptr, &commandPoolEncode);
+        if (res != VK_SUCCESS)
+        {
+            std::cerr << "Failed to create reset command pool : " << res << std::endl;
+            return;
+        }
     }
 #endif
 }

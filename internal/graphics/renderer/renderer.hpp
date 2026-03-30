@@ -124,8 +124,12 @@ class MultiPassRenderer : public RendererABC
                                              .dependencyCount = 1,
                                              .pDependencies = &dependency};
 
-        if (vkCreateRenderPass(device.handle, &createInfo, nullptr, &renderPass) != VK_SUCCESS)
-            throw std::runtime_error("Failed to create render pass");
+        VkResult res = vkCreateRenderPass(device.handle, &createInfo, nullptr, &renderPass);
+        if (res != VK_SUCCESS)
+        {
+            std::cerr << "Failed to create render pass : " << res << std::endl;
+            return;
+        }
 
         // pipeline
 
@@ -144,8 +148,12 @@ class MultiPassRenderer : public RendererABC
                                                   .height = swapchain.imageExtent.height,
                                                   .layers = 1};
 
-            if (vkCreateFramebuffer(device.handle, &createInfo, nullptr, &framebuffers[i]) != VK_SUCCESS)
-                throw std::runtime_error("Failed to create framebuffer");
+            res = vkCreateFramebuffer(device.handle, &createInfo, nullptr, &framebuffers[i]);
+            if (res != VK_SUCCESS)
+            {
+                std::cerr << "Failed to create framebuffer : " << res << std::endl;
+                return;
+            }
         }
     }
     ~MultiPassRenderer() override

@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "context.hpp"
 #include "device/device.hpp"
 #include "surface.hpp"
@@ -6,5 +8,6 @@
 
 SwapChain::~SwapChain()
 {
-    ci.device->destroySwapChain(*this);
+    assert(ci.device.has_value());
+    ci.device.value()->destroySwapChain(*this);
 }

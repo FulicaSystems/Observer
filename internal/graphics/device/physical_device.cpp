@@ -36,17 +36,15 @@ void PhysicalDevice::initQueueFamilyIndices(const Surface *presentationSurface)
 
 PhysicalDevice::PhysicalDevice(const PhysicalDeviceCreateInfoT createInfo) : cx(createInfo.cx), inst(createInfo.inst)
 {
-    std::optional<VkPhysicalDevice> handle = inst->getPhysicalDeviceHandleByName(deviceName);
+    std::optional<VkPhysicalDevice> handle = inst->getPhysicalDeviceHandleByName(createInfo.deviceName);
     if (!handle.has_value())
         return;
 
     m_handle = std::make_shared<VkPhysicalDevice>(handle.value());
 
-    memcpy(this->deviceName, deviceName, 256);
-
     initPhysicalDeviceProperties();
     initQueueFamilyProperties();
-    initQueueFamilyIndices();
+    initQueueFamilyIndices(createInfo.surface);
 
     enumerateAvailableDeviceExtensions();
 }
@@ -62,7 +60,7 @@ std::vector<std::string> PhysicalDevice::enumerateAvailableDeviceExtensions(cons
     std::vector<VkExtensionProperties> extensions(extensionCount);
     cx->vkEnumerateDeviceExtensionProperties(*m_handle, nullptr, &extensionCount, extensions.data());
     if (bDump)
-        std::cout << "available device extensions for " << deviceName << " : " << extensionCount << '\n';
+        std::cout << "available device extensions for " << getDeviceName() << " : " << extensionCount << '\n';
     for (const auto &extension : extensions)
     {
         if (bDump)
@@ -143,7 +141,14 @@ std::optional<uint32_t> PhysicalDevice::findPresentQueueFamilyIndex(const Surfac
     return std::optional<uint32_t>();
 }
 
-SurfaceDetailsT PhysicalDevice::querySurfaceDetails(const Surface& surface) const
+VkSurfaceCapabilitiesKHR PhysicalDevice::getSurfaceCapabilities(const Surface &surface) const
+{
+    VkSurfaceCapabilitiesKHR capabilities;
+    cx->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(*m_handle, surface.getHandle(), &capabilities);
+    return capabilities;
+}
+
+SurfaceDetailsT PhysicalDevice::getSurfaceDetails(const Surface &surface) const
 {
 	SurfaceDetailsT details;
 

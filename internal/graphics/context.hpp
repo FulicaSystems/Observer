@@ -48,21 +48,17 @@ struct ContextCreateInfoT
 /**
  * Context object contains symbols loader and instance creation utils
  * this object is used to call api functions
+ * this implementation allows the Context to use any loader (custom/glad/volk/vulkansdk)
+ * TODO : implement glad, volk and vulkan sdk as loaders
  */
-class Context : public InstanceSymbolsT,
-                public InstanceSymbols2T,
-                public DeviceSymbolsT,
-                public DeviceSymbols2T,
-                public SwapchainSymbolsT
+class Context : public InstanceSymbolsT, public InstanceSymbols2T, public DeviceSymbolsT, public DeviceSymbols2T
 {
   private:
     std::string m_applicationName;
     version m_applicationVersion;
     version m_engineVersion;
 
-    std::vector<const char *> m_layers;
-    std::vector<const char *> m_instanceExtensions;
-    std::vector<const char *> m_deviceExtensions;
+    ContextCreateInfoT ci;
 
     std::unique_ptr<Utils::bin::DynamicLibraryLoader> m_loader;
 
@@ -99,14 +95,14 @@ class Context : public InstanceSymbolsT,
     }
     inline const std::vector<const char *> getLayers() const
     {
-        return m_layers;
+        return ci.layers;
     }
     inline const std::vector<const char *> getInstanceExtensions() const
     {
-        return m_instanceExtensions;
+        return ci.instanceExtensions;
     }
     inline const std::vector<const char *> getDeviceExtensions() const
     {
-        return m_deviceExtensions;
+        return ci.deviceExtensions;
     }
 };

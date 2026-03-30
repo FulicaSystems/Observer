@@ -11,33 +11,39 @@ Surface::~Surface()
     ci.cx->vkDestroySurfaceKHR(ci.inst->getHandle(), m_handle, nullptr);
 }
 
-bool SurfaceDetailsT::tryFindFormat(const VkFormat &targetFormat, const VkColorSpaceKHR &targetColorSpace,
-                                    VkSurfaceFormatKHR &found)
+std::optional<VkSurfaceFormatKHR> SurfaceDetailsT::findFormat(const VkFormat &targetFormat,
+                                                              const VkColorSpaceKHR &targetColorSpace, int &index)
 {
+    int i = 0;
     for (const auto &format : formats)
     {
         if (format.format == targetFormat && format.colorSpace == targetColorSpace)
-        {
-            found = format;
-            return true;
-        }
-    }
 
-    return false;
+        {
+            index = i;
+            return std::make_optional<VkSurfaceFormatKHR>(format);
+        }
+        ++i;
+    }
+    i = -1;
+    return std::nullopt;
 }
 
-bool SurfaceDetailsT::tryFindPresentMode(const VkPresentModeKHR &targetPresentMode, VkPresentModeKHR &found)
+std::optional<VkPresentModeKHR> SurfaceDetailsT::findPresentMode(const VkPresentModeKHR &targetPresentMode, int &index)
 {
+    int i = 0;
     for (const auto &presentMode : presentModes)
     {
         if (presentMode == targetPresentMode)
-        {
-            found = presentMode;
-            return true;
-        }
-    }
 
-    return false;
+        {
+            index = i;
+            return std::make_optional<VkPresentModeKHR>(presentMode);
+        }
+        ++i;
+    }
+    i = -1;
+    return std::nullopt;
 }
 
 VkExtent2D SurfaceDetailsT::findExtent(uint32_t width, uint32_t height)

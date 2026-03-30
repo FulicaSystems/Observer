@@ -6,13 +6,14 @@
 
 Context::Context(const ContextCreateInfoT createInfo)
     : m_applicationName(createInfo.applicationName), m_applicationVersion(createInfo.applicationVersion),
-      m_engineVersion(createInfo.engineVersion)
+      m_engineVersion(createInfo.engineVersion), ci(createInfo)
 {
     m_loader = std::make_unique<Utils::bin::DynamicLibraryLoader>("vulkan-1");
     InstanceSymbolsT::load(m_loader.get());
 
 #ifndef NDEBUG
-    m_instanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    ci.instanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    ci.instanceExtensions.emplace_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 #endif
 
     DeviceSymbolsT::load(m_loader.get());

@@ -102,14 +102,13 @@ struct DeviceSymbolsT : public SymbolsI
     }
 };
 
-struct DeviceSymbols2T : public SymbolsI
+struct SwapchainSymbolsT : public SymbolsI
 {
 
-    PFN_DECLARE(PFN_, vkGetDeviceQueue);
-    PFN_DECLARE(PFN_, vkDestroyDevice);
-
-    PFN_DECLARE(PFN_, vkCreateCommandPool);
-    PFN_DECLARE(PFN_, vkDestroyCommandPool);
+    PFN_DECLARE(PFN_, vkCreateSwapchainKHR);
+    PFN_DECLARE(PFN_, vkGetSwapchainImagesKHR);
+    PFN_DECLARE(PFN_, vkDestroyImageView);
+    PFN_DECLARE(PFN_, vkDestroySwapchainKHR);
 
   protected:
     void load(Utils::bin::DynamicLibraryLoader *loader) override
@@ -123,13 +122,14 @@ struct DeviceSymbols2T : public SymbolsI
     void load(const Context *cx, const LogicalDevice *device) override;
 };
 
-struct SwapchainSymbolsT : public SymbolsI
+struct DeviceSymbols2T : public SwapchainSymbolsT
 {
 
-    PFN_DECLARE(PFN_, vkCreateSwapchainKHR);
-    PFN_DECLARE(PFN_, vkGetSwapchainImagesKHR);
-    PFN_DECLARE(PFN_, vkDestroyImageView);
-    PFN_DECLARE(PFN_, vkDestroySwapchainKHR);
+    PFN_DECLARE(PFN_, vkGetDeviceQueue);
+    PFN_DECLARE(PFN_, vkDestroyDevice);
+
+    PFN_DECLARE(PFN_, vkCreateCommandPool);
+    PFN_DECLARE(PFN_, vkDestroyCommandPool);
 
   protected:
     void load(Utils::bin::DynamicLibraryLoader *loader) override

@@ -3,6 +3,7 @@
 #include "graphics/context.hpp"
 #include "graphics/instance.hpp"
 #include "graphics/surface.hpp"
+#include "graphics/swapchain.hpp"
 
 #include "window_glfw.hpp"
 
@@ -54,8 +55,6 @@ WindowGLFW::WindowGLFW(const uint32_t width, const uint32_t height, const bool r
 }
 WindowGLFW::~WindowGLFW()
 {
-    // swapchain.reset();
-    // surface.reset();
     glfwDestroyWindow(m_handle);
 }
 
@@ -74,13 +73,18 @@ void WindowGLFW::makeContextCurrent()
     glfwMakeContextCurrent(m_handle);
 }
 
-std::unique_ptr<Surface> WindowGLFW::createSurface(const Context *cx, const Instance *inst)
+Surface *WindowGLFW::createSurface(const Context *cx, const Instance *inst)
 {
     VkSurfaceKHR surface;
-    if (glfwCreateWindowSurface(inst->getHandle(), m_handle, nullptr, &surface) != VK_SUCCESS)
-        throw std::runtime_error("Could not create window surface");
+    VkResult res = glfwCreateWindowSurface(inst->getHandle(), m_handle, nullptr, &surface);
+    if (res != VK_SUCCESS)
+    {
+        std::cerr << "Could not create window surface : " << res << std::endl;
+        return nullptr;
+    }
 
-    return std::make_unique<Surface>(SurfaceCreateInfoT{.cx = cx, .inst = inst, .surface = surface});
+    m_surface = std::make_unique<Surface>(SurfaceCreateInfoT{.cx = cx, .inst = inst, .surface = surface});
+    return m_surface.get();
 }
 
 bool WindowGLFW::shouldClose() const
@@ -97,12 +101,3 @@ void WindowGLFW::pollEvents()
 {
     glfwPollEvents();
 }
-
-// const Surface& WindowGLFW::createSurface(const Instance& instance)
-//{
-//	VkSurfaceKHR surface;
-//	glfwCreateWindowSurface(instance->m_handle, m_handle, nullptr, &surface);
-
-//	m_surface = std::make_unique<Surface>(instance->m_handle, surface);
-//	return *m_surface;
-//}
