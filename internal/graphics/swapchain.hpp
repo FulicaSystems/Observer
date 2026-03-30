@@ -8,12 +8,17 @@ class Context;
 class LogicalDevice;
 class Surface;
 
+struct SwapChainCreateInfoT
+{
+    const Context *cx;
+    const LogicalDevice *device;
+    const Surface *surface;
+};
+
 class SwapChain
 {
   private:
-    const Context &cx;
-    const LogicalDevice &device;
-    const Surface &surface;
+    const SwapChainCreateInfoT ci;
 
   private:
     VkSwapchainKHR m_handle;
@@ -27,8 +32,7 @@ class SwapChain
 
   public:
     SwapChain() = delete;
-    SwapChain(const Context &cx, const LogicalDevice &device, const Surface &surface)
-        : cx(cx), device(device), surface(surface)
+    SwapChain(const SwapChainCreateInfoT ci) : ci(ci)
     {
     }
     SwapChain(const SwapChain &) = delete;
@@ -37,8 +41,6 @@ class SwapChain
     SwapChain &operator=(SwapChain &&) = delete;
 
     ~SwapChain();
-
-    void readyUp();
 
   public:
     [[nodiscard]] inline VkSwapchainKHR &getHandle()

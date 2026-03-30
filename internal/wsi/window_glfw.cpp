@@ -1,6 +1,7 @@
 #include <stdexcept>
 
 #include "graphics/context.hpp"
+#include "graphics/instance.hpp"
 #include "graphics/surface.hpp"
 
 #include "window_glfw.hpp"
@@ -73,13 +74,13 @@ void WindowGLFW::makeContextCurrent()
     glfwMakeContextCurrent(m_handle);
 }
 
-std::unique_ptr<Surface> WindowGLFW::createSurface(const Context &cx)
+std::unique_ptr<Surface> WindowGLFW::createSurface(const Context *cx, const Instance *inst)
 {
     VkSurfaceKHR surface;
-    if (glfwCreateWindowSurface(cx.getInstanceHandle(), m_handle, nullptr, &surface) != VK_SUCCESS)
+    if (glfwCreateWindowSurface(inst->getHandle(), m_handle, nullptr, &surface) != VK_SUCCESS)
         throw std::runtime_error("Could not create window surface");
 
-    return std::make_unique<Surface>(cx, surface);
+    return std::make_unique<Surface>(SurfaceCreateInfoT{.cx = cx, .inst = inst, .surface = surface});
 }
 
 bool WindowGLFW::shouldClose() const

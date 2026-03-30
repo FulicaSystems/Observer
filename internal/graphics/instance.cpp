@@ -33,7 +33,9 @@ Instance::Instance(const InstanceCreateInfoT createInfo) : cx(createInfo.cx)
 
     cx->InstanceSymbols2T::load(cx, this);
 
+#ifndef NDEBUG
     createDebugMessenger();
+#endif
 
     enumerateAvailablePhysicalDevices();
 }
@@ -41,7 +43,8 @@ Instance::Instance(const InstanceCreateInfoT createInfo) : cx(createInfo.cx)
 Instance::~Instance()
 {
     if (m_debugMessenger)
-        destroyDebugMessenger();
+        cx->vkDestroyDebugUtilsMessengerEXT(*m_handle, *m_debugMessenger, nullptr);
+
     cx->vkDestroyInstance(*m_handle, nullptr);
 }
 
@@ -61,10 +64,6 @@ void Instance::createDebugMessenger()
     if (cx->vkCreateDebugUtilsMessengerEXT(*m_handle, &createInfo, nullptr, &handle) != VK_SUCCESS)
         throw std::runtime_error("Failed to set up debug messenger");
     m_debugMessenger = std::make_unique<VkDebugUtilsMessengerEXT>(handle);
-}
-void Instance::destroyDebugMessenger()
-{
-    cx->vkDestroyDebugUtilsMessengerEXT(*m_handle, *m_debugMessenger, nullptr);
 }
 
 std::vector<std::string> Instance::enumerateAvailablePhysicalDevices(const bool bDump) const

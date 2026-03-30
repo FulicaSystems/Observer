@@ -5,11 +5,26 @@
 #include <vector>
 
 class Context;
+class Instance;
+
+// TODO : abstraction
+struct SurfaceHandleT
+{
+    VkSurfaceKHR handle;
+};
+
+struct SurfaceCreateInfoT
+{
+    const Context *cx;
+    const Instance *inst;
+    // TODO : abstraction
+    VkSurfaceKHR surface;
+};
 
 class Surface
 {
   private:
-    const Context &cx;
+    const SurfaceCreateInfoT ci;
 
   private:
     VkSurfaceKHR m_handle;
@@ -19,7 +34,7 @@ class Surface
     /**
      * create a surface with an already existing handle
      */
-    Surface(const Context &cx, const VkSurfaceKHR &surface) : cx(cx), m_handle(surface)
+    Surface(const SurfaceCreateInfoT ci) : ci(ci), m_handle(ci.surface)
     {
     }
     Surface(const Surface &) = delete;

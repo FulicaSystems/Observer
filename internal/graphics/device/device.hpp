@@ -15,8 +15,9 @@ class SwapChain;
 
 struct LogicalDeviceCreateInfoT
 {
-    const Context *context;
+    Context *context;
     const PhysicalDevice *physicalHandle;
+    void *createInfo;
 
 } typedef DeviceCreateInfoT;
 
@@ -24,7 +25,7 @@ class LogicalDevice
 {
 
   private:
-    const Context *cx;
+    Context *cx;
     const PhysicalDevice *physicalHandle;
 
   private:
@@ -32,8 +33,6 @@ class LogicalDevice
     VkDevice m_handle;
 
     std::vector<const char *> m_deviceExtensions;
-
-    void loadDeviceFunctions();
 
     void retrieveQueues();
     void createCommandPools();
@@ -58,10 +57,7 @@ class LogicalDevice
 #endif
 
     LogicalDevice() = delete;
-    LogicalDevice(const LogicalDeviceCreateInfoT createInfo)
-        : cx(createInfo.context), physicalHandle(createInfo.physicalHandle)
-    {
-    }
+    LogicalDevice(const LogicalDeviceCreateInfoT createInfo);
     LogicalDevice(const LogicalDevice &copy) = delete;
     LogicalDevice &operator=(const LogicalDevice &copy) = delete;
     LogicalDevice(LogicalDevice &&move) = delete;
@@ -69,12 +65,15 @@ class LogicalDevice
 
     ~LogicalDevice();
 
-    void readyUp();
-
     /**
      * create a swapchain for a specified surface
      */
     [[nodiscard]] std::unique_ptr<SwapChain> createSwapChain(const Surface *presentationSurface) const;
+    /**
+     * @brief destroys the swapchain handle with image view resources
+     *
+     */
+    void destroySwapChain(SwapChain &sc) const;
 
     // template<class TDataType>
     // std::shared_ptr<TDataType> create(const void* createInfo) const { throw std::runtime_error("Use template

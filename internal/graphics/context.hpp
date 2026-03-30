@@ -49,7 +49,11 @@ struct ContextCreateInfoT
  * Context object contains symbols loader and instance creation utils
  * this object is used to call api functions
  */
-class Context : public InstanceSymbolsT, public InstanceSymbols2T, public DeviceSymbolsT
+class Context : public InstanceSymbolsT,
+                public InstanceSymbols2T,
+                public DeviceSymbolsT,
+                public DeviceSymbols2T,
+                public SwapchainSymbolsT
 {
   private:
     std::string m_applicationName;
@@ -61,9 +65,6 @@ class Context : public InstanceSymbolsT, public InstanceSymbols2T, public Device
     std::vector<const char *> m_deviceExtensions;
 
     std::unique_ptr<Utils::bin::DynamicLibraryLoader> m_loader;
-
-    void loadAPIFunctions();
-    void loadPhysicalDeviceFunctions();
 
   public:
     Context() = delete;

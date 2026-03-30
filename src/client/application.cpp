@@ -3,6 +3,7 @@
 #include <graphics/context.hpp>
 #include <graphics/device/device.hpp>
 #include <graphics/device/physical_device.hpp>
+#include <graphics/instance.hpp>
 #include <wsi/window_glfw.hpp>
 
 #include "application.hpp"
@@ -35,8 +36,8 @@ Application::Application()
 
     for (const std::string &physicalDeviceName : m_instance->enumerateAvailablePhysicalDevices(false))
     {
-        std::shared_ptr<PhysicalDevice> physicalDevice =
-            std::make_shared<PhysicalDevice>(*context, physicalDeviceName.c_str());
+        std::shared_ptr<PhysicalDevice> physicalDevice = std::make_shared<PhysicalDevice>(PhysicalDeviceCreateInfoT{
+            .cx = context.get(), .inst = m_instance.get(), .deviceName = physicalDeviceName.c_str()});
         assert(physicalDevice);
 
         physicalDevices.push_back(physicalDevice);
@@ -48,6 +49,7 @@ Application::~Application()
 {
     devices.clear();
     physicalDevices.clear();
+    m_instance.reset();
     context.reset();
 
     window.reset();

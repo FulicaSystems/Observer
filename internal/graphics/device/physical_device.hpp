@@ -22,7 +22,7 @@ struct PhysicalDeviceHandleT
 
 struct PhysicalDeviceCreateInfoT
 {
-    const Context *cx;
+    Context *cx;
     const Instance *inst;
     const char *deviceName;
 };
@@ -30,7 +30,7 @@ struct PhysicalDeviceCreateInfoT
 class PhysicalDevice
 {
   private:
-    const Context *cx;
+    Context *cx;
     const Instance *inst;
 
   private:
@@ -76,6 +76,11 @@ class PhysicalDevice
     [[nodiscard]] SurfaceDetailsT querySurfaceDetails(const Surface &surface) const;
 
   public:
+    [[nodiscard]] inline VkPhysicalDevice getHandle() const
+    {
+        return *m_handle;
+    }
+
     [[nodiscard]] inline std::optional<uint32_t> getGraphicsFamilyIndex() const
     {
         return m_graphicsFamilyIndex;

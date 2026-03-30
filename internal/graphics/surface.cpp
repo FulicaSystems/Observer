@@ -8,7 +8,7 @@
 
 Surface::~Surface()
 {
-    cx.vkDestroySurfaceKHR(cx.getInstanceHandle(), m_handle, nullptr);
+    ci.cx->vkDestroySurfaceKHR(ci.inst->getHandle(), m_handle, nullptr);
 }
 
 bool SurfaceDetailsT::tryFindFormat(const VkFormat &targetFormat, const VkColorSpaceKHR &targetColorSpace,

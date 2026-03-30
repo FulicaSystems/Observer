@@ -6,6 +6,7 @@
 
 class SwapChain;
 class Context;
+class Instance;
 class Surface;
 
 class WSILoaderGLFW final : public WSILoaderI
@@ -45,7 +46,7 @@ class WindowGLFW final : public WindowI
     const std::vector<const char *> getRequiredExtensions() const override;
 
     void makeContextCurrent() override;
-    std::unique_ptr<Surface> createSurface(const Context &cx) override;
+    std::unique_ptr<Surface> createSurface(const Context *cx, const Instance *inst) override;
 
     void swapBuffers() override;
     void pollEvents() override;

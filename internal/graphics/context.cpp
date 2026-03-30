@@ -15,7 +15,6 @@ Context::Context(const ContextCreateInfoT createInfo)
     m_instanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
-    loadPhysicalDeviceFunctions();
     DeviceSymbolsT::load(m_loader.get());
 
     enumerateAvailableInstanceLayers();

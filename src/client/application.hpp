@@ -6,6 +6,7 @@
 class WSILoaderI;
 class WindowGLFW;
 class Context;
+class Instance;
 class PhysicalDevice;
 class LogicalDevice;
 

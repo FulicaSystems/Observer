@@ -66,7 +66,6 @@ class Instance
     ~Instance();
 
     void createDebugMessenger();
-    void destroyDebugMessenger();
 
     /**
      * returns an array with all the physical device names
