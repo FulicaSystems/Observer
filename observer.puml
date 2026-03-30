@@ -1,0 +1,322 @@
+@startuml Observer
+skinparam groupInheritance 2
+
+package Graphics
+{
+    enum GraphicsAPIE
+    {
+        OPENGL
+        VULKAN
+        DIRECT3D11
+        DIRECT3D12
+    }
+    hide GraphicsAPIE methods
+
+    class Context
+    {
+        - vector<const char*> m_layers
+        - vector<const char*> m_instanceExtensions
+        - GraphicsAPIE m_graphicsApi
+        + unique_ptr<InstanceABC> m_instance
+
+        + void enumerateAvailableInstanceLayers() const
+        + enumerateAvailableInstanceExtensions() const
+        + enumerateAvailablePhysicalDevices() const
+    }
+
+    abstract InstanceABC
+    {
+        - const Context& cx
+
+        + void* getHandle() const
+    }
+    Context *-- InstanceABC
+    class InstanceVk
+    {
+        - unique_ptr<VkInstance> m_handle
+
+        + VkInstance getHandle()
+    }
+    InstanceABC <|-- InstanceVk
+    class InstanceD3D12
+    InstanceABC <|-- InstanceD3D12
+    class InstanceGL
+    InstanceABC <|-- InstanceGL
+
+    package presentation << Rectangle >>
+    {
+        class SwapChain #pink ##[bold]red
+        {
+            - vector<Image> m_images
+            - vector<ImageView> m_imageViews
+        }
+        note bottom of SwapChain : swapchain buffering (number of images in the swapchain)
+        note bottom of SwapChain : presentation management
+        class Surface
+        struct SurfaceDetailsT << SwapChainCompatibilityT >>
+    }
+
+    package Device
+    {
+        class PhysicalDevice
+        {
+            - shared_ptr<VkPhysicalDevice> m_handle
+            + VkPhysicalDeviceProperties properties
+            + VkPhysicalDeviceLimits limits
+
+            + unique_ptr<LogicalDevice> createDevice() const
+        }
+        class QueueFamily
+        PhysicalDevice *-right- QueueFamily
+
+        class LogicalDevice << Device >> #pink ##[bold]red
+        {
+            - unique_ptr<VkDevice> m_handle
+            - vector<const char*> m_deviceExtensions
+            + Queue graphicsQueue
+            + Queue presentQueue
+            + unique_ptr<CommandPool> commandPool
+        }
+        note bottom : red classes are dependent of the logical device
+        LogicalDevice o-up- PhysicalDevice
+        LogicalDevice -up- PhysicalDevice
+
+        class Queue
+        LogicalDevice *-right- Queue
+        class CommandPool
+        LogicalDevice *-right- CommandPool
+    }
+
+    package DeviceMemory
+    {
+        class Buffer #pink ##[bold]red
+        class Image #pink ##[bold]red
+        class ImageView #pink ##[bold]red
+        class Sampler #pink ##[bold]red
+    }
+
+    package DeviceAsset
+    {
+        class VertexBuffer
+        class UniformBuffer
+
+        class Texture
+        {
+            + shared_ptr<Image> image
+            + unique_ptr<ImageView> imageView
+            + unique_ptr<Sampler> sampler
+        }
+
+        package renderpass << Rectangle >>
+        {
+            class RenderPass #pink ##[bold]red
+            {
+                - vector<unique_ptr<Framebuffer>> m_framebuffer
+            }
+            note bottom : as much framebuffers as there are images in the swapchain\n(number of command buffers, buffering type)
+            interface FramebufferI
+            RenderPass *-- FramebufferI
+            class ImageFramebuffer
+            {
+                - shared_ptr<ImageView> m_imageView
+                - shared_ptr<RenderPass> m_renderPass
+            }
+            note bottom : image view from swap chain or\nwhatever image handling system
+            FramebufferI <|-- ImageFramebuffer
+            ImageFramebuffer *-- ImageView
+            class ImageLessFramebuffer
+            note bottom : VK_KHR_imageless_framebuffer extension
+            FramebufferI <|-- ImageLessFramebuffer
+        }
+
+        package pipeline << Rectangle >>
+        {
+            class Pipeline #pink ##[bold]red
+            {
+                - unique_ptr<Shader> m_shader
+                - unique_ptr<PipelineLayout> m_pipelineLayout
+
+                - shared_ptr<RenderPass> m_renderPass
+
+                + recordBind(CommandBuffer commandBuffer, uint32_t imageIndex)
+            }
+            Pipeline o-up- RenderPass
+
+            class Shader
+            Pipeline *-- Shader
+            class PipelineLayout
+            {
+                - unique_ptr<PipelineLayout> m_handle
+                - vector<DescriptorSetLayoutBinding> m_descriptorSetLayoutBindings
+                - vector<DescriptorSetLayout> m_descriptorSetLayouts
+            }
+            Pipeline *-- PipelineLayout
+        }
+
+    }
+
+    package Renderer
+    {
+        enum BufferingTypeE
+        {
+            SINGLE
+            DOUBLE
+            TRIPLE
+        }
+        note top : number of frames in flight
+        hide BufferingTypeE methods
+
+        package renderer << Rectangle >>
+        {
+            abstract RendererABC #pink ##[bold]red
+            {
+                # const SwapChain* m_swapchain
+                # vector<BackBuffer> m_backBuffers
+                # BufferingTypeE m_bufferingType
+                # vector<shared_ptr<RenderStateABC>> m_renderStates
+                # vector<shared_ptr<Pipeline>> m_pipelines
+                # unique_ptr<RenderGraph> m_renderGraph
+
+                + uint32_t acquireBackBuffer()
+
+                + void recordBegin()
+                + void recordEnd()
+
+                + void submitBackBuffer()
+                + void presentBackBuffer()
+                + void swapBuffers()
+            }
+            note top : updated in the Render Thread with all the updated Render States
+
+            class DynamicRenderer
+            note bottom : VK_KHR_dynamic_rendering extension
+            RendererABC <|-- DynamicRenderer
+            class LegacyRenderer << RenderPassBasedRenderer >>
+            {
+                - shared_ptr<RenderPass> m_renderPass
+            }
+            note right : with render passes
+            RendererABC <|-- LegacyRenderer
+            LegacyRenderer *-- RenderPass
+
+            class BackBuffer
+            {
+                + unique_ptr<CommandBuffer> commandBuffer
+                + unique_ptr<Semaphore> acquireSemaphore
+                + unique_ptr<Semaphore> renderSemaphore
+                + unique_ptr<Fence> inFlightFence
+            }
+            RendererABC *-right- BackBuffer
+        }
+
+        package rendergraph << Rectangle >>
+        {
+            class RenderGraph
+            {
+                - vector<unique_ptr<RenderPhaseABC>> m_renderPhases
+            }
+            note top : each render phase uses the array of render states\n(objects in the scene to be rendered)
+            RendererABC *-- RenderGraph
+
+            abstract RenderPhaseABC
+            {
+                - unique_ptr<RenderPass> m_renderPass
+
+                - vector<shared_ptr<RenderStateABC>> m_renderStates
+
+                - int m_backBufferIndex
+                - vector<BackBufferT> m_backBuffers
+            }
+            RenderPhaseABC *-right- RenderPass
+            RenderGraph *-- RenderPhaseABC
+            class Opaque
+            RenderPhaseABC <|-- Opaque
+            class Transparent
+            RenderPhaseABC <|-- Transparent
+            class ShadowMapping
+            RenderPhaseABC <|-- ShadowMapping
+            class Skybox
+            RenderPhaseABC <|-- Skybox
+            class UI
+            RenderPhaseABC <|-- UI
+        }
+
+        package renderstate << Rectangle >>
+        {
+            abstract RenderStateABC #pink ##[bold]red
+            {
+                # unique_ptr<DescriptorPool> m_descriptorPool
+                # vector<DescriptorSet> m_descriptorSets
+                # vector<Buffer> m_uniformBuffers
+                # vector<void*> m_uniformBuffersMapped
+
+                # shared_ptr<Material> m_material
+
+                + void updateUniformBuffers()
+
+                + void recordDescriptorCommands()
+                + void recordDrawObjectCommands()
+            }
+            note top : updated at the end of the Game Thread simulation
+            RenderPhaseABC *-- RenderStateABC
+            class MeshRenderState << MeshRenderer >>
+            {
+                - shared_ptr<Mesh> m_mesh
+            }
+            RenderStateABC <|-- MeshRenderState
+            class UIRenderState
+            RenderStateABC <|-- UIRenderState
+        }
+        class Material
+        {
+            - vector<Texture> m_textures
+            - weak_ptr<Pipeline> m_pipeline
+        }
+        RenderStateABC o-- Material
+        Material o-- Pipeline
+        Material *-- Texture
+    }
+}
+
+package HostMemory
+{
+    package resourcemanager << Rectangle >>
+    {
+        class ResourceManager
+        interface ResourceI
+
+        package Saved
+        {
+            class Mesh
+            {
+                - vector<Vertex> m_vertices
+                - vector<int> m_indices
+                - unique_ptr<Buffer> m_vertexBuffer
+                - unique_ptr<Buffer> m_indexBuffer
+                - unique_ptr<Texture> m_texture
+            }
+            ResourceI <|-- Mesh
+            MeshRenderState o-- Mesh
+            class Texture
+            {
+                - vector<unsigned char> m_data
+            }
+            ResourceI <|-- Texture
+            class Scene
+            {
+                - CameraABC* m_mainCamera;
+                - vector<unique_ptr<CameraABC>> m_cameras;
+                - vector<shared_ptr<RenderStatesABC> m_renderStates
+            }
+            Scene -- RenderStateABC
+            ResourceI <|-- Scene
+        }
+    }
+    package assetmanager << Rectangle >>
+    {
+        class AssetManager
+        interface AssetI
+    }
+}
+
+@enduml

@@ -1,0 +1,50 @@
+@startuml Client
+skinparam groupInheritance 2
+
+package WSI << Window System Integration >>
+{
+    interface WindowI
+    {
+        + const vector<const char*> getRequiredExtensions() const
+
+        + void makeContextCurrent()
+        + void swapBuffers()
+        + void pollEvents()
+        + bool shouldClose() const
+    }
+    abstract WindowABC
+    {
+        - unique_ptr<Surface> m_surface
+        - unique_ptr<SwapChain> m_swapchain
+    }
+    WindowI <|-- WindowABC
+
+    class WindowSDL
+    WindowABC <|-- WindowSDL
+    class WindowGLFW
+    WindowABC <|-- WindowGLFW
+
+    interface WSILoaderI
+}
+WindowABC *-- Renderer.SwapChain
+WindowABC *-- Renderer.Surface
+
+class Application
+{
+    - unique_ptr<WindowABC> m_window
+    - shared_ptr<Context> m_context
+    - vector<shared_ptr<PhysicalDevice>> m_physicalDevices
+    - vector<shared_ptr<LogicalDevice>> m_devices
+    - shared_ptr<Scene> m_scene
+    - shared_ptr<RendererABC> m_renderer
+    - shared_ptr<VideoDecoder> m_decoder
+}
+Application *-- WindowABC
+class ArgParser
+Application *-- Renderer.Context
+Application *-- Renderer.Device.PhysicalDevice
+Application *-- Renderer.Device.LogicalDevice
+abstract Renderer.RendererABC
+Application *-- Renderer.RendererABC
+
+@enduml

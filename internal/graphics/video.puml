@@ -1,0 +1,15 @@
+@startuml Video
+skinparam groupInheritance 2
+
+package Video
+{
+    class VideoDecoder
+
+    class HardwareVideoDecoder
+    class Slot
+    HardwareVideoDecoder *-right- Slot
+    class Frame
+    Slot *-right- Frame
+}
+
+@enduml

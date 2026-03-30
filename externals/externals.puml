@@ -1,0 +1,61 @@
+@startuml Externals
+skinparam groupInheritance 2
+
+package Externals
+{
+    package WindowSystemIntegration << Rectangle >>
+    {
+        hide circle
+        hide members
+
+        class Qt6 << Library >> {}
+        class GLFW << Library >> {}
+        class SDL2 << Library >> {}
+    }
+
+    package AssetsImporter << Rectangle >>
+    {
+        hide circle
+        hide members
+
+        class stb << Library >> {}
+        class Assimp << Library >> {}
+        class minimp4 << Library >> {}
+    }
+
+    package Mathematics << Rectangle >>
+    {
+        hide circle
+        hide members
+
+        class GLM << Library >> {}
+        class Eigen << Library >> {}
+    }
+
+    package GraphicsAPILoader << Rectangle >>
+    {
+        hide circle
+        hide members
+
+        class Glad << Library >> {}
+        class Volk << Library >> {}
+    }
+
+    package MemoryManagement << Rectangle >>
+    {
+        hide circle
+        hide members
+
+        class VulkanMemoryAllocator << Library >> {}
+    }
+
+    package Profiling << Rectangle >>
+    {
+        hide circle
+        hide members
+
+        class TracyProfiler << Library >> {}
+    }
+}
+
+@enduml
