@@ -17,6 +17,8 @@ target_sources(${component}
     window_glfw.cpp
 )
 
+depends(PACKAGE FROM_SOURCE DIRECTORY glfw/install CONFIG glfw3)
+
 target_link_libraries(${component}
     PUBLIC glfw
     PUBLIC graphics

@@ -26,8 +26,13 @@ target_sources(${component}
     device.cpp
 )
 
+depends(MODULE CONFIG Vulkan)
+
+target_include_directories(${component}
+    PUBLIC ${Vulkan_INCLUDE_DIR}
+)
 target_link_libraries(${component}
-    PUBLIC Vulkan-Headers
+    PUBLIC ${Vulkan_LIBRARY}
     PUBLIC FuUtilities
 )
 
