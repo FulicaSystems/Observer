@@ -8,6 +8,7 @@
 #include "binary/dynamic_library_loader.hpp"
 
 class Context;
+class Instance;
 class LogicalDevice;
 
 class Surface;
@@ -19,10 +20,18 @@ struct PhysicalDeviceHandleT
     VkPhysicalDevice handle;
 };
 
+struct PhysicalDeviceCreateInfoT
+{
+    const Context *cx;
+    const Instance *inst;
+    const char *deviceName;
+};
+
 class PhysicalDevice
 {
   private:
-    const Context &cx;
+    const Context *cx;
+    const Instance *inst;
 
   private:
     char deviceName[256];
@@ -55,7 +64,7 @@ class PhysicalDevice
     PhysicalDevice(PhysicalDevice &&) = delete;
     PhysicalDevice &operator=(PhysicalDevice &&) = delete;
 
-    PhysicalDevice(const Context &cx, const char *deviceName);
+    PhysicalDevice(const PhysicalDeviceCreateInfoT createInfo);
 
     std::vector<std::string> enumerateAvailableDeviceExtensions(const bool bDump = true) const;
 
@@ -64,7 +73,7 @@ class PhysicalDevice
     [[nodiscard]] std::optional<uint32_t> findQueueFamilyIndex(const VkQueueFlags &capabilities) const;
     [[nodiscard]] std::optional<uint32_t> findPresentQueueFamilyIndex(const Surface *surface) const;
 
-    [[nodiscard]] SurfaceDetailsT querySurfaceDetails(const Surface& surface) const;
+    [[nodiscard]] SurfaceDetailsT querySurfaceDetails(const Surface &surface) const;
 
   public:
     [[nodiscard]] inline std::optional<uint32_t> getGraphicsFamilyIndex() const

@@ -8,10 +8,19 @@
 
 class Context;
 
+struct InstanceCreateInfoT
+{
+    Context *cx;
+};
+
+/**
+ * @brief this object is used in api function calls
+ *
+ */
 class Instance
 {
   private:
-    const Context &cx;
+    Context *cx;
 
   private:
     std::unique_ptr<VkInstance> m_handle;
@@ -52,12 +61,19 @@ class Instance
     Instance(Instance &&) = delete;
     Instance &operator=(Instance &&) = delete;
 
-    Instance(const Context &cx);
+    Instance(const InstanceCreateInfoT createInfo);
 
     ~Instance();
 
     void createDebugMessenger();
     void destroyDebugMessenger();
+
+    /**
+     * returns an array with all the physical device names
+     */
+    std::vector<std::string> enumerateAvailablePhysicalDevices(const bool bDump = true) const;
+
+    std::optional<VkPhysicalDevice> getPhysicalDeviceHandleByName(const char *deviceName) const;
 
   public:
     [[nodiscard]] inline VkInstance getHandle() const

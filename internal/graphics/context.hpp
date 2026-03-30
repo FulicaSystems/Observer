@@ -10,6 +10,7 @@
 #include <binary/dynamic_library_loader.hpp>
 
 #include "instance.hpp"
+#include "symbols.hpp"
 
 // 32 bits
 // 4 bits for major, 12 bits for minor, 16 bits for patch
@@ -29,13 +30,26 @@ struct version
 typedef uint32_t version;
 #endif
 
-#define VK_GET_INSTANCE_PROC_ADDR(instance, funcName)                                                                  \
-    funcName = (PFN_##funcName)this->vkGetInstanceProcAddr(instance, #funcName)
+/**
+ * @brief class used to specify options in order to create a context object
+ *
+ */
+struct ContextCreateInfoT
+{
+    const char *applicationName;
+    version applicationVersion;
+    version engineVersion;
+
+    std::vector<const char *> layers;
+    std::vector<const char *> instanceExtensions;
+    std::vector<const char *> deviceExtensions;
+};
 
 /**
- * the constructor does not create the instance, user must call the createInstance member function afterwards.
+ * Context object contains symbols loader and instance creation utils
+ * this object is used to call api functions
  */
-class Context
+class Context : public InstanceSymbolsT, public InstanceSymbols2T, public DeviceSymbolsT
 {
   private:
     std::string m_applicationName;
@@ -48,22 +62,17 @@ class Context
 
     std::unique_ptr<Utils::bin::DynamicLibraryLoader> m_loader;
 
-    std::unique_ptr<Instance> m_instance;
+    void loadAPIFunctions();
+    void loadPhysicalDeviceFunctions();
 
   public:
     Context() = delete;
-    Context(const char *applicationName, const version applicationVersion, const version engineVersion,
-            std::vector<const char *> additionalExtensions);
+    Context(const Context &) = delete;
+    Context &operator=(const Context &) = delete;
+    Context(Context &&) = delete;
+    Context &operator=(Context &&) = delete;
 
-    void addLayer(const char *layer);
-    void addInstanceExtension(const char *extension);
-    void addDeviceExtension(const char *extension);
-
-    void loadAPIFunctions();
-    void loadInstanceFunctions();
-    void loadPhysicalDeviceFunctions();
-
-    void createInstance();
+    Context(const ContextCreateInfoT createInfo);
 
     /**
      * returns an array with all the instance layer names
@@ -73,12 +82,6 @@ class Context
      * returns an array with all the instance extension names
      */
     std::vector<std::string> enumerateAvailableInstanceExtensions(const bool bDump = true) const;
-    /**
-     * returns an array with all the physical device names
-     */
-    std::vector<std::string> enumerateAvailablePhysicalDevices(const bool bDump = true) const;
-
-    std::optional<VkPhysicalDevice> getPhysicalDeviceHandleByName(const char *deviceName) const;
 
   public:
     inline const std::string &getApplicationName() const
@@ -105,39 +108,4 @@ class Context
     {
         return m_deviceExtensions;
     }
-    inline VkInstance getInstanceHandle() const
-    {
-        return m_instance->getHandle();
-    }
-
-  public:
-    // base functions
-    PFN_DECLARE(PFN_, vkCreateInstance);
-    PFN_DECLARE(PFN_, vkDestroyInstance);
-    PFN_DECLARE(PFN_, vkGetInstanceProcAddr);
-
-    PFN_DECLARE(PFN_, vkEnumerateInstanceLayerProperties);
-    PFN_DECLARE(PFN_, vkEnumerateInstanceExtensionProperties);
-
-    PFN_DECLARE(PFN_, vkGetPhysicalDeviceProperties);
-
-    PFN_DECLARE(PFN_, vkGetDeviceProcAddr);
-
-    // instance
-    PFN_DECLARE(PFN_, vkCreateDebugUtilsMessengerEXT);
-    PFN_DECLARE(PFN_, vkDestroyDebugUtilsMessengerEXT);
-    PFN_DECLARE(PFN_, vkEnumeratePhysicalDevices);
-
-    PFN_DECLARE(PFN_, vkDestroySurfaceKHR);
-
-    // physicalDevice
-    PFN_DECLARE(PFN_, vkEnumerateDeviceExtensionProperties);
-
-    PFN_DECLARE(PFN_, vkGetPhysicalDeviceQueueFamilyProperties);
-    PFN_DECLARE(PFN_, vkCreateDevice);
-    PFN_DECLARE(PFN_, vkGetPhysicalDeviceSurfaceSupportKHR);
-
-    PFN_DECLARE(PFN_, vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
-    PFN_DECLARE(PFN_, vkGetPhysicalDeviceSurfaceFormatsKHR);
-    PFN_DECLARE(PFN_, vkGetPhysicalDeviceSurfacePresentModesKHR);
 };

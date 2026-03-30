@@ -16,6 +16,7 @@ class Application
     std::unique_ptr<WindowGLFW> window;
 
     std::unique_ptr<Context> context;
+    std::unique_ptr<Instance> m_instance;
 
     std::vector<std::shared_ptr<PhysicalDevice>> physicalDevices;
 
@@ -25,5 +26,5 @@ class Application
     Application();
     ~Application();
 
-    void run();
+    int perFrame();
 };

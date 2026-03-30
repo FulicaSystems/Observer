@@ -13,6 +13,8 @@ set_property(TARGET ${component}
 
 target_sources(${component}
     PRIVATE
+    symbols.hpp
+    symbols.cpp
     context.hpp
     context.cpp
     instance.hpp

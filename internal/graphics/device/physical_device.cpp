@@ -2,6 +2,7 @@
 
 #include "context.hpp"
 #include "device.hpp"
+#include "instance.hpp"
 #include "surface.hpp"
 
 #include "physical_device.hpp"
@@ -9,7 +10,7 @@
 void PhysicalDevice::initPhysicalDeviceProperties()
 {
     VkPhysicalDeviceProperties props;
-    cx.vkGetPhysicalDeviceProperties(*m_handle, &props);
+    cx->vkGetPhysicalDeviceProperties(*m_handle, &props);
     m_properties = props;
     m_limits = m_properties.limits;
 }
@@ -17,9 +18,9 @@ void PhysicalDevice::initPhysicalDeviceProperties()
 void PhysicalDevice::initQueueFamilyProperties()
 {
     uint32_t queueFamilyPropertiesCount;
-    cx.vkGetPhysicalDeviceQueueFamilyProperties(*m_handle, &queueFamilyPropertiesCount, nullptr);
+    cx->vkGetPhysicalDeviceQueueFamilyProperties(*m_handle, &queueFamilyPropertiesCount, nullptr);
     m_queueFamilies.resize(queueFamilyPropertiesCount);
-    cx.vkGetPhysicalDeviceQueueFamilyProperties(*m_handle, &queueFamilyPropertiesCount, m_queueFamilies.data());
+    cx->vkGetPhysicalDeviceQueueFamilyProperties(*m_handle, &queueFamilyPropertiesCount, m_queueFamilies.data());
 }
 
 void PhysicalDevice::initQueueFamilyIndices(const Surface *presentationSurface)
@@ -33,9 +34,9 @@ void PhysicalDevice::initQueueFamilyIndices(const Surface *presentationSurface)
 #endif
 }
 
-PhysicalDevice::PhysicalDevice(const Context &cx, const char *deviceName) : cx(cx)
+PhysicalDevice::PhysicalDevice(const PhysicalDeviceCreateInfoT createInfo) : cx(createInfo.cx), inst(createInfo.inst)
 {
-    std::optional<VkPhysicalDevice> handle = cx.getPhysicalDeviceHandleByName(deviceName);
+    std::optional<VkPhysicalDevice> handle = inst->getPhysicalDeviceHandleByName(deviceName);
     if (!handle.has_value())
         return;
 
@@ -53,13 +54,13 @@ PhysicalDevice::PhysicalDevice(const Context &cx, const char *deviceName) : cx(c
 std::vector<std::string> PhysicalDevice::enumerateAvailableDeviceExtensions(const bool bDump) const
 {
     uint32_t extensionCount = 0;
-    cx.vkEnumerateDeviceExtensionProperties(*m_handle, nullptr, &extensionCount, nullptr);
+    cx->vkEnumerateDeviceExtensionProperties(*m_handle, nullptr, &extensionCount, nullptr);
 
     std::vector<std::string> out;
     out.reserve(extensionCount);
 
     std::vector<VkExtensionProperties> extensions(extensionCount);
-    cx.vkEnumerateDeviceExtensionProperties(*m_handle, nullptr, &extensionCount, extensions.data());
+    cx->vkEnumerateDeviceExtensionProperties(*m_handle, nullptr, &extensionCount, extensions.data());
     if (bDump)
         std::cout << "available device extensions for " << deviceName << " : " << extensionCount << '\n';
     for (const auto &extension : extensions)
@@ -98,8 +99,8 @@ std::unique_ptr<LogicalDevice> PhysicalDevice::createDevice() const
         queueCreateInfos.emplace_back(queueCreateInfo);
     }
 
-    std::vector<const char *> layers = cx.getLayers();
-    std::vector<const char *> deviceExtensions = cx.getDeviceExtensions();
+    std::vector<const char *> layers = cx->getLayers();
+    std::vector<const char *> deviceExtensions = cx->getDeviceExtensions();
 
     VkDeviceCreateInfo createInfo = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -113,7 +114,7 @@ std::unique_ptr<LogicalDevice> PhysicalDevice::createDevice() const
 
     // create device
     std::unique_ptr<LogicalDevice> out = std::make_unique<LogicalDevice>(cx, *this);
-    if (cx.vkCreateDevice(*m_handle, &createInfo, nullptr, &out->getHandle()) != VK_SUCCESS)
+    if (cx->vkCreateDevice(*m_handle, &createInfo, nullptr, &out->getHandle()) != VK_SUCCESS)
         throw std::runtime_error("Failed to create logical device");
 
     out->readyUp();
@@ -137,7 +138,7 @@ std::optional<uint32_t> PhysicalDevice::findPresentQueueFamilyIndex(const Surfac
     for (uint32_t i = 0; i < m_queueFamilies.size(); ++i)
     {
         VkBool32 supported;
-        cx.vkGetPhysicalDeviceSurfaceSupportKHR(*m_handle, i, surface->getHandle(), &supported);
+        cx->vkGetPhysicalDeviceSurfaceSupportKHR(*m_handle, i, surface->getHandle(), &supported);
         if (supported)
             return std::optional<uint32_t>(i);
     }
@@ -148,23 +149,24 @@ SurfaceDetailsT PhysicalDevice::querySurfaceDetails(const Surface& surface) cons
 {
 	SurfaceDetailsT details;
 
-	cx.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(*m_handle, surface.getHandle(), &details.capabilities);
+    cx->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(*m_handle, surface.getHandle(), &details.capabilities);
 
-	uint32_t formatCount;
-	cx.vkGetPhysicalDeviceSurfaceFormatsKHR(*m_handle, surface.getHandle(), &formatCount, nullptr);
-	if (formatCount != 0)
-	{
-		details.formats.resize(formatCount);
-		cx.vkGetPhysicalDeviceSurfaceFormatsKHR(*m_handle, surface.getHandle(), &formatCount, details.formats.data());
-	}
+    uint32_t formatCount;
+    cx->vkGetPhysicalDeviceSurfaceFormatsKHR(*m_handle, surface.getHandle(), &formatCount, nullptr);
+    if (formatCount != 0)
+    {
+        details.formats.resize(formatCount);
+        cx->vkGetPhysicalDeviceSurfaceFormatsKHR(*m_handle, surface.getHandle(), &formatCount, details.formats.data());
+    }
 
-	uint32_t modeCount;
-	cx.vkGetPhysicalDeviceSurfacePresentModesKHR(*m_handle, surface.getHandle(), &modeCount, nullptr);
-	if (modeCount != 0)
-	{
-		details.presentModes.resize(modeCount);
-		cx.vkGetPhysicalDeviceSurfacePresentModesKHR(*m_handle, surface.getHandle(), &modeCount, details.presentModes.data());
-	}
+    uint32_t modeCount;
+    cx->vkGetPhysicalDeviceSurfacePresentModesKHR(*m_handle, surface.getHandle(), &modeCount, nullptr);
+    if (modeCount != 0)
+    {
+        details.presentModes.resize(modeCount);
+        cx->vkGetPhysicalDeviceSurfacePresentModesKHR(*m_handle, surface.getHandle(), &modeCount,
+                                                      details.presentModes.data());
+    }
 
-	return details;
+    return details;
 }

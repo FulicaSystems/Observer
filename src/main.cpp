@@ -50,7 +50,9 @@ int main(int argc, char **argv)
         try
         {
             Application app /*(api >= 0 ? (GraphicsApiE)api : GraphicsApiE::VULKAN)*/;
-            app.run();
+            while (app.perFrame())
+            {
+            }
         }
         catch (const std::exception &ex)
         {

@@ -2,38 +2,47 @@
 
 #include "instance.hpp"
 
-Instance::Instance(const Context &cx) : cx(cx)
+Instance::Instance(const InstanceCreateInfoT createInfo) : cx(createInfo.cx)
 {
-    version appv = cx.getApplicationVersion();
-    version engv = cx.getEngineVersion();
+    if (!cx)
+        return;
+
+    version appv = cx->getApplicationVersion();
+    version engv = cx->getEngineVersion();
 
     VkApplicationInfo appInfo = {.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                                 .pApplicationName = cx.getApplicationName().c_str(),
+                                 .pApplicationName = cx->getApplicationName().c_str(),
                                  .applicationVersion = VK_MAKE_API_VERSION(0, MAJOR(appv), MINOR(appv), PATCH(appv)),
                                  .engineVersion = VK_MAKE_API_VERSION(0, MAJOR(engv), MINOR(engv), PATCH(engv)),
                                  .apiVersion = VK_API_VERSION_1_3};
 
-    auto layers = cx.getLayers();
-    auto instanceExtensions = cx.getInstanceExtensions();
-    VkInstanceCreateInfo createInfo = {.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-                                       .pApplicationInfo = &appInfo,
-                                       .enabledLayerCount = static_cast<uint32_t>(layers.size()),
-                                       .ppEnabledLayerNames = layers.data(),
-                                       .enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size()),
-                                       .ppEnabledExtensionNames = instanceExtensions.data()};
+    auto layers = cx->getLayers();
+    auto instanceExtensions = cx->getInstanceExtensions();
+    VkInstanceCreateInfo ci = {.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+                               .pApplicationInfo = &appInfo,
+                               .enabledLayerCount = static_cast<uint32_t>(layers.size()),
+                               .ppEnabledLayerNames = layers.data(),
+                               .enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size()),
+                               .ppEnabledExtensionNames = instanceExtensions.data()};
 
     VkInstance handle;
-    if (cx.vkCreateInstance(&createInfo, nullptr, &handle) != VK_SUCCESS)
+    if (cx->vkCreateInstance(&ci, nullptr, &handle) != VK_SUCCESS)
         throw std::runtime_error("Failed to create Vulkan instance");
 
     m_handle = std::make_unique<VkInstance>(handle);
+
+    cx->InstanceSymbols2T::load(cx, this);
+
+    createDebugMessenger();
+
+    enumerateAvailablePhysicalDevices();
 }
 
 Instance::~Instance()
 {
     if (m_debugMessenger)
         destroyDebugMessenger();
-    cx.vkDestroyInstance(*m_handle, nullptr);
+    cx->vkDestroyInstance(*m_handle, nullptr);
 }
 
 void Instance::createDebugMessenger()
@@ -49,11 +58,52 @@ void Instance::createDebugMessenger()
         .pUserData = nullptr};
 
     VkDebugUtilsMessengerEXT handle;
-    if (cx.vkCreateDebugUtilsMessengerEXT(*m_handle, &createInfo, nullptr, &handle) != VK_SUCCESS)
+    if (cx->vkCreateDebugUtilsMessengerEXT(*m_handle, &createInfo, nullptr, &handle) != VK_SUCCESS)
         throw std::runtime_error("Failed to set up debug messenger");
     m_debugMessenger = std::make_unique<VkDebugUtilsMessengerEXT>(handle);
 }
 void Instance::destroyDebugMessenger()
 {
-    cx.vkDestroyDebugUtilsMessengerEXT(*m_handle, *m_debugMessenger, nullptr);
+    cx->vkDestroyDebugUtilsMessengerEXT(*m_handle, *m_debugMessenger, nullptr);
+}
+
+std::vector<std::string> Instance::enumerateAvailablePhysicalDevices(const bool bDump) const
+{
+    uint32_t deviceCount = 0;
+    cx->vkEnumeratePhysicalDevices(*m_handle, &deviceCount, nullptr);
+
+    std::vector<std::string> out;
+    out.reserve(deviceCount);
+
+    std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
+    cx->vkEnumeratePhysicalDevices(*m_handle, &deviceCount, physicalDevices.data());
+    if (bDump)
+        std::cout << "available physical devices : " << deviceCount << '\n';
+    for (const auto &physicalDevice : physicalDevices)
+    {
+        VkPhysicalDeviceProperties props;
+        cx->vkGetPhysicalDeviceProperties(physicalDevice, &props);
+        if (bDump)
+            std::cout << '\t' << props.deviceName << '\n';
+
+        out.push_back(props.deviceName);
+    }
+    return out;
+}
+
+std::optional<VkPhysicalDevice> Instance::getPhysicalDeviceHandleByName(const char *deviceName) const
+{
+    uint32_t deviceCount = 0;
+    cx->vkEnumeratePhysicalDevices(*m_handle, &deviceCount, nullptr);
+    std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
+    cx->vkEnumeratePhysicalDevices(*m_handle, &deviceCount, physicalDevices.data());
+    for (const auto &physicalDevice : physicalDevices)
+    {
+        VkPhysicalDeviceProperties props;
+        cx->vkGetPhysicalDeviceProperties(physicalDevice, &props);
+
+        if (std::strcmp(props.deviceName, deviceName))
+            return physicalDevice;
+    }
+    return std::optional<VkPhysicalDevice>();
 }
