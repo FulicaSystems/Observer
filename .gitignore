@@ -1,10 +1,31 @@
-.vs
-.idea
-out
-
+# project and IDE
 [Bb]uild
+[Ii]nstall
+.vs
+.vscode
+out
+*.user
+.idea
+
+# resources and large files
+[Aa]sset
+[Aa]ssets
+*.obj
+*.fbx
+*.png
+*.jpg
 *.spv
 
+# Build results
+[Dd]ebug
+[Rr]elease
+[Rr]eleases
+x64
+
+# git merge original files
+*.orig
+
+# archives
 *.zip
 *.rar
 *.7z
