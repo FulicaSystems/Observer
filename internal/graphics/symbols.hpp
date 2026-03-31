@@ -4,141 +4,154 @@
 
 #include <f6/dynamic_library_loader.hpp>
 
-class Context;
+class ContextABC;
 class Instance;
 class LogicalDevice;
 
-#define VK_GET_INSTANCE_PROC_ADDR(contextPtr, instance, funcName)                                                                  \
-    funcName = (PFN_##funcName)contextPtr->vkGetInstanceProcAddr(instance, #funcName)
+#define VK_GET_INSTANCE_PROC_ADDR(contextPtr, instance, funcName)                   \
+    contextPtr->funcName =                                                          \
+        (PFN_vk##funcName)contextPtr->GetInstanceProcAddr(instance, "vk" #funcName)
 
-#define VK_GET_DEVICE_PROC_ADDR(contextPtr, device, funcName)                                                          \
-    funcName = (PFN_##funcName)contextPtr->vkGetDeviceProcAddr(device, #funcName)
+#define VK_GET_DEVICE_PROC_ADDR(contextPtr, device, funcName)                                      \
+    contextPtr->funcName = (PFN_vk##funcName)contextPtr->GetDeviceProcAddr(device, "vk" #funcName)
+
+#define VK_SDK_FUNCTION(contextPtr, funcName) contextPtr->funcName = &vk##funcName
 
 /**
  * @brief used to load api functions
  *
  */
 // TODO : pass argument as const type*
-struct SymbolsI
+struct SymbolsLoaderI
 {
   protected:
-    virtual void load(f6::bin::DynamicLibraryLoader *loader) = 0;
-    public:
-    virtual void load(const Context* cx, const Instance* instance) = 0;
-    virtual void load(const Context *cx, const LogicalDevice *device) = 0;
+    virtual void load(ContextABC* cx) = 0;
+    virtual void load(ContextABC* cx, f6::bin::DynamicLibraryLoader* loader) = 0;
+
+    virtual void load(ContextABC* cx, const Instance* instance) = 0;
+    virtual void load(ContextABC* cx, const LogicalDevice* device) = 0;
+};
+
+struct SDKSymbolsLoaderT : public SymbolsLoaderI
+{
+  protected:
+    void load(ContextABC* cx) override;
+    void load(ContextABC* cx, f6::bin::DynamicLibraryLoader* loader) override {};
+
+    void load(ContextABC* cx, const Instance* instance) override;
+    void load(ContextABC* cx, const LogicalDevice* device) override {};
 };
 
 /**
  * @brief before instance creation
  *
  */
-struct InstanceSymbolsT : public SymbolsI
+struct InstanceSymbolsT
 {
+    PFN_DECLARE(PFN_vk, CreateInstance);
+    PFN_DECLARE(PFN_vk, DestroyInstance);
+    PFN_DECLARE(PFN_vk, GetInstanceProcAddr);
 
-    PFN_DECLARE(PFN_, vkCreateInstance);
-    PFN_DECLARE(PFN_, vkDestroyInstance);
-    PFN_DECLARE(PFN_, vkGetInstanceProcAddr);
+    PFN_DECLARE(PFN_vk, EnumerateInstanceLayerProperties);
+    PFN_DECLARE(PFN_vk, EnumerateInstanceExtensionProperties);
 
-    PFN_DECLARE(PFN_, vkEnumerateInstanceLayerProperties);
-    PFN_DECLARE(PFN_, vkEnumerateInstanceExtensionProperties);
+    PFN_DECLARE(PFN_vk, GetPhysicalDeviceProperties);
 
-    PFN_DECLARE(PFN_, vkGetPhysicalDeviceProperties);
+    PFN_DECLARE(PFN_vk, GetDeviceProcAddr);
+};
 
-    PFN_DECLARE(PFN_, vkGetDeviceProcAddr);
-
+struct InstanceSymbolsLoaderT : public SymbolsLoaderI
+{
   protected:
-    void load(f6::bin::DynamicLibraryLoader *loader) override;
-    public:
-    void load(const Context* cx, const Instance* instance) override{}
-    void load(const Context *cx, const LogicalDevice *device) override
-    {
-    }
+    void load(ContextABC* cx) override {};
+    void load(ContextABC* cx, f6::bin::DynamicLibraryLoader* loader) override;
+
+    void load(ContextABC* cx, const Instance* instance) override {}
+    void load(ContextABC* cx, const LogicalDevice* device) override {}
 };
 
 /**
  * @brief after instance creation
  *
  */
-struct InstanceSymbols2T : public SymbolsI
+struct InstanceSymbols2T
 {
-    PFN_DECLARE(PFN_, vkCreateDebugUtilsMessengerEXT);
-    PFN_DECLARE(PFN_, vkDestroyDebugUtilsMessengerEXT);
-    PFN_DECLARE(PFN_, vkEnumeratePhysicalDevices);
+    PFN_DECLARE(PFN_vk, CreateDebugUtilsMessengerEXT);
+    PFN_DECLARE(PFN_vk, DestroyDebugUtilsMessengerEXT);
+    PFN_DECLARE(PFN_vk, EnumeratePhysicalDevices);
 
-    PFN_DECLARE(PFN_, vkDestroySurfaceKHR);
-
+    PFN_DECLARE(PFN_vk, DestroySurfaceKHR);
+};
+struct InstanceSymbolsLoader2T : public SymbolsLoaderI
+{
   protected:
-    void load(f6::bin::DynamicLibraryLoader *loader) override{}
-    public:
-    void load(const Context* cx, const Instance* instance) override;
-    void load(const Context *cx, const LogicalDevice *device) override
-    {
-    }
+    void load(ContextABC* cx) override {};
+    void load(ContextABC* cx, f6::bin::DynamicLibraryLoader* loader) override {}
+
+    void load(ContextABC* cx, const Instance* instance) override;
+    void load(ContextABC* cx, const LogicalDevice* device) override {}
 };
 
 /**
  * @brief before device creation
  *
  */
-struct DeviceSymbolsT : public SymbolsI
+struct DeviceSymbolsT
 {
 
-    PFN_DECLARE(PFN_, vkEnumerateDeviceExtensionProperties);
+    PFN_DECLARE(PFN_vk, EnumerateDeviceExtensionProperties);
 
-    PFN_DECLARE(PFN_, vkGetPhysicalDeviceQueueFamilyProperties);
-    PFN_DECLARE(PFN_, vkCreateDevice);
-    PFN_DECLARE(PFN_, vkGetPhysicalDeviceSurfaceSupportKHR);
+    PFN_DECLARE(PFN_vk, GetPhysicalDeviceQueueFamilyProperties);
+    PFN_DECLARE(PFN_vk, CreateDevice);
+    PFN_DECLARE(PFN_vk, GetPhysicalDeviceSurfaceSupportKHR);
 
-    PFN_DECLARE(PFN_, vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
-    PFN_DECLARE(PFN_, vkGetPhysicalDeviceSurfaceFormatsKHR);
-    PFN_DECLARE(PFN_, vkGetPhysicalDeviceSurfacePresentModesKHR);
-
+    PFN_DECLARE(PFN_vk, GetPhysicalDeviceSurfaceCapabilitiesKHR);
+    PFN_DECLARE(PFN_vk, GetPhysicalDeviceSurfaceFormatsKHR);
+    PFN_DECLARE(PFN_vk, GetPhysicalDeviceSurfacePresentModesKHR);
+};
+struct DeviceSymbolsLoaderT : public SymbolsLoaderI
+{
   protected:
-    void load(f6::bin::DynamicLibraryLoader *loader) override;
-    public:
-    void load(const Context* cx, const Instance* instance) override{}
-    void load(const Context *cx, const LogicalDevice *device) override
-    {
-    }
+    void load(ContextABC* cx) override {};
+    void load(ContextABC* cx, f6::bin::DynamicLibraryLoader* loader) override;
+
+    void load(ContextABC* cx, const Instance* instance) override {}
+    void load(ContextABC* cx, const LogicalDevice* device) override {}
 };
 
-struct SwapchainSymbolsT : public SymbolsI
+struct SwapchainSymbolsT
 {
 
-    PFN_DECLARE(PFN_, vkCreateSwapchainKHR);
-    PFN_DECLARE(PFN_, vkGetSwapchainImagesKHR);
-    PFN_DECLARE(PFN_, vkDestroyImageView);
-    PFN_DECLARE(PFN_, vkDestroySwapchainKHR);
-
+    PFN_DECLARE(PFN_vk, CreateSwapchainKHR);
+    PFN_DECLARE(PFN_vk, GetSwapchainImagesKHR);
+    PFN_DECLARE(PFN_vk, DestroyImageView);
+    PFN_DECLARE(PFN_vk, DestroySwapchainKHR);
+};
+struct SwapchainSymbolsLoaderT : public SymbolsLoaderI
+{
   protected:
-    void load(f6::bin::DynamicLibraryLoader *loader) override
-    {
-    }
+    void load(ContextABC* cx) override {};
+    void load(ContextABC* cx, f6::bin::DynamicLibraryLoader* loader) override {}
 
-  public:
-    void load(const Context *cx, const Instance *instance) override
-    {
-    }
-    void load(const Context *cx, const LogicalDevice *device) override;
+    void load(ContextABC* cx, const Instance* instance) override {}
+    void load(ContextABC* cx, const LogicalDevice* device) override;
 };
 
 struct DeviceSymbols2T : public SwapchainSymbolsT
 {
 
-    PFN_DECLARE(PFN_, vkGetDeviceQueue);
-    PFN_DECLARE(PFN_, vkDestroyDevice);
+    PFN_DECLARE(PFN_vk, GetDeviceQueue);
+    PFN_DECLARE(PFN_vk, DestroyDevice);
 
-    PFN_DECLARE(PFN_, vkCreateCommandPool);
-    PFN_DECLARE(PFN_, vkDestroyCommandPool);
-
+    PFN_DECLARE(PFN_vk, CreateCommandPool);
+    PFN_DECLARE(PFN_vk, DestroyCommandPool);
+};
+struct DeviceSymbolsLoader2T : public SwapchainSymbolsLoaderT
+{
   protected:
-    void load(f6::bin::DynamicLibraryLoader *loader) override
-    {
-    }
+    void load(ContextABC* cx) override {};
+    void load(ContextABC* cx, f6::bin::DynamicLibraryLoader* loader) override {}
 
-  public:
-    void load(const Context *cx, const Instance *instance) override
-    {
-    }
-    void load(const Context *cx, const LogicalDevice *device) override;
+    void load(ContextABC* cx, const Instance* instance) override {}
+    void load(ContextABC* cx, const LogicalDevice* device) override;
 };

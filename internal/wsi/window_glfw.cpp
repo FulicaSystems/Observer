@@ -73,7 +73,7 @@ void WindowGLFW::makeContextCurrent()
     glfwMakeContextCurrent(m_handle);
 }
 
-Surface *WindowGLFW::createSurface(const Context *cx, const Instance *inst)
+Surface* WindowGLFW::createSurface(const ContextABC* cx, const Instance* inst)
 {
     VkSurfaceKHR surface;
     VkResult res = glfwCreateWindowSurface(inst->getHandle(), m_handle, nullptr, &surface);

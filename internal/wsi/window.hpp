@@ -3,7 +3,7 @@
 #include <vector>
 #include <memory>
 
-class Context;
+class ContextABC;
 class Instance;
 class SwapChain;
 class Surface;
@@ -23,7 +23,7 @@ class WindowI
     virtual const std::vector<const char *> getRequiredExtensions() const = 0;
 
     virtual void makeContextCurrent() = 0;
-    virtual Surface *createSurface(const Context *cx, const Instance *inst) = 0;
+    virtual Surface* createSurface(const ContextABC* cx, const Instance* inst) = 0;
 
     virtual void swapBuffers() = 0;
     virtual void pollEvents() = 0;

@@ -2,15 +2,16 @@
 
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include <vulkan/vulkan.h>
 
-class Context;
+class ContextABC;
 
 struct InstanceCreateInfoT
 {
-    Context *cx;
+    ContextABC* cx;
 };
 
 /**
@@ -20,7 +21,7 @@ struct InstanceCreateInfoT
 class Instance
 {
   private:
-    Context *cx;
+    ContextABC* cx;
 
   private:
     std::unique_ptr<VkInstance> m_handle;

@@ -4,7 +4,7 @@
 
 #include <vector>
 
-class Context;
+class ContextABC;
 class LogicalDevice;
 class Surface;
 

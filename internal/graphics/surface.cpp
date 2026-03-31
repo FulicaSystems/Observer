@@ -1,12 +1,13 @@
 #include <algorithm>
 
 #include "context.hpp"
+#include "instance.hpp"
 
 #include "surface.hpp"
 
 Surface::~Surface()
 {
-    ci.cx->vkDestroySurfaceKHR(ci.inst->getHandle(), m_handle, nullptr);
+    ci.cx->DestroySurfaceKHR(ci.inst->getHandle(), m_handle, nullptr);
 }
 
 std::optional<VkSurfaceFormatKHR> SurfaceDetailsT::findFormat(const VkFormat &targetFormat,

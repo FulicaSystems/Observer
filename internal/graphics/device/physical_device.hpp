@@ -7,7 +7,7 @@
 
 #include <f6/dynamic_library_loader.hpp>
 
-class Context;
+class ContextABC;
 class Instance;
 class LogicalDevice;
 
@@ -22,7 +22,7 @@ struct PhysicalDeviceHandleT
 
 struct PhysicalDeviceCreateInfoT
 {
-    Context *cx;
+    ContextABC* cx;
     const Instance *inst;
     const char *deviceName;
     Surface *surface;
@@ -31,7 +31,7 @@ struct PhysicalDeviceCreateInfoT
 class PhysicalDevice
 {
   private:
-    Context *cx;
+    ContextABC* cx;
     const Instance *inst;
 
   private:

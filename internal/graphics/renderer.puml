@@ -30,7 +30,7 @@ package Graphics
 
         + void* getHandle() const
     }
-    Context *-- InstanceABC
+    ContextABC*-- InstanceABC
     class InstanceVk
     {
         - unique_ptr<VkInstance> m_handle

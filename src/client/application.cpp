@@ -20,24 +20,21 @@ Application::Application()
 
     auto ext = m_window->getRequiredExtensions();
     ext.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-    m_context = std::make_unique<Context>(ContextCreateInfoT{
+    m_context = std::make_unique<ContextSDK>(ContextCreateInfoT{
         .applicationName = "Renderer",
         .applicationVersion = VERSION(0, 0, 0),
         .engineVersion = VERSION(0, 0, 0),
         .layers =
             {
-                "VK_LAYER_KHRONOS_validation",
-                "VK_LAYER_LUNARG_monitor",
-            },
+                     "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor",
+                     },
         .instanceExtensions = ext,
 #ifdef ENABLE_VIDEO_TRANSCODE
         .deviceExtensions =
             {
-                VK_KHR_VIDEO_DECODE_H264_EXTENSION_NAME,
-                VK_KHR_VIDEO_DECODE_H265_EXTENSION_NAME,
-                VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME,
-                VK_KHR_VIDEO_QUEUE_EXTENSION_NAME,
-            },
+                     VK_KHR_VIDEO_DECODE_H264_EXTENSION_NAME, VK_KHR_VIDEO_DECODE_H265_EXTENSION_NAME,
+                     VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME, VK_KHR_VIDEO_QUEUE_EXTENSION_NAME,
+                     },
 #endif
     });
     m_instance = std::make_unique<Instance>(InstanceCreateInfoT{m_context.get()});

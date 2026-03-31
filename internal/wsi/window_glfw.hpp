@@ -4,7 +4,7 @@
 
 #include "window.hpp"
 
-class Context;
+class ContextABC;
 class Instance;
 
 class WSILoaderGLFW final : public WSILoaderI
@@ -41,7 +41,7 @@ class WindowGLFW final : public WindowI, public PresentWindowABC
     const std::vector<const char *> getRequiredExtensions() const override;
 
     void makeContextCurrent() override;
-    Surface *createSurface(const Context *cx, const Instance *inst) override;
+    Surface* createSurface(const ContextABC* cx, const Instance* inst) override;
 
     void swapBuffers() override;
     void pollEvents() override;

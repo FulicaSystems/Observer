@@ -4,7 +4,7 @@
 
 #include <vector>
 
-class Context;
+class ContextABC;
 class Instance;
 
 // TODO : abstraction
@@ -15,7 +15,7 @@ struct SurfaceHandleT
 
 struct SurfaceCreateInfoT
 {
-    const Context *cx;
+    const ContextABC* cx;
     const Instance *inst;
     // TODO : abstraction
     VkSurfaceKHR surface;

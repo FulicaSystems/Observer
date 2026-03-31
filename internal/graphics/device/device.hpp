@@ -8,7 +8,7 @@
 
 #include "physical_device.hpp"
 
-class Context;
+class ContextABC;
 
 class Surface;
 class SwapChain;
@@ -16,7 +16,7 @@ struct SwapChainCreateInfoT;
 
 struct LogicalDeviceCreateInfoT
 {
-    Context *context;
+    ContextABC* context;
     const PhysicalDevice *physicalHandle;
     void *createInfo;
 
@@ -26,7 +26,7 @@ class LogicalDevice
 {
 
   private:
-    Context *cx;
+    ContextABC* cx;
     const PhysicalDevice *physicalHandle;
 
   private:

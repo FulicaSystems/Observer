@@ -6,56 +6,90 @@
 
 #include "symbols.hpp"
 
-void InstanceSymbolsT::load(f6::bin::DynamicLibraryLoader *loader)
+void InstanceSymbolsLoaderT::load(ContextABC* cx, f6::bin::DynamicLibraryLoader* loader)
 {
-    GET_PROC_ADDR(*loader, PFN_, vkCreateInstance);
-    GET_PROC_ADDR(*loader, PFN_, vkDestroyInstance);
-    GET_PROC_ADDR(*loader, PFN_, vkGetInstanceProcAddr);
-    GET_PROC_ADDR(*loader, PFN_, vkEnumerateInstanceLayerProperties);
-    GET_PROC_ADDR(*loader, PFN_, vkEnumerateInstanceExtensionProperties);
+    cx->GET_PROC_ADDR(*loader, PFN_vk, vk, CreateInstance);
+    cx->GET_PROC_ADDR(*loader, PFN_vk, vk, DestroyInstance);
+    cx->GET_PROC_ADDR(*loader, PFN_vk, vk, GetInstanceProcAddr);
+    cx->GET_PROC_ADDR(*loader, PFN_vk, vk, EnumerateInstanceLayerProperties);
+    cx->GET_PROC_ADDR(*loader, PFN_vk, vk, EnumerateInstanceExtensionProperties);
 
-    GET_PROC_ADDR(*loader, PFN_, vkGetPhysicalDeviceProperties);
-    GET_PROC_ADDR(*loader, PFN_, vkGetDeviceProcAddr);
+    cx->GET_PROC_ADDR(*loader, PFN_vk, vk, GetPhysicalDeviceProperties);
+    cx->GET_PROC_ADDR(*loader, PFN_vk, vk, GetDeviceProcAddr);
 }
 
-void InstanceSymbols2T::load(const Context *cx, const Instance *instance)
+void InstanceSymbolsLoader2T::load(ContextABC* cx, const Instance* instance)
 {
-    VK_GET_INSTANCE_PROC_ADDR(cx, instance->getHandle(), vkCreateDebugUtilsMessengerEXT);
-    VK_GET_INSTANCE_PROC_ADDR(cx, instance->getHandle(), vkDestroyDebugUtilsMessengerEXT);
+    VK_GET_INSTANCE_PROC_ADDR(cx, instance->getHandle(), CreateDebugUtilsMessengerEXT);
+    VK_GET_INSTANCE_PROC_ADDR(cx, instance->getHandle(), DestroyDebugUtilsMessengerEXT);
 
-    VK_GET_INSTANCE_PROC_ADDR(cx, instance->getHandle(), vkEnumeratePhysicalDevices);
+    VK_GET_INSTANCE_PROC_ADDR(cx, instance->getHandle(), EnumeratePhysicalDevices);
 
-    VK_GET_INSTANCE_PROC_ADDR(cx, instance->getHandle(), vkDestroySurfaceKHR);
+    VK_GET_INSTANCE_PROC_ADDR(cx, instance->getHandle(), DestroySurfaceKHR);
 }
 
-void DeviceSymbolsT::load(f6::bin::DynamicLibraryLoader *loader)
+void DeviceSymbolsLoaderT::load(ContextABC* cx, f6::bin::DynamicLibraryLoader* loader)
 {
-    GET_PROC_ADDR(*loader, PFN_, vkEnumerateDeviceExtensionProperties);
+    cx->GET_PROC_ADDR(*loader, PFN_vk, vk, EnumerateDeviceExtensionProperties);
 
-    GET_PROC_ADDR(*loader, PFN_, vkGetPhysicalDeviceQueueFamilyProperties);
-    GET_PROC_ADDR(*loader, PFN_, vkCreateDevice);
-    GET_PROC_ADDR(*loader, PFN_, vkGetPhysicalDeviceSurfaceSupportKHR);
+    cx->GET_PROC_ADDR(*loader, PFN_vk, vk, GetPhysicalDeviceQueueFamilyProperties);
+    cx->GET_PROC_ADDR(*loader, PFN_vk, vk, CreateDevice);
+    cx->GET_PROC_ADDR(*loader, PFN_vk, vk, GetPhysicalDeviceSurfaceSupportKHR);
 
-    GET_PROC_ADDR(*loader, PFN_, vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
-    GET_PROC_ADDR(*loader, PFN_, vkGetPhysicalDeviceSurfaceFormatsKHR);
-    GET_PROC_ADDR(*loader, PFN_, vkGetPhysicalDeviceSurfacePresentModesKHR);
+    cx->GET_PROC_ADDR(*loader, PFN_vk, vk, GetPhysicalDeviceSurfaceCapabilitiesKHR);
+    cx->GET_PROC_ADDR(*loader, PFN_vk, vk, GetPhysicalDeviceSurfaceFormatsKHR);
+    cx->GET_PROC_ADDR(*loader, PFN_vk, vk, GetPhysicalDeviceSurfacePresentModesKHR);
 }
 
-void DeviceSymbols2T::load(const Context *cx, const LogicalDevice *device)
+void DeviceSymbolsLoader2T::load(ContextABC* cx, const LogicalDevice* device)
 {
-    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkGetDeviceQueue);
-    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkDestroyDevice);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), GetDeviceQueue);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroyDevice);
 
-    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkCreateCommandPool);
-    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkDestroyCommandPool);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateCommandPool);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroyCommandPool);
 
-    SwapchainSymbolsT::load(cx, device);
+    SwapchainSymbolsLoaderT::load(cx, device);
 }
 
-void SwapchainSymbolsT::load(const Context *cx, const LogicalDevice *device)
+void SwapchainSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
 {
-    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkCreateSwapchainKHR);
-    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkGetSwapchainImagesKHR);
-    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkDestroyImageView);
-    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), vkDestroySwapchainKHR);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateSwapchainKHR);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), GetSwapchainImagesKHR);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroyImageView);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroySwapchainKHR);
+}
+
+void SDKSymbolsLoaderT::load(ContextABC* cx)
+{
+    VK_SDK_FUNCTION(cx, CreateInstance);
+    VK_SDK_FUNCTION(cx, DestroyInstance);
+    VK_SDK_FUNCTION(cx, GetInstanceProcAddr);
+    VK_SDK_FUNCTION(cx, EnumerateInstanceLayerProperties);
+    VK_SDK_FUNCTION(cx, EnumerateInstanceExtensionProperties);
+    VK_SDK_FUNCTION(cx, GetPhysicalDeviceProperties);
+    VK_SDK_FUNCTION(cx, GetDeviceProcAddr);
+    VK_SDK_FUNCTION(cx, EnumeratePhysicalDevices);
+    VK_SDK_FUNCTION(cx, DestroySurfaceKHR);
+    VK_SDK_FUNCTION(cx, EnumerateDeviceExtensionProperties);
+    VK_SDK_FUNCTION(cx, GetPhysicalDeviceQueueFamilyProperties);
+    VK_SDK_FUNCTION(cx, CreateDevice);
+    VK_SDK_FUNCTION(cx, GetPhysicalDeviceSurfaceSupportKHR);
+    VK_SDK_FUNCTION(cx, GetPhysicalDeviceSurfaceCapabilitiesKHR);
+    VK_SDK_FUNCTION(cx, GetPhysicalDeviceSurfaceFormatsKHR);
+    VK_SDK_FUNCTION(cx, GetPhysicalDeviceSurfacePresentModesKHR);
+    VK_SDK_FUNCTION(cx, CreateSwapchainKHR);
+    VK_SDK_FUNCTION(cx, GetSwapchainImagesKHR);
+    VK_SDK_FUNCTION(cx, DestroyImageView);
+    VK_SDK_FUNCTION(cx, DestroySwapchainKHR);
+    VK_SDK_FUNCTION(cx, GetDeviceQueue);
+    VK_SDK_FUNCTION(cx, DestroyDevice);
+    VK_SDK_FUNCTION(cx, CreateCommandPool);
+    VK_SDK_FUNCTION(cx, DestroyCommandPool);
+}
+
+void SDKSymbolsLoaderT::load(ContextABC* cx, const Instance* instance)
+{
+    VK_GET_INSTANCE_PROC_ADDR(cx, instance->getHandle(), CreateDebugUtilsMessengerEXT);
+    VK_GET_INSTANCE_PROC_ADDR(cx, instance->getHandle(), DestroyDebugUtilsMessengerEXT);
 }

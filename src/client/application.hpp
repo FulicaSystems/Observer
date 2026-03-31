@@ -5,7 +5,7 @@
 
 class WSILoaderI;
 class WindowGLFW;
-class Context;
+class ContextABC;
 class Instance;
 class PhysicalDevice;
 class LogicalDevice;
@@ -17,7 +17,7 @@ class Application
     std::unique_ptr<WSILoaderI> m_wsi;
     std::unique_ptr<WindowGLFW> m_window;
 
-    std::unique_ptr<Context> m_context;
+    std::unique_ptr<ContextABC> m_context;
     std::unique_ptr<Instance> m_instance;
 
     std::vector<std::shared_ptr<PhysicalDevice>> m_physicalDevices;

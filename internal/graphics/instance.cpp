@@ -26,7 +26,7 @@ Instance::Instance(const InstanceCreateInfoT createInfo) : cx(createInfo.cx)
                                .ppEnabledExtensionNames = instanceExtensions.data()};
 
     VkInstance handle;
-    VkResult res = cx->vkCreateInstance(&ci, nullptr, &handle);
+    VkResult res = cx->CreateInstance(&ci, nullptr, &handle);
     if (res != VK_SUCCESS)
     {
         std::cerr << "Failed to create Vulkan instance : " << res << std::endl;
@@ -35,7 +35,7 @@ Instance::Instance(const InstanceCreateInfoT createInfo) : cx(createInfo.cx)
 
     m_handle = std::make_unique<VkInstance>(handle);
 
-    cx->InstanceSymbols2T::load(cx, this);
+    cx->loadTop(this);
 
 #ifndef NDEBUG
     createDebugMessenger();
@@ -47,9 +47,9 @@ Instance::Instance(const InstanceCreateInfoT createInfo) : cx(createInfo.cx)
 Instance::~Instance()
 {
     if (m_debugMessenger)
-        cx->vkDestroyDebugUtilsMessengerEXT(*m_handle, *m_debugMessenger, nullptr);
+        cx->DestroyDebugUtilsMessengerEXT(*m_handle, *m_debugMessenger, nullptr);
 
-    cx->vkDestroyInstance(*m_handle, nullptr);
+    cx->DestroyInstance(*m_handle, nullptr);
 }
 
 void Instance::createDebugMessenger()
@@ -65,7 +65,7 @@ void Instance::createDebugMessenger()
         .pUserData = nullptr};
 
     VkDebugUtilsMessengerEXT handle;
-    VkResult res = cx->vkCreateDebugUtilsMessengerEXT(*m_handle, &createInfo, nullptr, &handle);
+    VkResult res = cx->CreateDebugUtilsMessengerEXT(*m_handle, &createInfo, nullptr, &handle);
     if (res != VK_SUCCESS)
     {
         std::cerr << "Failed to set up debug messenger : " << res << std::endl;
@@ -77,19 +77,19 @@ void Instance::createDebugMessenger()
 std::vector<std::string> Instance::enumerateAvailablePhysicalDevices(const bool bDump) const
 {
     uint32_t deviceCount = 0;
-    cx->vkEnumeratePhysicalDevices(*m_handle, &deviceCount, nullptr);
+    cx->EnumeratePhysicalDevices(*m_handle, &deviceCount, nullptr);
 
     std::vector<std::string> out;
     out.reserve(deviceCount);
 
     std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
-    cx->vkEnumeratePhysicalDevices(*m_handle, &deviceCount, physicalDevices.data());
+    cx->EnumeratePhysicalDevices(*m_handle, &deviceCount, physicalDevices.data());
     if (bDump)
         std::cout << "available physical devices : " << deviceCount << '\n';
     for (const auto &physicalDevice : physicalDevices)
     {
         VkPhysicalDeviceProperties props;
-        cx->vkGetPhysicalDeviceProperties(physicalDevice, &props);
+        cx->GetPhysicalDeviceProperties(physicalDevice, &props);
         if (bDump)
             std::cout << '\t' << props.deviceName << '\n';
 
@@ -101,13 +101,13 @@ std::vector<std::string> Instance::enumerateAvailablePhysicalDevices(const bool 
 std::optional<VkPhysicalDevice> Instance::getPhysicalDeviceHandleByName(const char *deviceName) const
 {
     uint32_t deviceCount = 0;
-    cx->vkEnumeratePhysicalDevices(*m_handle, &deviceCount, nullptr);
+    cx->EnumeratePhysicalDevices(*m_handle, &deviceCount, nullptr);
     std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
-    cx->vkEnumeratePhysicalDevices(*m_handle, &deviceCount, physicalDevices.data());
+    cx->EnumeratePhysicalDevices(*m_handle, &deviceCount, physicalDevices.data());
     for (const auto &physicalDevice : physicalDevices)
     {
         VkPhysicalDeviceProperties props;
-        cx->vkGetPhysicalDeviceProperties(physicalDevice, &props);
+        cx->GetPhysicalDeviceProperties(physicalDevice, &props);
 
         if (std::strcmp(props.deviceName, deviceName))
             return physicalDevice;
