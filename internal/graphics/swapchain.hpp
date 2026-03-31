@@ -4,18 +4,22 @@
 
 #include <vector>
 
+#include "device/memory/image.hpp"
+
 class ContextABC;
 class LogicalDevice;
 class Surface;
 
 struct SwapChainCreateInfoT
 {
-    std::optional<const LogicalDevice *> device;
-    const Surface *surface;
+    std::optional<const LogicalDevice*> device;
+    const Surface* surface;
 
     VkSurfaceFormatKHR surfaceFormat;
     VkPresentModeKHR presentMode;
     VkExtent2D extent;
+
+    ImageViewCreateInfoT viewCreateInfo;
 };
 
 class SwapChain
@@ -31,27 +35,23 @@ class SwapChain
     VkExtent2D imageExtent;
 
     std::vector<VkImage> images;
-    std::vector<VkImageView> imageViews;
+    std::vector<std::shared_ptr<ImageView>> imageViews;
+
+    // TODO
+    std::shared_ptr<Image> depthImage;
+    std::shared_ptr<ImageView> depthImageView;
 
   public:
     SwapChain() = delete;
-    SwapChain(const SwapChainCreateInfoT ci) : ci(ci)
-    {
-    }
-    SwapChain(const SwapChain &) = delete;
-    SwapChain &operator=(const SwapChain &) = delete;
-    SwapChain(SwapChain &&) = delete;
-    SwapChain &operator=(SwapChain &&) = delete;
+    SwapChain(const SwapChainCreateInfoT ci) : ci(ci) {}
+    SwapChain(const SwapChain&) = delete;
+    SwapChain& operator=(const SwapChain&) = delete;
+    SwapChain(SwapChain&&) = delete;
+    SwapChain& operator=(SwapChain&&) = delete;
 
     ~SwapChain();
 
   public:
-    [[nodiscard]] inline VkSwapchainKHR &getHandle()
-    {
-        return m_handle;
-    }
-    [[nodiscard]] inline const VkSwapchainKHR &getHandle() const
-    {
-        return m_handle;
-    }
+    [[nodiscard]] inline VkSwapchainKHR& getHandle() { return m_handle; }
+    [[nodiscard]] inline const VkSwapchainKHR& getHandle() const { return m_handle; }
 };

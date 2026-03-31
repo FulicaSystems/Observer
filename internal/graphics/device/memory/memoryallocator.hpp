@@ -2,7 +2,7 @@
 
 #include <deque>
 
-#include <glad/vulkan.h>
+#include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
 class IAllocation

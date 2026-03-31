@@ -15,6 +15,9 @@ set_property(TARGET ${component}
     physical_device.hpp
     
     device.hpp
+
+    memory/buffer.hpp
+    memory/image.hpp
 )
 
 target_sources(${component}
@@ -24,6 +27,9 @@ target_sources(${component}
 
     device.hpp
     device.cpp
+
+    memory/buffer.hpp
+    memory/image.hpp
 )
 
 depends(MODULE CONFIG Vulkan)

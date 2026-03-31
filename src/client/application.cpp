@@ -2,6 +2,7 @@
 
 #include <graphics/context.hpp>
 #include <graphics/device/device.hpp>
+#include <graphics/device/memory/image.hpp>
 #include <graphics/device/physical_device.hpp>
 #include <graphics/instance.hpp>
 #include <graphics/surface.hpp>
@@ -77,6 +78,10 @@ Application::Application()
             {
                             .width = width,
                             .height = height,
+                            },
+        .viewCreateInfo =
+            ImageViewCreateInfoT{
+                            .aspect = VK_IMAGE_ASPECT_COLOR_BIT,
                             },
     }));
 }

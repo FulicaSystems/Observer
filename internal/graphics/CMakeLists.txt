@@ -2,10 +2,7 @@ set(component graphics)
 
 add_library(${component} STATIC "")
 
-#add_subdirectory(device_asset)
 add_subdirectory(device)
-#add_subdirectory(device_memory)
-#add_subdirectory(renderer)
 
 set_property(TARGET ${component}
     PROPERTY PUBLIC_HEADER

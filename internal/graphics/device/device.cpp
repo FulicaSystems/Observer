@@ -1,9 +1,14 @@
+#include <cassert>
 #include <iostream>
 
 #include "context.hpp"
 #include "physical_device.hpp"
 
 #include "surface.hpp"
+
+#include "memory/buffer.hpp"
+#include "memory/image.hpp"
+// #include "asset/shader.hpp"
 #include "swapchain.hpp"
 
 #include "device.hpp"
@@ -110,6 +115,16 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(SwapChainCreateInfoT c
     out->images.resize(imageCount);
     cx->GetSwapchainImagesKHR(m_handle, out->getHandle(), &imageCount, out->images.data());
 
+    out->imageViews.reserve(imageCount);
+    for (int i = 0; i < imageCount; ++i)
+    {
+        if (!ci.viewCreateInfo.image.has_value())
+            ci.viewCreateInfo.image = out->images[i];
+        if (!ci.viewCreateInfo.format.has_value())
+            ci.viewCreateInfo.format = surfaceFormat.format;
+        out->imageViews.emplace_back(createImageView(ci.viewCreateInfo));
+    }
+
     out->imageFormat = surfaceFormat.format;
     out->imageExtent = extent;
 
@@ -118,12 +133,78 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(SwapChainCreateInfoT c
 
 void LogicalDevice::destroySwapChain(SwapChain& sc) const
 {
-    for (VkImageView& imageView : sc.imageViews)
+    for (auto& imageView : sc.imageViews)
     {
-        cx->DestroyImageView(m_handle, imageView, nullptr);
+        cx->DestroyImageView(m_handle, imageView->handle, nullptr);
     }
     cx->DestroySwapchainKHR(m_handle, sc.getHandle(), nullptr);
 }
+
+std::shared_ptr<ImageView> LogicalDevice::createImageView(const ImageViewCreateInfoT ci) const
+{
+    assert(ci.image.has_value());
+    assert(ci.format.has_value());
+    VkImageViewCreateInfo createInfo = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .image = ci.image.value(),
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .format = ci.format.value(),
+        .components =
+            {
+                         .r = VK_COMPONENT_SWIZZLE_R,
+                         .g = VK_COMPONENT_SWIZZLE_G,
+                         .b = VK_COMPONENT_SWIZZLE_B,
+                         .a = VK_COMPONENT_SWIZZLE_A,
+                         },
+        .subresourceRange =
+            {
+                         .aspectMask = ci.aspect,
+                         .baseMipLevel = 0,
+                         .levelCount = 1,
+                         .baseArrayLayer = 0,
+                         .layerCount = 1,
+                         },
+    };
+
+    VkImageView imageView;
+    VkResult res = vkCreateImageView(m_handle, &createInfo, nullptr, &imageView);
+    if (res != VK_SUCCESS)
+        std::cerr << "Failed to create image view : " << res << std::endl;
+
+    return std::make_shared<ImageView>(imageView);
+}
+
+std::shared_ptr<Buffer> LogicalDevice::createBuffer(const BufferCreateInfoT createInfo) const
+{
+    // auto bufferCreateInfo = (VkBufferCreateInfo*)createInfo;
+    // assert(bufferCreateInfo && bufferCreateInfo->sType == VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
+    // std::shared_ptr<Buffer> out = std::make_shared<Buffer>();
+    // vkCreateBuffer(handle, (VkBufferCreateInfo*)createInfo, nullptr, &out->handle);
+    // // TODO : memory allocation
+    // return out;
+    return nullptr;
+}
+
+void LogicalDevice::destroyBuffer(std::shared_ptr<Buffer>& pData) const
+{
+    // vkDestroyBuffer(handle, pData->handle, nullptr);
+}
+
+// std::shared_ptr<ShaderModule> LogicalDevice::createShaderModule(
+//     const ShaderModuleCreateInfoT createInfo) const
+// {
+//     auto shaderModuleCreateInfo = (VkShaderModuleCreateInfo*)createInfo;
+//     assert(shaderModuleCreateInfo &&
+//            shaderModuleCreateInfo->sType == VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
+//     std::shared_ptr<ShaderModule> out = std::make_shared<ShaderModule>();
+//     vkCreateShaderModule(handle, (VkShaderModuleCreateInfo*)createInfo, nullptr, &out->handle);
+//     return out;
+// }
+
+// void LogicalDevice::destroyShaderModule(std::shared_ptr<ShaderModule>& pData) const
+// {
+//     vkDestroyShaderModule(handle, pData->handle, nullptr);
+// }
 
 void LogicalDevice::retrieveQueues()
 {

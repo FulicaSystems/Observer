@@ -1,9 +1,14 @@
 #pragma once
 
-#include <glad/vulkan.h>
+#include <vulkan/vulkan.h>
 
-struct Buffer
+struct BufferCreateInfoT
 {
+};
+
+class Buffer
+{
+  public:
     VkBuffer handle;
 
     // allocation
