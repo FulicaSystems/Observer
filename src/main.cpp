@@ -6,9 +6,6 @@
 
 #include "client/application.hpp"
 
-#define CHKLK_OVERRIDE_NEW_OP
-#include "checkleak.hpp"
-
 // argv[0] : exe path
 // argv[1] : first parameter
 int main(int argc, char **argv)
@@ -43,10 +40,6 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    CHKLK_INIT
-
-    CHKLK_ENTRY_SNAP
-    {
         try
         {
             Application app /*(api >= 0 ? (GraphicsApiE)api : GraphicsApiE::VULKAN)*/;
@@ -59,9 +52,6 @@ int main(int argc, char **argv)
             std::cerr << ex.what() << std::endl;
             return EXIT_FAILURE;
         }
-    }
-    CHKLK_EXIT_DIFF
 
-    // CHKLK_APP
     return EXIT_SUCCESS;
 }

@@ -16,6 +16,3 @@
 [submodule "externals/Vulkan-Headers"]
 	path = externals/Vulkan-Headers
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
-[submodule "externals/mathematics"]
-	path = externals/mathematics
-	url = https://github.com/FulicaSystems/Mathematics.git

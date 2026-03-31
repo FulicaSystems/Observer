@@ -1,8 +1,6 @@
-#include "context.hpp"
+#include <algorithm>
 
-#define STD_INT
-#define STD_LIMITS
-#include "fumathematics/mathematics.hpp"
+#include "context.hpp"
 
 #include "surface.hpp"
 
@@ -55,8 +53,8 @@ VkExtent2D SurfaceDetailsT::findExtent(uint32_t width, uint32_t height)
     else
     {
         return VkExtent2D{
-            .width = Math::clamp(width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width),
-            .height = Math::clamp(height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height),
+            .width = std::clamp(width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width),
+            .height = std::clamp(height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height),
         };
     }
 }
