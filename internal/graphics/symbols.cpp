@@ -50,13 +50,15 @@ void DeviceSymbolsLoader2T::load(ContextABC* cx, const LogicalDevice* device)
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroyCommandPool);
 
     SwapchainSymbolsLoaderT::load(cx, device);
+    BufferSymbolsLoaderT::load(cx, device);
+    ImageSymbolsLoaderT::load(cx, device);
+    RenderPassSymbolsLoaderT::load(cx, device);
 }
 
 void SwapchainSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
 {
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateSwapchainKHR);
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), GetSwapchainImagesKHR);
-    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroyImageView);
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroySwapchainKHR);
 }
 
@@ -92,4 +94,20 @@ void SDKSymbolsLoaderT::load(ContextABC* cx, const Instance* instance)
 {
     VK_GET_INSTANCE_PROC_ADDR(cx, instance->getHandle(), CreateDebugUtilsMessengerEXT);
     VK_GET_INSTANCE_PROC_ADDR(cx, instance->getHandle(), DestroyDebugUtilsMessengerEXT);
+}
+
+void ImageSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
+{
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateImageView);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroyImageView);
+}
+
+void RenderPassSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
+{
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateRenderPass);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroyRenderPass);
+}
+
+void BufferSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
+{
 }

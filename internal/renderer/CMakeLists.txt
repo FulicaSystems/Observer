@@ -7,11 +7,21 @@ set_property(TARGET ${component}
     renderer.hpp
 )
 
-#target_sources(${component}
-#    PRIVATE
-#    renderer.cpp
-#    renderer.hpp
-#)
+target_sources(${component}
+   PRIVATE
+   renderer.cpp
+   renderer.hpp
+)
+
+depends(MODULE CONFIG Vulkan)
+
+target_include_directories(${component}
+    PUBLIC ${Vulkan_INCLUDE_DIR}
+)
+target_link_libraries(${component}
+    PUBLIC ${Vulkan_LIBRARY}
+)
+
 
 target_include_directories(${component} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 target_include_directories(${component} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/..")

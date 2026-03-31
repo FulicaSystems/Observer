@@ -16,6 +16,10 @@ class SwapChain;
 struct SwapChainCreateInfoT;
 class ImageView;
 struct ImageViewCreateInfoT;
+class RenderPass;
+struct RenderPassCreateInfoT;
+class Framebuffer;
+struct FramebufferCreateInfoT;
 class Buffer;
 struct BufferCreateInfoT;
 class ShaderModule;
@@ -87,6 +91,14 @@ class LogicalDevice
     [[nodiscard]] std::shared_ptr<ImageView> createImageView(
         const ImageViewCreateInfoT createInfo) const;
     void destroyImageView(std::shared_ptr<ImageView>& pData) const;
+
+    [[nodiscard]] std::shared_ptr<RenderPass> createRenderPass(
+        const RenderPassCreateInfoT createInfo) const;
+    void destroyRenderPass(std::shared_ptr<RenderPass>& pData) const;
+
+    [[nodiscard]] std::shared_ptr<Framebuffer> createFramebuffer(
+        const FramebufferCreateInfoT createInfo) const;
+    void destroyFramebuffer(std::shared_ptr<Framebuffer>& pData) const;
 
     [[nodiscard]] std::shared_ptr<Buffer> createBuffer(const BufferCreateInfoT createInfo) const;
     void destroyBuffer(std::shared_ptr<Buffer>& pData) const;

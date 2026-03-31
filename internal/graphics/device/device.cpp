@@ -9,6 +9,8 @@
 #include "memory/buffer.hpp"
 #include "memory/image.hpp"
 // #include "asset/shader.hpp"
+#include "asset/render_pass.hpp"
+#include "framebuffer.hpp"
 #include "swapchain.hpp"
 
 #include "device.hpp"
@@ -167,11 +169,96 @@ std::shared_ptr<ImageView> LogicalDevice::createImageView(const ImageViewCreateI
     };
 
     VkImageView imageView;
-    VkResult res = vkCreateImageView(m_handle, &createInfo, nullptr, &imageView);
+    VkResult res = cx->CreateImageView(m_handle, &createInfo, nullptr, &imageView);
     if (res != VK_SUCCESS)
         std::cerr << "Failed to create image view : " << res << std::endl;
 
     return std::make_shared<ImageView>(imageView);
+}
+
+std::shared_ptr<RenderPass> LogicalDevice::createRenderPass(const RenderPassCreateInfoT ci) const
+{
+    std::vector<VkAttachmentDescription> attachments(ci.colorAttachments.size() + 1);
+    std::vector<VkAttachmentReference> colorAttachmentRefs(ci.colorAttachments.size());
+    for (int i = 0; i < ci.colorAttachments.size(); ++i)
+    {
+        auto& r = ci.colorAttachments[i];
+
+        attachments[i] = r.first;
+        colorAttachmentRefs[i] = r.second;
+    }
+    attachments[ci.colorAttachments.size()] = ci.depthAttachment.first;
+
+    std::vector<VkSubpassDescription> subpasses(ci.subpasses.size());
+    // there is one set of color attachments per subpasses, hence the vector of vector
+    std::vector<std::vector<VkAttachmentReference>> subpassColorAttachments(ci.subpasses.size());
+    for (int i = 0; i < ci.subpasses.size(); ++i)
+    {
+        auto& s = ci.subpasses[i];
+
+        subpassColorAttachments[i] =
+            std::vector<VkAttachmentReference>(s.colorAttachmentIndices.size());
+        for (int j = 0; j < s.colorAttachmentIndices.size(); ++i)
+        {
+            subpassColorAttachments[i][j] = ci.colorAttachments[s.colorAttachmentIndices[j]].second;
+        }
+        subpasses[i] = {
+            .pipelineBindPoint = s.pipelineBindPoint,
+            .colorAttachmentCount = static_cast<uint32_t>(s.colorAttachmentIndices.size()),
+            .pColorAttachments = subpassColorAttachments[i].data(),
+        };
+        if (s.bDepthAttachment)
+            subpasses[i].pDepthStencilAttachment = &ci.depthAttachment.second;
+    }
+    VkRenderPassCreateInfo createInfo = {
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        .attachmentCount = static_cast<uint32_t>(attachments.size()),
+        .pAttachments = attachments.data(),
+        .subpassCount = static_cast<uint32_t>(subpasses.size()),
+        .pSubpasses = subpasses.data(),
+        .dependencyCount = static_cast<uint32_t>(ci.dependencies.size()),
+        .pDependencies = ci.dependencies.data(),
+    };
+
+    VkRenderPass renderPass;
+    VkResult res = cx->CreateRenderPass(m_handle, &createInfo, nullptr, &renderPass);
+    if (res != VK_SUCCESS)
+        std::cerr << "Failed to create render pass : " << res << std::endl;
+
+    return std::make_shared<RenderPass>(renderPass);
+}
+
+void LogicalDevice::destroyRenderPass(std::shared_ptr<RenderPass>& pData) const
+{
+}
+
+std::shared_ptr<Framebuffer> LogicalDevice::createFramebuffer(const FramebufferCreateInfoT ci) const
+{
+    std::vector<VkImageView> attachments(ci.attachments.size());
+    for (int i = 0; i < ci.attachments.size(); ++i)
+    {
+        attachments[i] = ci.attachments[i].handle;
+    }
+    VkFramebufferCreateInfo createInfo = {
+        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        .renderPass = ci.renderPass->handle,
+        .attachmentCount = static_cast<uint32_t>(attachments.size()),
+        .pAttachments = attachments.data(),
+        .width = ci.width,
+        .height = ci.height,
+        .layers = 1,
+    };
+
+    VkFramebuffer fbo;
+    VkResult res = cx->CreateFramebuffer(m_handle, &createInfo, nullptr, &fbo);
+    if (res != VK_SUCCESS)
+        std::cerr << "Failed to create framebuffer : " << res << std::endl;
+
+    return std::make_shared<Framebuffer>(fbo);
+}
+
+void LogicalDevice::destroyFramebuffer(std::shared_ptr<Framebuffer>& pData) const
+{
 }
 
 std::shared_ptr<Buffer> LogicalDevice::createBuffer(const BufferCreateInfoT createInfo) const
@@ -179,7 +266,7 @@ std::shared_ptr<Buffer> LogicalDevice::createBuffer(const BufferCreateInfoT crea
     // auto bufferCreateInfo = (VkBufferCreateInfo*)createInfo;
     // assert(bufferCreateInfo && bufferCreateInfo->sType == VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
     // std::shared_ptr<Buffer> out = std::make_shared<Buffer>();
-    // vkCreateBuffer(handle, (VkBufferCreateInfo*)createInfo, nullptr, &out->handle);
+    // cx->CreateBuffer(handle, (VkBufferCreateInfo*)createInfo, nullptr, &out->handle);
     // // TODO : memory allocation
     // return out;
     return nullptr;
@@ -187,7 +274,7 @@ std::shared_ptr<Buffer> LogicalDevice::createBuffer(const BufferCreateInfoT crea
 
 void LogicalDevice::destroyBuffer(std::shared_ptr<Buffer>& pData) const
 {
-    // vkDestroyBuffer(handle, pData->handle, nullptr);
+    // cx->DestroyBuffer(handle, pData->handle, nullptr);
 }
 
 // std::shared_ptr<ShaderModule> LogicalDevice::createShaderModule(
@@ -197,13 +284,13 @@ void LogicalDevice::destroyBuffer(std::shared_ptr<Buffer>& pData) const
 //     assert(shaderModuleCreateInfo &&
 //            shaderModuleCreateInfo->sType == VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
 //     std::shared_ptr<ShaderModule> out = std::make_shared<ShaderModule>();
-//     vkCreateShaderModule(handle, (VkShaderModuleCreateInfo*)createInfo, nullptr, &out->handle);
+//     cx->CreateShaderModule(handle, (VkShaderModuleCreateInfo*)createInfo, nullptr, &out->handle);
 //     return out;
 // }
 
 // void LogicalDevice::destroyShaderModule(std::shared_ptr<ShaderModule>& pData) const
 // {
-//     vkDestroyShaderModule(handle, pData->handle, nullptr);
+//     cx->DestroyShaderModule(handle, pData->handle, nullptr);
 // }
 
 void LogicalDevice::retrieveQueues()

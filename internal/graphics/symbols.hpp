@@ -124,7 +124,6 @@ struct SwapchainSymbolsT
 
     PFN_DECLARE(PFN_vk, CreateSwapchainKHR);
     PFN_DECLARE(PFN_vk, GetSwapchainImagesKHR);
-    PFN_DECLARE(PFN_vk, DestroyImageView);
     PFN_DECLARE(PFN_vk, DestroySwapchainKHR);
 };
 struct SwapchainSymbolsLoaderT : public SymbolsLoaderI
@@ -137,7 +136,50 @@ struct SwapchainSymbolsLoaderT : public SymbolsLoaderI
     void load(ContextABC* cx, const LogicalDevice* device) override;
 };
 
-struct DeviceSymbols2T : public SwapchainSymbolsT
+struct BufferSymbolsT : public SwapchainSymbolsT
+{
+};
+struct BufferSymbolsLoaderT : public SwapchainSymbolsLoaderT
+{
+  protected:
+    void load(ContextABC* cx) override {};
+    void load(ContextABC* cx, f6::bin::DynamicLibraryLoader* loader) override {}
+
+    void load(ContextABC* cx, const Instance* instance) override {}
+    void load(ContextABC* cx, const LogicalDevice* device) override;
+};
+
+struct ImageSymbolsT : public BufferSymbolsT
+{
+    PFN_DECLARE(PFN_vk, CreateImageView);
+    PFN_DECLARE(PFN_vk, DestroyImageView);
+};
+struct ImageSymbolsLoaderT : public BufferSymbolsLoaderT
+{
+  protected:
+    void load(ContextABC* cx) override {};
+    void load(ContextABC* cx, f6::bin::DynamicLibraryLoader* loader) override {}
+
+    void load(ContextABC* cx, const Instance* instance) override {}
+    void load(ContextABC* cx, const LogicalDevice* device) override;
+};
+
+struct RenderPassSymbolsT : public ImageSymbolsT
+{
+    PFN_DECLARE(PFN_vk, CreateRenderPass);
+    PFN_DECLARE(PFN_vk, DestroyRenderPass);
+};
+struct RenderPassSymbolsLoaderT : public ImageSymbolsLoaderT
+{
+  protected:
+    void load(ContextABC* cx) override {};
+    void load(ContextABC* cx, f6::bin::DynamicLibraryLoader* loader) override {}
+
+    void load(ContextABC* cx, const Instance* instance) override {}
+    void load(ContextABC* cx, const LogicalDevice* device) override;
+};
+
+struct DeviceSymbols2T : public RenderPassSymbolsT
 {
 
     PFN_DECLARE(PFN_vk, GetDeviceQueue);
@@ -146,7 +188,7 @@ struct DeviceSymbols2T : public SwapchainSymbolsT
     PFN_DECLARE(PFN_vk, CreateCommandPool);
     PFN_DECLARE(PFN_vk, DestroyCommandPool);
 };
-struct DeviceSymbolsLoader2T : public SwapchainSymbolsLoaderT
+struct DeviceSymbolsLoader2T : public RenderPassSymbolsLoaderT
 {
   protected:
     void load(ContextABC* cx) override {};

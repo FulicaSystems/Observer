@@ -1,14 +1,13 @@
 // TODO : render in fbo instead of swapchain image directly (google search "bgra vs rgba")
 // TODO : clean la compilation et l’installation (glslc, install)
 
-
 #include <iostream>
 
 #include "client/application.hpp"
 
 // argv[0] : exe path
 // argv[1] : first parameter
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     int api = 0;
     // TODO : make a standalone argument parser for libraries
@@ -34,24 +33,24 @@ int main(int argc, char **argv)
             }
         }
     }
-    catch (std::exception &ex)
+    catch (std::exception& ex)
     {
         std::cerr << ex.what() << std::endl;
         return EXIT_FAILURE;
     }
 
-        try
+    try
+    {
+        Application app /*(api >= 0 ? (GraphicsApiE)api : GraphicsApiE::VULKAN)*/;
+        while (app.perFrame())
         {
-            Application app /*(api >= 0 ? (GraphicsApiE)api : GraphicsApiE::VULKAN)*/;
-            while (app.perFrame())
-            {
-            }
         }
-        catch (const std::exception &ex)
-        {
-            std::cerr << ex.what() << std::endl;
-            return EXIT_FAILURE;
-        }
+    }
+    catch (const std::exception& ex)
+    {
+        std::cerr << ex.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }

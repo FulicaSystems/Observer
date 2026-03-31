@@ -24,7 +24,8 @@ class Application
     std::vector<std::unique_ptr<LogicalDevice>> m_devices;
 
     /**
-     * @brief used to select the wanted logical device (defaults to first discrete device if available)
+     * @brief used to select the wanted logical device (defaults to first discrete device if
+     * available)
      *
      */
     int m_currentDeviceIndex = -1;
