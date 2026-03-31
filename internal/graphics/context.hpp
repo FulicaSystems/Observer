@@ -7,7 +7,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include <binary/dynamic_library_loader.hpp>
+#include <f6/dynamic_library_loader.hpp>
 
 #include "instance.hpp"
 #include "symbols.hpp"
@@ -60,7 +60,7 @@ class Context : public InstanceSymbolsT, public InstanceSymbols2T, public Device
 
     ContextCreateInfoT ci;
 
-    std::unique_ptr<Utils::bin::DynamicLibraryLoader> m_loader;
+    std::unique_ptr<f6::bin::DynamicLibraryLoader> m_loader;
 
   public:
     Context() = delete;

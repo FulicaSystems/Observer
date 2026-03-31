@@ -30,11 +30,12 @@ target_sources(${component}
     swapchain.cpp
 )
 
+depends(PRECOMPILED CONFIGURE_DEPENDS OUTPUT_TARGET F6::Bin DIRECTORIES project_binary/install FILES binary INCLUDE_PATHS include)
+
 target_link_libraries(${component}
     PUBLIC graphics::device
 
-    PUBLIC FuUtilities
-    PUBLIC FuMathematics
+    PUBLIC F6::Bin
 )
 
 target_include_directories(${component} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")

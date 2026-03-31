@@ -6,7 +6,7 @@
 
 #include "symbols.hpp"
 
-void InstanceSymbolsT::load(Utils::bin::DynamicLibraryLoader *loader)
+void InstanceSymbolsT::load(f6::bin::DynamicLibraryLoader *loader)
 {
     GET_PROC_ADDR(*loader, PFN_, vkCreateInstance);
     GET_PROC_ADDR(*loader, PFN_, vkDestroyInstance);
@@ -28,7 +28,7 @@ void InstanceSymbols2T::load(const Context *cx, const Instance *instance)
     VK_GET_INSTANCE_PROC_ADDR(cx, instance->getHandle(), vkDestroySurfaceKHR);
 }
 
-void DeviceSymbolsT::load(Utils::bin::DynamicLibraryLoader *loader)
+void DeviceSymbolsT::load(f6::bin::DynamicLibraryLoader *loader)
 {
     GET_PROC_ADDR(*loader, PFN_, vkEnumerateDeviceExtensionProperties);
 

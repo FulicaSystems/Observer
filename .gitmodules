@@ -19,6 +19,3 @@
 [submodule "externals/mathematics"]
 	path = externals/mathematics
 	url = https://github.com/FulicaSystems/Mathematics.git
-[submodule "externals/utilities"]
-	path = externals/utilities
-	url = https://github.com/FulicaSystems/Utilities.git

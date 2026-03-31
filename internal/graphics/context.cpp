@@ -8,7 +8,7 @@ Context::Context(const ContextCreateInfoT createInfo)
     : m_applicationName(createInfo.applicationName), m_applicationVersion(createInfo.applicationVersion),
       m_engineVersion(createInfo.engineVersion), ci(createInfo)
 {
-    m_loader = std::make_unique<Utils::bin::DynamicLibraryLoader>("vulkan-1");
+    m_loader = std::make_unique<f6::bin::DynamicLibraryLoader>("vulkan-1");
     InstanceSymbolsT::load(m_loader.get());
 
 #ifndef NDEBUG
