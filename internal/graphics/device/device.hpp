@@ -100,6 +100,10 @@ class LogicalDevice
         const FramebufferCreateInfoT createInfo) const;
     void destroyFramebuffer(std::shared_ptr<Framebuffer>& pData) const;
 
+    [[nodiscard]] std::shared_ptr<Pipeline> createPipeline(
+        const PipelineCreateInfoT createInfo) const;
+    void destroyPipeline(std::shared_ptr<Pipeline>& pData) const;
+
     [[nodiscard]] std::shared_ptr<Buffer> createBuffer(const BufferCreateInfoT createInfo) const;
     void destroyBuffer(std::shared_ptr<Buffer>& pData) const;
 

@@ -20,6 +20,9 @@ set_property(TARGET ${component}
     memory/image.hpp
 
     asset/render_pass.hpp
+    framebuffer.hpp
+
+    asset/pipeline.hpp
 )
 
 target_sources(${component}
@@ -34,6 +37,9 @@ target_sources(${component}
     memory/image.hpp
 
     asset/render_pass.hpp
+    framebuffer.hpp
+
+    asset/pipeline.hpp
 )
 
 depends(MODULE CONFIG Vulkan)

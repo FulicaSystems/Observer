@@ -8,8 +8,8 @@ out
 .idea
 
 # resources and large files
-[Aa]sset
-[Aa]ssets
+# [Aa]sset
+# [Aa]ssets
 *.obj
 *.fbx
 *.png
