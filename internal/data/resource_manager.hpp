@@ -16,7 +16,9 @@ template<> class std::hash<ResourceLoadInfoT*>
     std::size_t operator()(const ResourceLoadInfoT* li) const { return li->hash(); }
 };
 
-// TODO : maybe make this class an external library (new repository)
+// TODO : maybe make this class an external library (new repository), when moving this class in a
+// new project, Mesh and Scene should remain in the data/saved folder because they are part of the
+// internal structure of Observer
 /**
  * @brief singleton object that loads and saves resources (cpu and gpu side)
  * TODO : this class is subject to rename (should it be called data manager ? since the data it

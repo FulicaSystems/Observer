@@ -45,7 +45,7 @@ target_sources(${component}
 
 depends(MODULE CONFIG Vulkan)
 depends(PRECOMPILED CONFIGURE_DEPENDS OUTPUT_TARGET F6::Bin DIRECTORIES project_binary/install FILES binary INCLUDE_PATHS include)
-depends(HEADERONLY DIRECTORY VulkanMemoryAllocator OUTPUT_TARGET vma)
+depends(HEADERONLY DIRECTORY VulkanMemoryAllocator/include OUTPUT_TARGET vma)
 
 target_include_directories(${component}
     PUBLIC ${Vulkan_INCLUDE_DIR}

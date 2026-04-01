@@ -9,6 +9,8 @@ set_property(TARGET ${component}
     # ...
     resource_manager.hpp
     resource.hpp
+
+    saved/mesh.hpp
 )
 
 target_sources(${component}
@@ -19,8 +21,10 @@ target_sources(${component}
     resource_manager.cpp
 
     resource.hpp
-)
 
+    saved/mesh.hpp
+    saved/mesh.cpp
+)
 
 target_include_directories(${component} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 target_include_directories(${component} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/..")

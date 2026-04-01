@@ -4,10 +4,18 @@
 
 #include "graphics/device/asset/pipeline.hpp"
 
-class RenderState
+class RenderStateABC
 {
   public:
     VkDescriptorPool descriptorPool;
     std::unique_ptr<Pipeline> pipeline;
 
-} typedef Renderable, RenderObject;
+    virtual RenderStateABC() {}
+
+} typedef RenderableABC, RenderObjectABC, RenderDescriptionABC;
+
+class MeshRenderDescription : public RenderStateABC
+{
+  private:
+    std::unique_ptr<Mesh> m_meshes;
+};

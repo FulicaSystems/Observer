@@ -25,6 +25,7 @@ Application::Application()
     ext.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
     m_context = std::make_unique<ContextSDK>(ContextCreateInfoT{
         .applicationName = "Renderer",
+        // TODO : get the version numbers from cmake
         .applicationVersion = VERSION(0, 0, 0),
         .engineVersion = VERSION(0, 0, 0),
         .layers =
@@ -76,7 +77,7 @@ Application::Application()
                                                                                 .colorAttachments =
                 {
                     Attachment{VkAttachmentDescription{
-                                   .format = m_window->getSwapChain()->getSurfaceFormat().format,
+                                   .format = VK_FORMAT_B8G8R8A8_UNORM,
                                    .samples = VK_SAMPLE_COUNT_1_BIT,
                                    .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                                    .storeOp = VK_ATTACHMENT_STORE_OP_STORE,

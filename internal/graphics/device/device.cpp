@@ -729,4 +729,4 @@ void LogicalDevice::createCommandPools()
 
 // TODO : move in an allocator implementation file
 #define VMA_IMPLEMENTATION
-#include <include/vk_mem_alloc.h>
+#include <vk_mem_alloc.h>

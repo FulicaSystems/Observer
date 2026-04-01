@@ -1,5 +1,14 @@
-// TODO : render in fbo instead of swapchain image directly (google search "bgra vs rgba")
 // TODO : clean la compilation et l’installation (glslc, install)
+// TODO : tester allocator custom
+// TODO : memory leaks (trouver alternative à Valgrind (Linux))
+// TODO : texture
+// TODO : mvp
+// TODO : assimp
+// TODO : option pour retirer des api de la compilation
+// TODO : option pour changer d'api en runtime
+// TODO : opengl
+// TODO : direct 3d 11
+// TODO : direct 3d 12
 
 #include <iostream>
 
