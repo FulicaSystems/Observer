@@ -174,4 +174,6 @@ class LogicalDevice
     [[nodiscard]] inline VkDevice& getHandle() { return m_handle; }
     [[nodiscard]] inline const VkDevice& getHandle() const { return m_handle; }
 
+    [[nodiscard]] inline ContextABC* getContext() const { return cx; }
+
 } typedef Device;

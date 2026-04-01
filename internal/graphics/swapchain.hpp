@@ -41,7 +41,9 @@ class SwapChain
     std::shared_ptr<Image> depthImage;
     std::shared_ptr<ImageView> depthImageView;
 
-  public:
+    // TODO : atomic bool validate swapchain
+    // TODO : recreate swapchain handle (swapchain recreation without affecting the pointers to it)
+
     SwapChain() = delete;
     SwapChain(const SwapChainCreateInfoT ci) : ci(ci) {}
     SwapChain(const SwapChain&) = delete;
@@ -56,4 +58,17 @@ class SwapChain
     [[nodiscard]] inline const VkSwapchainKHR& getHandle() const { return m_handle; }
 
     [[nodiscard]] inline VkSurfaceFormatKHR getSurfaceFormat() const { return ci.surfaceFormat; }
+
+    [[nodiscard]] inline uint32_t getWidth() const { return imageExtent.width; }
+    [[nodiscard]] inline uint32_t getHeight() const { return imageExtent.height; }
+
+    [[nodiscard]] inline int getImageCount() const { return images.size(); }
+    [[nodiscard]] inline const std::vector<std::shared_ptr<ImageView>>& getImageViews() const
+    {
+        return imageViews;
+    }
+    [[nodiscard]] inline const std::shared_ptr<ImageView>& getDepthImageView() const
+    {
+        return depthImageView;
+    }
 };

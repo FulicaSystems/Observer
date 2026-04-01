@@ -216,7 +216,22 @@ struct BackBufferSymbolsLoaderT : public PipelineSymbolsLoaderT
     void load(ContextABC* cx, const LogicalDevice* device) override;
 };
 
-struct DeviceSymbols2T : public BackBufferSymbolsT
+struct RenderingSymbolsT : public BackBufferSymbolsT
+{
+    PFN_DECLARE(PFN_vk, WaitForFences);
+    PFN_DECLARE(PFN_vk, ResetFences);
+    PFN_DECLARE(PFN_vk, AcquireNextImageKHR);
+};
+struct RenderingSymbolsLoaderT : public BackBufferSymbolsLoaderT
+{
+    void load(ContextABC* cx) override {};
+    void load(ContextABC* cx, f6::bin::DynamicLibraryLoader* loader) override {}
+
+    void load(ContextABC* cx, const Instance* instance) override {}
+    void load(ContextABC* cx, const LogicalDevice* device) override;
+};
+
+struct DeviceSymbols2T : public RenderingSymbolsT
 {
     PFN_DECLARE(PFN_vk, GetDeviceQueue);
     PFN_DECLARE(PFN_vk, DestroyDevice);
@@ -224,7 +239,7 @@ struct DeviceSymbols2T : public BackBufferSymbolsT
     PFN_DECLARE(PFN_vk, CreateCommandPool);
     PFN_DECLARE(PFN_vk, DestroyCommandPool);
 };
-struct DeviceSymbolsLoader2T : public BackBufferSymbolsLoaderT
+struct DeviceSymbolsLoader2T : public RenderingSymbolsLoaderT
 {
   protected:
     void load(ContextABC* cx) override {};

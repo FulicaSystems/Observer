@@ -103,6 +103,11 @@ void SDKSymbolsLoaderT::load(ContextABC* cx)
     VK_SDK_FUNCTION(cx, CreateFence);
     VK_SDK_FUNCTION(cx, CreateBuffer);
     VK_SDK_FUNCTION(cx, DestroyBuffer);
+    VK_SDK_FUNCTION(cx, CreateFramebuffer);
+    VK_SDK_FUNCTION(cx, DestroyFramebuffer);
+    VK_SDK_FUNCTION(cx, WaitForFences);
+    VK_SDK_FUNCTION(cx, ResetFences);
+    VK_SDK_FUNCTION(cx, AcquireNextImageKHR);
 }
 
 void SDKSymbolsLoaderT::load(ContextABC* cx, const Instance* instance)
@@ -146,4 +151,11 @@ void BufferSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
 {
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateBuffer);
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroyBuffer);
+}
+
+void RenderingSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
+{
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), WaitForFences);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), ResetFences);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), AcquireNextImageKHR);
 }

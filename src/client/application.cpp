@@ -88,6 +88,9 @@ Application::Application()
     }));
 
     auto backendCreateInfo = std::make_shared<LegacyRendererBackendCreateInfoT>();
+    backendCreateInfo->bufferingType = BufferingTypeE::DOUBLE_BUFFERING;
+    backendCreateInfo->device = m_devices[m_currentDeviceIndex].get();
+    backendCreateInfo->swapchain = m_window->getSwapChain();
     backendCreateInfo->renderPasses = {
         m_devices[m_currentDeviceIndex]->createRenderPass(RenderPassCreateInfoT{
                                                                                 .colorAttachments =
