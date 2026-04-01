@@ -2,6 +2,8 @@
 
 #include "resource_manager.hpp"
 
+std::unique_ptr<ResourceManager> ResourceManager::m_instance = std::make_unique<ResourceManager>();
+
 void ResourceManager::clearAllResources()
 {
     ResourceManager& rm = getInstance();
@@ -9,9 +11,11 @@ void ResourceManager::clearAllResources()
     std::lock_guard<std::mutex> guard(rm.resourcesMutex);
     for (auto& r : rm.resources)
     {
-        // TODO : clear (unload) one by one
-        std::cout << "Clearing " << r.second->hostResource->getIndex() << " : " << r.second.use_count() << " use"
-                  << std::endl;
+        std::cout << "Clearing " << r.second->hostResource->getIndex() << " : "
+                  << r.second.use_count() << " use" << std::endl;
+
+        r.second->unloadHost();
+        r.second->unloadLocal();
     }
     rm.resources.clear();
 }

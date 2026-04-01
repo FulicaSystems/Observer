@@ -11,7 +11,10 @@ struct ResourceLoadInfoT
     const LogicalDevice* deviceptr;
 
     // resource path if relevant
-    std::filesystem::path filepath;
+    const std::filesystem::path filepath;
+
+    virtual ~ResourceLoadInfoT() = default;
+    virtual std::size_t hash() const = 0;
 };
 
 class LoadableI
@@ -23,23 +26,23 @@ class LoadableI
      * @brief load host
      *
      */
-    virtual void loadHost(const uint64_t index, const ResourceLoadInfoT& loadInfo) = 0;
+    virtual void loadHost(const uint64_t index, const ResourceLoadInfoT* loadInfo) = 0;
     /**
      * @brief load local
      *
      */
-    virtual void loadLocal(const ResourceLoadInfoT& loadInfo) = 0;
+    virtual void loadLocal(const ResourceLoadInfoT* loadInfo) = 0;
 
     /**
      * @brief unload host
      *
      */
-    virtual void unloadHost(const ResourceLoadInfoT& loadInfo) = 0;
+    virtual void unloadHost() = 0;
     /**
      * @brief unload local
      *
      */
-    virtual void unloadLocal(const ResourceLoadInfoT& loadInfo) = 0;
+    virtual void unloadLocal() = 0;
 };
 
 class HostResourceABC;

@@ -4,7 +4,17 @@
 
 #include <vulkan/vulkan.h>
 
+#include "graphics/backbuffer.hpp"
 #include "graphics/device/asset/pipeline.hpp"
+
+class LogicalDevice;
+class SwapChain;
+
+struct RendererCreateInfoT
+{
+    const LogicalDevice* device;
+    const SwapChain* swapchain;
+};
 
 class RendererI
 {
@@ -15,6 +25,11 @@ class RendererI
     virtual void presentFrame() = 0;
 };
 
+/**
+ * @brief the frame processor typedef states that the renderer primarily renders frame
+ * TODO : soon to become a render phase within a render graph
+ *
+ */
 class RendererABC
 {
   protected:
@@ -24,22 +39,29 @@ class RendererABC
     VkDescriptorPool descriptorPool;
     std::unique_ptr<Pipeline> pipeline;
 
-    RendererABC(const LogicalDevice& device, const Swapchain& swapchain) : device(device);
+    std::vector<BackBufferT> backBuffers;
 
   public:
-    virtual ~RendererABC();
+    virtual ~RendererABC() = default;
+
+} typedef FrameProcessorABC;
+
+struct LegacyRendererCreateInfoT
+{
+    std::vector<RenderPass> renderPasses;
 };
 
 class MultiPassRenderer : public RendererABC
 {
   private:
-    std::vector<VkRenderPass> renderPasses;
+    // TODO : move array of render pass from create info to this variable
+    std::vector<RenderPass> renderPasses;
     std::vector<VkFramebuffer> framebuffers;
 
   public:
     MultiPassRenderer() = delete;
-    MultiPassRenderer(const LogicalDevice& device, const Swapchain& swapchain);
-    ~MultiPassRenderer() override;
+    MultiPassRenderer(const RendererCreateInfoT* createInfo);
+
 } typedef RenderPassBasedRenderer;
 typedef MultiPassRenderer LegacyRenderer;
 
@@ -47,7 +69,6 @@ class SinglePassRenderer : public RendererABC
 {
   public:
     SinglePassRenderer() = delete;
-    SinglePassRenderer(const LogicalDevice& device, const Swapchain& swapchain);
-    ~SinglePassRenderer() override;
+    SinglePassRenderer(const RendererCreateInfoT* createInfo);
 
 } typedef DynamicRenderer;

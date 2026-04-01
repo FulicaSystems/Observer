@@ -272,10 +272,17 @@ std::shared_ptr<GPUShader> LogicalDevice::createShader(const ShaderCreateInfoT c
         .pCode = reinterpret_cast<const uint32_t*>(ci.source.data()),
     };
 
-    std::shared_ptr<GPUShader> out = std::make_shared<GPUShader>(ci);
+    std::shared_ptr<GPUShader> out = std::make_shared<GPUShader>();
     VkResult res = cx->CreateShaderModule(m_handle, &createInfo, nullptr, &out->module);
     if (res != VK_SUCCESS)
         std::cerr << "Failed to create shader module : " << res << std::endl;
+
+    out->createInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        .stage = ci.stage,
+        .module = out->module,
+        .pName = ci.entryPoint,
+    };
 
     return out;
 }
@@ -289,12 +296,8 @@ std::shared_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfo
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfos(ci.shaderStages.size());
     for (int i = 0; i < ci.shaderStages.size(); ++i)
     {
-        shaderStagesCreateInfos[i] = {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .stage = ci.shaderStages[i]->ci.stage,
-            .module = ci.shaderStages[i]->module,
-            .pName = ci.shaderStages[i]->ci.entryPoint,
-        };
+        shaderStagesCreateInfos[i] =
+            std::static_pointer_cast<GPUShader>(ci.shaderStages[i]->localResource)->createInfo;
     }
 
     VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo = {
@@ -475,7 +478,7 @@ std::shared_ptr<BackBufferSOAT> LogicalDevice::createBackBufferSOA(
 {
     assert(ci.type < BufferingTypeE::COUNT);
 
-    int commandBufferCount = static_cast<uint32_t>(ci.type);
+    uint32_t commandBufferCount = static_cast<uint32_t>(ci.type);
     VkCommandBufferAllocateInfo allocInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .commandPool = commandPool,
