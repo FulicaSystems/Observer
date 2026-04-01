@@ -18,5 +18,8 @@ struct FramebufferCreateInfoT
 class Framebuffer
 {
   public:
+    uint32_t width;
+    uint32_t height;
+
     VkFramebuffer handle;
 };

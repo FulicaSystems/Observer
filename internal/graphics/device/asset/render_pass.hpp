@@ -11,7 +11,6 @@ struct SubpassDescriptionT
 {
     VkPipelineBindPoint pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     std::vector<uint32_t> colorAttachmentIndices;
-    bool bDepthAttachment;
 };
 
 struct RenderPassCreateInfoT
@@ -33,7 +32,7 @@ struct RenderPassCreateInfoT
          }},
     };
 
-    Attachment depthAttachment = {
+    std::optional<Attachment> depthAttachment = std::make_optional<Attachment>({
         {
          .samples = VK_SAMPLE_COUNT_1_BIT,
          .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
@@ -46,7 +45,7 @@ struct RenderPassCreateInfoT
         {
          .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
          }
-    };
+    });
 
     std::vector<SubpassDescriptionT> subpasses = {
         {

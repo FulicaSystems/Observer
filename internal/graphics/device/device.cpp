@@ -151,6 +151,7 @@ std::shared_ptr<ImageView> LogicalDevice::createImageView(const ImageViewCreateI
     VkImageViewCreateInfo createInfo = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .image = ci.image.value(),
+        // TODO : move these parameters in createinfo structure
         .viewType = VK_IMAGE_VIEW_TYPE_2D,
         .format = ci.format.value(),
         .components =
@@ -183,7 +184,7 @@ void LogicalDevice::destroyImageView(std::shared_ptr<ImageView>& pData) const
 
 std::shared_ptr<RenderPass> LogicalDevice::createRenderPass(const RenderPassCreateInfoT ci) const
 {
-    std::vector<VkAttachmentDescription> attachments(ci.colorAttachments.size() + 1);
+    std::vector<VkAttachmentDescription> attachments(ci.colorAttachments.size());
     std::vector<VkAttachmentReference> colorAttachmentRefs(ci.colorAttachments.size());
     for (int i = 0; i < ci.colorAttachments.size(); ++i)
     {
@@ -192,7 +193,8 @@ std::shared_ptr<RenderPass> LogicalDevice::createRenderPass(const RenderPassCrea
         attachments[i] = r.first;
         colorAttachmentRefs[i] = r.second;
     }
-    attachments[ci.colorAttachments.size()] = ci.depthAttachment.first;
+    if (ci.depthAttachment.has_value())
+        attachments.emplace_back(ci.depthAttachment.value().first);
 
     std::vector<VkSubpassDescription> subpasses(ci.subpasses.size());
     // there is one set of color attachments per subpasses, hence the vector of vector
@@ -212,8 +214,8 @@ std::shared_ptr<RenderPass> LogicalDevice::createRenderPass(const RenderPassCrea
             .colorAttachmentCount = static_cast<uint32_t>(s.colorAttachmentIndices.size()),
             .pColorAttachments = subpassColorAttachments[i].data(),
         };
-        if (s.bDepthAttachment)
-            subpasses[i].pDepthStencilAttachment = &ci.depthAttachment.second;
+        if (ci.depthAttachment.has_value())
+            subpasses[i].pDepthStencilAttachment = &ci.depthAttachment.value().second;
     }
     VkRenderPassCreateInfo createInfo = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
@@ -253,12 +255,14 @@ std::shared_ptr<Framebuffer> LogicalDevice::createFramebuffer(const FramebufferC
         .layers = 1,
     };
 
-    VkFramebuffer fbo;
-    VkResult res = cx->CreateFramebuffer(m_handle, &createInfo, nullptr, &fbo);
+    auto out = std::make_shared<Framebuffer>();
+    out->width = ci.width;
+    out->height = ci.height;
+    VkResult res = cx->CreateFramebuffer(m_handle, &createInfo, nullptr, &out->handle);
     if (res != VK_SUCCESS)
         std::cerr << "Failed to create framebuffer : " << res << std::endl;
 
-    return std::make_shared<Framebuffer>(fbo);
+    return out;
 }
 void LogicalDevice::destroyFramebuffer(std::shared_ptr<Framebuffer>& pData) const
 {

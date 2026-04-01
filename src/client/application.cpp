@@ -109,26 +109,24 @@ Application::Application()
                                    .attachment = 0,
                                    .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                                }},
-                }, .depthAttachment =
-                Attachment{VkAttachmentDescription{
-                               .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                               .samples = VK_SAMPLE_COUNT_1_BIT,
-                               .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                               .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                               .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                               .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                               .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                               .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                           },
-                           VkAttachmentReference{
-                               .attachment = 1,
-                               .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL}},
-                                                                                .subpasses =
+                }, // .depthAttachment = std::make_optional<Attachment>(
+            // {VkAttachmentDescription{
+            //      .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+            //      .samples = VK_SAMPLE_COUNT_1_BIT,
+            //      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            //      .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            //      .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            //      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            //      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            //      .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            //  },
+            //  VkAttachmentReference{
+            //      .attachment = 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL}}),
+            .subpasses =
                 {
                     SubpassDescriptionT{
                         .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
                         .colorAttachmentIndices = {0},
-                        .bDepthAttachment = true,
                     },
                 }, .dependencies =
                 {
