@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include <include/vk_mem_alloc.h>
 #include <vulkan/vulkan.h>
 
 #include "physical_device.hpp"
@@ -51,7 +52,12 @@ class LogicalDevice
     std::vector<const char*> m_deviceExtensions;
 
     void retrieveQueues();
+
     void createCommandPools();
+    void destroyCommandPools();
+
+    void createAllocator();
+    void destroyAllocator();
 
   public:
     VkQueue graphicsQueue = nullptr;
@@ -83,6 +89,10 @@ class LogicalDevice
      */
     VkCommandPool commandPoolEncode;
 #endif
+
+    // TODO : right now we are using the raw vma handle, create an abstraction to switch with any
+    // allocators
+    VmaAllocator allocator;
 
     LogicalDevice() = delete;
     LogicalDevice(const LogicalDeviceCreateInfoT createInfo);

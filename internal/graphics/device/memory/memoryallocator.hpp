@@ -1,66 +1,85 @@
 #pragma once
 
 #include <deque>
+#include <memory>
 
 #include <vulkan/vulkan.h>
-#include <vk_mem_alloc.h>
 
-class IAllocation
+class AllocationI
 {
   public:
-    virtual ~IAllocation()
-    {
-    }
+    virtual ~AllocationI() = 0;
 };
-struct IMemoryAllocator
-{
-    virtual void createAllocatorInstance(VkInstance instance, VkPhysicalDevice pdevice, VkDevice ldevice) = 0;
-    virtual void destroyAllocatorInstance(VkDevice ldevice) = 0;
 
-    // IMemoryAllocator() { createAllocatorInstance(nullptr, nullptr, nullptr); }
-    // virtual ~IMemoryAllocator() { destroyAllocatorInstance(nullptr); }
+class AllocatorI
+{
+  public:
+    virtual void createAllocatorInstance(VkInstance instance, VkPhysicalDevice pdevice,
+                                         VkDevice ldevice) = 0;
+    virtual void destroyAllocatorInstance(VkDevice ldevice) = 0;
 
     // TODO : do not use custom class PhysicalDevice as function argument
     virtual void allocateBufferObjectMemory(VkDevice ldevice, class PhysicalDevice pdevice,
-                                            class VkBufferCreateInfo &createInfo, class IVertexBuffer *vbo,
-                                            uint32_t memoryFlags = 0, bool mappable = false) = 0;
-    virtual void destroyBufferObjectMemory(VkDevice ldevice, class IVertexBuffer *vbo) = 0;
+                                            class VkBufferCreateInfo& createInfo,
+                                            class IVertexBuffer* vbo, uint32_t memoryFlags = 0,
+                                            bool mappable = false) = 0;
+    virtual void destroyBufferObjectMemory(VkDevice ldevice, class IVertexBuffer* vbo) = 0;
 
-    virtual void mapMemory(VkDevice ldevice, IAllocation *allocation, void **ppData) = 0;
-    virtual void unmapMemory(VkDevice ldevice, IAllocation *allocation) = 0;
+    virtual void mapMemory(VkDevice ldevice, AllocationI* allocation, void** ppData) = 0;
+    virtual void unmapMemory(VkDevice ldevice, AllocationI* allocation) = 0;
 };
+
+class AllocatorBackendABC : public AllocatorI
+{
+};
+
+class MemoryAllocator
+{
+  private:
+    std::unique_ptr<AllocatorBackendABC> m_backend;
+};
+
+// TODO : move below to impl folder
 
 // #ifdef USE_VMA
-struct VMAMemoryAllocator : public IMemoryAllocator
-{
-    VmaAllocator allocator;
 
-    void createAllocatorInstance(VkInstance instance, VkPhysicalDevice pdevice, VkDevice ldevice) override;
-    void destroyAllocatorInstance(VkDevice ldevice) override;
+#include <vk_mem_alloc.h>
 
-    void allocateBufferObjectMemory(VkDevice ldevice, class PhysicalDevice pdevice, VkBufferCreateInfo &createInfo,
-                                    class IVertexBuffer *vbo, uint32_t memoryFlags = 0, bool mappable = false) override;
-    void destroyBufferObjectMemory(VkDevice ldevice, class IVertexBuffer *vbo) override;
-
-    void mapMemory(VkDevice ldevice, IAllocation *allocation, void **ppData) override;
-    void unmapMemory(VkDevice ldevice, IAllocation *allocation) override;
-};
-class Alloc_VMA : public IAllocation
+class VulkanMemoryAllocation : public AllocationI
 {
   public:
     VmaAllocation allocation;
 };
-// #else
-struct MyMemoryAllocator : public IMemoryAllocator
+
+class VulkanMemoryAllocatorBackend : public AllocatorBackendABC
 {
-    struct MemoryBlock
+  private:
+    VmaAllocator allocator;
+
+  public:
+    void createAllocatorInstance(VkInstance instance, VkPhysicalDevice pdevice,
+                                 VkDevice ldevice) override;
+    void destroyAllocatorInstance(VkDevice ldevice) override;
+
+    void allocateBufferObjectMemory(VkDevice ldevice, class PhysicalDevice pdevice,
+                                    VkBufferCreateInfo& createInfo, class IVertexBuffer* vbo,
+                                    uint32_t memoryFlags = 0, bool mappable = false) override;
+    void destroyBufferObjectMemory(VkDevice ldevice, class IVertexBuffer* vbo) override;
+
+    void mapMemory(VkDevice ldevice, AllocationI* allocation, void** ppData) override;
+    void unmapMemory(VkDevice ldevice, AllocationI* allocation) override;
+};
+// #else
+struct MyMemoryAllocator : public AllocatorBackendABC
+{
+    struct MemoryBlockT
     {
         // memory allocated on the GPU heap
         VkDeviceMemory memory;
 
         size_t usedSpace = 0;
 
-        bool operator==(MemoryBlock &other) const
+        bool operator==(MemoryBlockT& other) const
         {
             return memory == other.memory && usedSpace == other.usedSpace;
         }
@@ -68,28 +87,31 @@ struct MyMemoryAllocator : public IMemoryAllocator
 
     // default block size
     size_t blockSize = 1024;
-    std::deque<MemoryBlock> memBlocks;
+    std::deque<MemoryBlockT> memBlocks;
 
-    MemoryBlock &findFirstAvailableBlock(VkDevice ldevice, class PhysicalDevice pdevice, size_t querySize,
-                                         VkBuffer &buffer, VkMemoryPropertyFlags memProperties);
+    MemoryBlockT& findFirstAvailableBlock(VkDevice ldevice, class PhysicalDevice pdevice,
+                                          size_t querySize, VkBuffer& buffer,
+                                          VkMemoryPropertyFlags memProperties);
 
-    void createAllocatorInstance(VkInstance instance, VkPhysicalDevice pdevice, VkDevice ldevice) override
+    void createAllocatorInstance(VkInstance instance, VkPhysicalDevice pdevice,
+                                 VkDevice ldevice) override
     {
     }
     void destroyAllocatorInstance(VkDevice ldevice) override;
 
-    void allocateBufferObjectMemory(VkDevice ldevice, PhysicalDevice pdevice, VkBufferCreateInfo &createInfo,
-                                    class IVertexBuffer *vbo, uint32_t memoryFlags = 0, bool mappable = false) override;
-    void destroyBufferObjectMemory(VkDevice ldevice, IVertexBuffer *vbo) override;
+    void allocateBufferObjectMemory(VkDevice ldevice, PhysicalDevice pdevice,
+                                    VkBufferCreateInfo& createInfo, class IVertexBuffer* vbo,
+                                    uint32_t memoryFlags = 0, bool mappable = false) override;
+    void destroyBufferObjectMemory(VkDevice ldevice, IVertexBuffer* vbo) override;
 
-    void mapMemory(VkDevice ldevice, IAllocation *allocation, void **ppData) override;
-    void unmapMemory(VkDevice ldevice, IAllocation *allocation) override;
+    void mapMemory(VkDevice ldevice, AllocationI* allocation, void** ppData) override;
+    void unmapMemory(VkDevice ldevice, AllocationI* allocation) override;
 };
-class Alloc : public IAllocation
+class MyAllocation : public AllocationI
 {
   public:
     // binded memory block
-    struct MyMemoryAllocator::MemoryBlock *memoryBlock = nullptr;
+    struct MyMemoryAllocator::MemoryBlock* memoryBlock = nullptr;
     size_t memoryOffset = 0;
 };
 // #endif

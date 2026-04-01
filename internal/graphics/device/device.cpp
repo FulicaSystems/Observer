@@ -2,18 +2,18 @@
 #include <iostream>
 
 #include "context.hpp"
+#include "instance.hpp"
 #include "physical_device.hpp"
 
 #include "surface.hpp"
 
-#include "memory/buffer.hpp"
-#include "memory/image.hpp"
-// #include "asset/shader.hpp"
 #include "asset/pipeline.hpp"
 #include "asset/render_pass.hpp"
 #include "asset/shader.hpp"
 #include "backbuffer.hpp"
 #include "framebuffer.hpp"
+#include "memory/buffer.hpp"
+#include "memory/image.hpp"
 #include "swapchain.hpp"
 
 #include "device.hpp"
@@ -33,10 +33,41 @@ LogicalDevice::LogicalDevice(const LogicalDeviceCreateInfoT createInfo)
 
     retrieveQueues();
     createCommandPools();
+    createAllocator();
+}
+
+void LogicalDevice::createAllocator()
+{
+    VmaVulkanFunctions vulkanFunctions = {};
+    vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
+    vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
+
+    VmaAllocatorCreateInfo allocatorCreateInfo = {};
+    allocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+    allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_2;
+    allocatorCreateInfo.physicalDevice = physicalHandle->getHandle();
+    allocatorCreateInfo.device = m_handle;
+    allocatorCreateInfo.instance = physicalHandle->getInstance()->getHandle();
+    allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
+
+    vmaCreateAllocator(&allocatorCreateInfo, &allocator);
+}
+
+void LogicalDevice::destroyAllocator()
+{
+    vmaDestroyAllocator(allocator);
+}
+
+void LogicalDevice::destroyCommandPools()
+{
+    cx->DestroyCommandPool(m_handle, commandPoolTransient, nullptr);
+    cx->DestroyCommandPool(m_handle, commandPool, nullptr);
 }
 
 LogicalDevice::~LogicalDevice()
 {
+    destroyAllocator();
+
 #ifdef ENABLE_VIDEO_TRANSCODE
     if (commandPoolEncode)
         cx->DestroyCommandPool(m_handle, commandPoolEncode, nullptr);
@@ -44,8 +75,7 @@ LogicalDevice::~LogicalDevice()
         cx->DestroyCommandPool(m_handle, commandPoolDecode, nullptr);
 #endif
 
-    cx->DestroyCommandPool(m_handle, commandPoolTransient, nullptr);
-    cx->DestroyCommandPool(m_handle, commandPool, nullptr);
+    destroyCommandPools();
 
     cx->DestroyDevice(m_handle, nullptr);
 }
@@ -150,9 +180,29 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(SwapChainCreateInfoT c
             };
             if (ci.renderPass.value()->info.depthAttachment.has_value())
             {
-                // TODO : create depth image
-                // TODO : create depth image view
-                fboCreateInfo.attachments.emplace_back(out->depthImageView.value());
+                out->depthImage = createImage(ImageCreateInfoT{
+                    .imageType = VK_IMAGE_TYPE_2D,
+                    .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                    .extent =
+                        {
+                                 .width = extent.width,
+                                 .height = extent.height,
+                                 .depth = 1U,
+                                 },
+                    .mipLevels = 1U,
+                    .arrayLayers = 1U,
+                    .samples = VK_SAMPLE_COUNT_1_BIT,
+                    .tiling = VK_IMAGE_TILING_OPTIMAL,
+                    .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                });
+                out->depthImageView = createImageView(ImageViewCreateInfoT{
+                    .image = out->depthImage.value()->handle,
+                    .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                    .aspect = VK_IMAGE_ASPECT_DEPTH_BIT,
+                });
+                fboCreateInfo.attachments.emplace_back(*out->depthImageView.value());
             }
             out->m_framebuffers->emplace_back(createFramebuffer(fboCreateInfo));
         }
@@ -557,20 +607,39 @@ void LogicalDevice::destroyBuffer(std::shared_ptr<Buffer>& pData) const
     // cx->DestroyBuffer(handle, pData->handle, nullptr);
 }
 
-std::shared_ptr<Image> LogicalDevice::createImage(const ImageCreateInfoT createInfo) const
+std::shared_ptr<Image> LogicalDevice::createImage(const ImageCreateInfoT ci) const
 {
-    VkImage image = create_image(device, width, height, usage, format, tiling);
-    VkMemoryRequirements memReq;
-    vkGetImageMemoryRequirements(device, image, &memReq);
-    std::optional<uint32_t> memoryTypeIndex =
-        Device::Memory::find_memory_type_index(physicalDevice, memReq, properties);
+    VkImageCreateInfo createInfo = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        .flags = 0,
+        .imageType = ci.imageType,
+        .format = ci.format,
+        .extent = ci.extent,
+        .mipLevels = ci.mipLevels,
+        .arrayLayers = ci.arrayLayers,
+        .samples = ci.samples,
+        .tiling = ci.tiling,
+        .usage = ci.usage,
+        .sharingMode = ci.sharingMode,
+        .initialLayout = ci.initialLayout,
+    };
 
-    VkDeviceMemory memory = allocate_memory(device, memReq.size, memoryTypeIndex.value());
-    bind_memory_to_image(device, image, memory);
+    auto out = std::make_shared<Image>();
+    // TODO : create image handle
 
-    return {image, memory};
+    // TODO : allocate memory for image
 
-    return std::shared_ptr<Image>();
+    VmaAllocationCreateInfo allocInfo = {};
+    allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+
+    // TODO : make allocator abstraction
+    vmaCreateImage(allocator, &createInfo, &allocInfo, &out->handle, &out->memory, nullptr);
+
+    return out;
+}
+
+void LogicalDevice::destroyImage(std::shared_ptr<Image>& pData) const
+{
 }
 
 void LogicalDevice::retrieveQueues()
@@ -657,3 +726,7 @@ void LogicalDevice::createCommandPools()
     }
 #endif
 }
+
+// TODO : move in an allocator implementation file
+#define VMA_IMPLEMENTATION
+#include <include/vk_mem_alloc.h>

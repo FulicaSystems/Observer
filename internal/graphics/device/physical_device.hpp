@@ -21,16 +21,16 @@ struct PhysicalDeviceHandleT
 struct PhysicalDeviceCreateInfoT
 {
     ContextABC* cx;
-    const Instance *inst;
-    const char *deviceName;
-    Surface *surface;
+    const Instance* inst;
+    const char* deviceName;
+    Surface* surface;
 };
 
 class PhysicalDevice
 {
   private:
     ContextABC* cx;
-    const Instance *inst;
+    const Instance* inst;
 
   private:
     std::shared_ptr<VkPhysicalDevice> m_handle;
@@ -52,14 +52,14 @@ class PhysicalDevice
     /**
      * specify a surface if one wants this physical device to support presentation
      */
-    void initQueueFamilyIndices(const Surface *presentationSurface = nullptr);
+    void initQueueFamilyIndices(const Surface* presentationSurface = nullptr);
 
   public:
     PhysicalDevice() = delete;
-    PhysicalDevice(const PhysicalDevice &copy) = delete;
-    PhysicalDevice &operator=(const PhysicalDevice &copy) = delete;
-    PhysicalDevice(PhysicalDevice &&) = delete;
-    PhysicalDevice &operator=(PhysicalDevice &&) = delete;
+    PhysicalDevice(const PhysicalDevice& copy) = delete;
+    PhysicalDevice& operator=(const PhysicalDevice& copy) = delete;
+    PhysicalDevice(PhysicalDevice&&) = delete;
+    PhysicalDevice& operator=(PhysicalDevice&&) = delete;
 
     PhysicalDevice(const PhysicalDeviceCreateInfoT createInfo);
 
@@ -67,17 +67,16 @@ class PhysicalDevice
 
     [[nodiscard]] std::unique_ptr<LogicalDevice> createDevice() const;
 
-    [[nodiscard]] std::optional<uint32_t> findQueueFamilyIndex(const VkQueueFlags &capabilities) const;
-    [[nodiscard]] std::optional<uint32_t> findPresentQueueFamilyIndex(const Surface *surface) const;
+    [[nodiscard]] std::optional<uint32_t> findQueueFamilyIndex(
+        const VkQueueFlags& capabilities) const;
+    [[nodiscard]] std::optional<uint32_t> findPresentQueueFamilyIndex(const Surface* surface) const;
 
-    [[nodiscard]] VkSurfaceCapabilitiesKHR getSurfaceCapabilities(const Surface &surface) const;
-    [[deprecated, nodiscard]] SurfaceDetailsT getSurfaceDetails(const Surface &surface) const;
+    [[nodiscard]] VkSurfaceCapabilitiesKHR getSurfaceCapabilities(const Surface& surface) const;
+    [[deprecated, nodiscard]] SurfaceDetailsT getSurfaceDetails(const Surface& surface) const;
 
   public:
-    [[nodiscard]] inline VkPhysicalDevice getHandle() const
-    {
-        return *m_handle;
-    }
+    [[nodiscard]] inline VkPhysicalDevice getHandle() const { return *m_handle; }
+    [[nodiscard]] inline const Instance* getInstance() const { return inst; }
 
     [[nodiscard]] inline std::optional<uint32_t> getGraphicsFamilyIndex() const
     {
@@ -98,13 +97,7 @@ class PhysicalDevice
     }
 #endif
 
-    [[nodiscard]] VkPhysicalDeviceType getDeviceType() const
-    {
-        return m_properties.deviceType;
-    }
+    [[nodiscard]] VkPhysicalDeviceType getDeviceType() const { return m_properties.deviceType; }
 
-    [[nodiscard]] const char *getDeviceName() const
-    {
-        return m_properties.deviceName;
-    }
+    [[nodiscard]] const char* getDeviceName() const { return m_properties.deviceName; }
 };
