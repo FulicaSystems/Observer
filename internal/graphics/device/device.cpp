@@ -12,6 +12,7 @@
 #include "asset/pipeline.hpp"
 #include "asset/render_pass.hpp"
 #include "asset/shader.hpp"
+#include "backbuffer.hpp"
 #include "framebuffer.hpp"
 #include "swapchain.hpp"
 
@@ -408,7 +409,7 @@ std::shared_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfo
         .pColorBlendState = &colorBlendCreateInfo,
         .pDynamicState = &dynamicStateCreateInfo,
         // pipeline layout
-        .layout = layout,
+        .layout = out->getLayoutHandle(),
         // render pass
         .renderPass = ci.renderPass.handle,
         .subpass = ci.subpassIndex,
@@ -426,15 +427,75 @@ std::shared_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfo
 void LogicalDevice::destroyPipeline(std::shared_ptr<Pipeline>& pData) const
 {
     vkDestroyPipeline(m_handle, pData->getHandle(), nullptr);
-    vkDestroyPipelineLayout(m_handle, pData0->getLayoutHandle(), nullptr);
+    vkDestroyPipelineLayout(m_handle, pData->getLayoutHandle(), nullptr);
 }
 
-std::shared_ptr<BackBufferT> LogicalDevice::createBackBuffer() const
+std::shared_ptr<BackBufferAOST> LogicalDevice::createBackBufferAOS(
+    const BackBufferCreateInfoT ci) const
 {
-    return std::shared_ptr<BackBufferT>();
+    VkCommandBufferAllocateInfo allocInfo = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .commandPool = commandPool,
+        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = 1U,
+    };
+
+    auto out = std::make_shared<BackBufferAOST>();
+    VkResult res = vkAllocateCommandBuffers(m_handle, &allocInfo, &out->commandBuffer);
+    if (res != VK_SUCCESS)
+        std::cerr << "Failed to allocate command buffers : " << res << std::endl;
+
+    VkSemaphoreCreateInfo semaphoreCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+    };
+    res = vkCreateSemaphore(m_handle, &semaphoreCreateInfo, nullptr, &out->acquireSemaphore);
+    if (res != VK_SUCCESS)
+        std::cerr << "Failed to create semaphore : " << res << std::endl;
+    res = vkCreateSemaphore(m_handle, &semaphoreCreateInfo, nullptr, &out->renderSemaphore);
+    if (res != VK_SUCCESS)
+        std::cerr << "Failed to create semaphore : " << res << std::endl;
+
+    VkFenceCreateInfo fenceCreateInfo = {.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+                                         .flags =
+                                             ci.bSignaled ? VK_FENCE_CREATE_SIGNALED_BIT | 0, };
+
+    res = vkCreateFence(m_handle, &fenceCreateInfo, nullptr, &out->inFlightFence);
+    if (res != VK_SUCCESS)
+        std::cerr << "Failed to create fence : " << res << std::endl;
+
+    return out;
 }
 
-void LogicalDevice::destroyBackBuffer(std::shared_ptr<BackBufferT>& pData) const
+void LogicalDevice::destroyBackBufferAOS(std::shared_ptr<BackBufferAOST>& pData) const
+{
+}
+
+std::shared_ptr<BackBufferSOAT> LogicalDevice::createBackBufferSOA(
+    const BackBufferCreateInfoT ci) const
+{
+    assert(ci.type < BufferingTypeE::COUNT);
+
+    int commandBufferCount = static_cast<uint32_t>(ci.type);
+    VkCommandBufferAllocateInfo allocInfo = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .commandPool = commandPool,
+        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = commandBufferCount,
+    };
+
+    auto out = std::make_shared<BackBufferSOAT>();
+
+    out->commandBuffers = std::vector<VkCommandBuffer>(commandBufferCount);
+    VkResult res = vkAllocateCommandBuffers(m_handle, &allocInfo, out->commandBuffers.data());
+    if (res != VK_SUCCESS)
+        std::cerr << "Failed to allocate command buffers : " << res << std::endl;
+
+    // TODO : finish
+
+    return out;
+}
+
+void LogicalDevice::destroyBackBufferSOA(std::shared_ptr<BackBufferSOAT>& pData) const
 {
 }
 

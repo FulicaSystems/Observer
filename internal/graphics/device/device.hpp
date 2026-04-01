@@ -26,7 +26,9 @@ class GPUShader;
 struct ShaderCreateInfoT;
 class Image;
 struct ImageCreateInfoT;
-struct BackBufferT;
+struct BackBufferAOST;
+struct BackBufferSOAT;
+struct BackBufferCreateInfoT;
 
 struct LogicalDeviceCreateInfoT
 {
@@ -59,14 +61,26 @@ class LogicalDevice
     VkQueue encodeQueue = nullptr;
 #endif
 
-    // reset command pool
+    /**
+     * @brief reset command pool, main command pool
+     *
+     */
     VkCommandPool commandPool;
-    // transient command pool
+    /**
+     * @brief transient command pool
+     *
+     */
     VkCommandPool commandPoolTransient;
 #ifdef ENABLE_VIDEO_TRANSCODE
-    // decode reset command pool
+    /**
+     * @brief reset command pool used for video decoding
+     *
+     */
     VkCommandPool commandPoolDecode;
-    // encode reset command pool
+    /**
+     * @brief reset command pool used for video encoding
+     *
+     */
     VkCommandPool commandPoolEncode;
 #endif
 
@@ -108,8 +122,23 @@ class LogicalDevice
         const PipelineCreateInfoT createInfo) const;
     void destroyPipeline(std::shared_ptr<Pipeline>& pData) const;
 
-    [[nodiscard]] std::shared_ptr<BackBufferT> createBackBuffer() const;
-    void destroyBackBuffer(std::shared_ptr<BackBufferT>& pData) const;
+    /**
+     * @brief Create a Back Buffer A O S object
+     *
+     * @return std::shared_ptr<BackBufferAOST>
+     */
+    [[nodiscard]] std::shared_ptr<BackBufferAOST> createBackBufferAOS(
+        const BackBufferCreateInfoT createInfo) const;
+    void destroyBackBufferAOS(std::shared_ptr<BackBufferAOST>& pData) const;
+    /**
+     * @brief Create a Back Buffer S O A object
+     *
+     * @param createInfo
+     * @return std::shared_ptr<BackBufferSOAT>
+     */
+    [[nodiscard]] std::shared_ptr<BackBufferSOAT> createBackBufferSOA(
+        const BackBufferCreateInfoT createInfo) const;
+    void destroyBackBufferSOA(std::shared_ptr<BackBufferSOAT>& pData) const;
 
     [[nodiscard]] std::shared_ptr<Buffer> createBuffer(const BufferCreateInfoT createInfo) const;
     void destroyBuffer(std::shared_ptr<Buffer>& pData) const;

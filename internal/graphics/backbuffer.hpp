@@ -12,6 +12,12 @@ enum class BufferingTypeE
     COUNT,
 };
 
+struct BackBufferCreateInfoT
+{
+    BufferingTypeE type = BufferingTypeE::DOUBLE_BUFFERING;
+    bool bSignaled = true;
+};
+
 /**
  * @brief back buffer array of structures
  *
@@ -28,6 +34,7 @@ struct BackBufferAOST
 
 /**
  * @brief back buffers used in an structure of array architecture
+ * TODO
  *
  */
 struct BackBufferSOAT

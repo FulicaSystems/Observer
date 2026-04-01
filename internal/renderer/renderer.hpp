@@ -24,14 +24,6 @@ class RendererABC
     VkDescriptorPool descriptorPool;
     std::unique_ptr<Pipeline> pipeline;
 
-    std::vector<VkCommandBuffer> commandBuffers;
-
-    // TODO : abstract semaphores for easier creation and destruction (and support multiple APIs)
-    std::vector<VkSemaphore> drawSemaphores;
-    std::vector<VkSemaphore> presentSemaphores;
-    // TODO : abstract fences for same reasons
-    std::vector<VkFence> inFlightFences;
-
     RendererABC(const LogicalDevice& device, const Swapchain& swapchain) : device(device);
 
   public:
