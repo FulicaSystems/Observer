@@ -106,9 +106,12 @@ int Application::perFrame()
         return 0;
     }
 
-    m_window->swapBuffers();
     m_window->pollEvents();
     // TODO : threadpool poll main queue
 
-    return 1;
+    m_renderer->render(/*const Scene& scene*/);
+
+    m_window->swapBuffers();
+    m_renderer->swap();
+    ` return 1;
 }

@@ -57,8 +57,7 @@ class ResourceManager
     static void clearAllResources();
 
     // TODO : rename
-} typedef DataManager;
-typedef ResourceManager RenderingDataManager;
+} typedef DataManager, RenderingDataManager;
 
 template<class TResource>
     requires std::is_base_of<ResourceABC, TResource>::value
