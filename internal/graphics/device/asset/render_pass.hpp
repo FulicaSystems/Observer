@@ -69,5 +69,7 @@ struct RenderPassCreateInfoT
 class RenderPass
 {
   public:
+    RenderPassCreateInfoT info;
+
     VkRenderPass handle;
 };

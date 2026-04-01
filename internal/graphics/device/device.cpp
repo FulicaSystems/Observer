@@ -133,6 +133,31 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(SwapChainCreateInfoT c
     out->imageFormat = surfaceFormat.format;
     out->imageExtent = extent;
 
+    if (ci.renderPass.has_value())
+    {
+        out->m_framebuffers = std::make_optional<std::vector<std::shared_ptr<Framebuffer>>>();
+        out->m_framebuffers->reserve(imageCount);
+        for (int i = 0; i < imageCount; ++i)
+        {
+            auto fboCreateInfo = FramebufferCreateInfoT{
+                .renderPass = ci.renderPass.value(),
+                .attachments =
+                    {
+                                  *out->imageViews[i],
+                                  },
+                .width = extent.width,
+                .height = extent.height,
+            };
+            if (ci.renderPass.value()->info.depthAttachment.has_value())
+            {
+                // TODO : create depth image
+                // TODO : create depth image view
+                fboCreateInfo.attachments.emplace_back(out->depthImageView.value());
+            }
+            out->m_framebuffers->emplace_back(createFramebuffer(fboCreateInfo));
+        }
+    }
+
     return std::move(out);
 }
 void LogicalDevice::destroySwapChain(SwapChain& sc) const
@@ -227,12 +252,14 @@ std::shared_ptr<RenderPass> LogicalDevice::createRenderPass(const RenderPassCrea
         .pDependencies = ci.dependencies.data(),
     };
 
-    VkRenderPass renderPass;
-    VkResult res = cx->CreateRenderPass(m_handle, &createInfo, nullptr, &renderPass);
+    auto out = std::make_shared<RenderPass>();
+    VkResult res = cx->CreateRenderPass(m_handle, &createInfo, nullptr, &out->handle);
     if (res != VK_SUCCESS)
         std::cerr << "Failed to create render pass : " << res << std::endl;
 
-    return std::make_shared<RenderPass>(renderPass);
+    out->info = ci;
+
+    return out;
 }
 void LogicalDevice::destroyRenderPass(std::shared_ptr<RenderPass>& pData) const
 {
@@ -528,6 +555,22 @@ std::shared_ptr<Buffer> LogicalDevice::createBuffer(const BufferCreateInfoT crea
 void LogicalDevice::destroyBuffer(std::shared_ptr<Buffer>& pData) const
 {
     // cx->DestroyBuffer(handle, pData->handle, nullptr);
+}
+
+std::shared_ptr<Image> LogicalDevice::createImage(const ImageCreateInfoT createInfo) const
+{
+    VkImage image = create_image(device, width, height, usage, format, tiling);
+    VkMemoryRequirements memReq;
+    vkGetImageMemoryRequirements(device, image, &memReq);
+    std::optional<uint32_t> memoryTypeIndex =
+        Device::Memory::find_memory_type_index(physicalDevice, memReq, properties);
+
+    VkDeviceMemory memory = allocate_memory(device, memReq.size, memoryTypeIndex.value());
+    bind_memory_to_image(device, image, memory);
+
+    return {image, memory};
+
+    return std::shared_ptr<Image>();
 }
 
 void LogicalDevice::retrieveQueues()

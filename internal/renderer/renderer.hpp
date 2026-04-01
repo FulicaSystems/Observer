@@ -20,7 +20,7 @@ class RendererI
      * @brief begin drawing/begin render pass
      *
      */
-    virtual void begin() = 0;
+    virtual void begin(const Framebuffer* framebuffer) = 0;
     /**
      * @brief record draw commands relative to scene (or objects)
      *
@@ -52,27 +52,29 @@ class SwapChainRendererI
      * @brief acquire next swap chain image
      *
      */
-    // TODO
-    virtual uint32_t acquire(/*const SwapChain* swapchain*/) = 0;
+    virtual uint32_t acquire(const SwapChain* swapchain) = 0;
     /**
      * @brief present last rendered frame
      *
      */
-    // TODO
-    virtual void present(/*const SwapChain* swapchain*/) = 0;
+    virtual void present(
+        const std::vector<std::pair<const SwapChain*, uint32_t>> swapchainsAndImageIndices) = 0;
 };
 
 struct RendererBackendCreateInfoT
 {
     BufferingTypeE bufferingType = BufferingTypeE::DOUBLE_BUFFERING;
     const LogicalDevice* device;
-    uint32_t renderingWidth;
-    uint32_t renderingHeight;
 
   public:
     virtual ~RendererBackendCreateInfoT() {}
 };
 
+/**
+ * @brief backend for the renderer class
+ * TODO : soon to become a render phase within a render graph
+ *
+ */
 class RendererBackendABC : public RendererI
 {
   protected:
@@ -94,16 +96,13 @@ class RendererBackendABC : public RendererI
 
 struct LegacyRendererBackendCreateInfoT : RendererBackendCreateInfoT
 {
-    std::vector<std::shared_ptr<RenderPass>> renderPasses;
-    std::vector<ImageView> colorAttachmentImageViews;
-    std::optional<ImageView> depthAttachmentImageView;
+    std::shared_ptr<RenderPass> renderPass;
 };
 
-class MultiPassRendererBackend : public RendererBackendABC, public SwapChainRendererI
+class LegacyRendererBackend : public RendererBackendABC, public SwapChainRendererI
 {
   private:
-    uint32_t m_currentRenderPassIndex = 0;
-    std::vector<std::shared_ptr<RenderPass>> m_renderPasses;
+    std::shared_ptr<RenderPass> m_renderPass;
     /**
      * @brief one group of framebuffers per render pass
      *
@@ -111,48 +110,47 @@ class MultiPassRendererBackend : public RendererBackendABC, public SwapChainRend
     std::vector<std::vector<std::shared_ptr<Framebuffer>>> m_framebuffers;
 
   public:
-    MultiPassRendererBackend() = delete;
-    MultiPassRendererBackend(const std::shared_ptr<RendererBackendCreateInfoT> createInfo);
+    LegacyRendererBackend() = delete;
+    LegacyRendererBackend(const std::shared_ptr<RendererBackendCreateInfoT> createInfo);
 
-    ~MultiPassRendererBackend() override {}
+    ~LegacyRendererBackend() override {}
 
-    uint32_t acquire() override;
+    uint32_t acquire(const SwapChain* swapchain) override;
 
-    void begin() override;
+    void begin(const Framebuffer* framebuffer) override;
     void draw(/*const Scene& scene*/) override;
     void end() override;
     void submit() override;
 
-    void present() override;
+    void present(const std::vector<std::pair<const SwapChain*, uint32_t>> swapchainsAndImageIndices)
+        override;
 
-} typedef RenderPassBasedRendererBackend, LegacyRendererBackend;
+} typedef RenderPassBasedRendererBackend;
 
-class SinglePassRendererBackend : public RendererBackendABC, public SwapChainRendererI
+class DynamicRendererBackend : public RendererBackendABC, public SwapChainRendererI
 {
   private:
   public:
-    SinglePassRendererBackend() = delete;
-    SinglePassRendererBackend(const std::shared_ptr<RendererBackendCreateInfoT> createInfo);
+    DynamicRendererBackend() = delete;
+    DynamicRendererBackend(const std::shared_ptr<RendererBackendCreateInfoT> createInfo);
 
-    ~SinglePassRendererBackend() override {}
+    ~DynamicRendererBackend() override {}
 
-    uint32_t acquire() override;
+    uint32_t acquire(const SwapChain* swapchain) override;
 
-    void begin() override;
+    void begin(const Framebuffer* framebuffer) override;
     void draw(/*const Scene& scene*/) override;
     void end() override;
     void submit() override;
 
-    void present() override;
+    void present(const std::vector<std::pair<const SwapChain*, uint32_t>> swapchainsAndImageIndices)
+        override;
 
-} typedef DynamicRendererBackend;
+} typedef StateBasedRendererBackend;
 
 struct RendererCreateInfoT final
 {
     const LogicalDevice* device;
-    // TODO : pass image views instead of swapchain (renderer would then be able to render in
-    // independent images)
-    const SwapChain* swapchain;
     std::unique_ptr<RendererBackendABC> backend;
 };
 

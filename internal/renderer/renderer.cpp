@@ -4,36 +4,14 @@
 
 #include "renderer.hpp"
 
-MultiPassRendererBackend::MultiPassRendererBackend(
+LegacyRendererBackend::LegacyRendererBackend(
     const std::shared_ptr<RendererBackendCreateInfoT> createInfo)
     : RendererBackendABC(createInfo)
 {
     auto ci = std::dynamic_pointer_cast<LegacyRendererBackendCreateInfoT>(createInfo);
     assert(ci);
 
-    m_renderPasses = std::move(ci->renderPasses);
-
-    m_framebuffers.resize(m_renderPasses.size());
-    int count = ci->colorAttachmentImageViews.size();
-    for (int i = 0; i < m_renderPasses.size(); ++i)
-    {
-        m_framebuffers[i].reserve(count);
-        for (int j = 0; j < count; ++j)
-        {
-            auto fboCreateInfo = FramebufferCreateInfoT{
-                .renderPass = m_renderPasses[i].get(),
-                .attachments =
-                    {
-                                  ci->colorAttachmentImageViews[j],
-                                  },
-                .width = ci->renderingWidth,
-                .height = ci->renderingHeight,
-            };
-            if (ci->depthAttachmentImageView.has_value())
-                fboCreateInfo.attachments.emplace_back(ci->depthAttachmentImageView.value());
-            m_framebuffers[i].emplace_back(m_device->createFramebuffer(fboCreateInfo));
-        }
-    }
+    m_renderPass = ci->renderPass;
 }
 
 void RendererBackendABC::swap()
@@ -41,7 +19,7 @@ void RendererBackendABC::swap()
     m_currentBackBufferIndex = (m_currentBackBufferIndex + 1) % (uint32_t)m_bufferingType;
 }
 
-uint32_t MultiPassRendererBackend::acquire()
+uint32_t LegacyRendererBackend::acquire(const SwapChain* swapchain)
 {
     auto& bb = m_backBuffers[m_currentBackBufferIndex];
     auto* cx = m_device->getContext();
@@ -49,23 +27,23 @@ uint32_t MultiPassRendererBackend::acquire()
     cx->WaitForFences(m_device->getHandle(), 1, &bb->inFlightFence, VK_TRUE, UINT64_MAX);
     cx->ResetFences(m_device->getHandle(), 1, &bb->inFlightFence);
 
+    uint32_t index;
     VkResult res = cx->AcquireNextImageKHR(
-        m_device->getHandle(), m_swapchain->getHandle(), UINT64_MAX,
+        m_device->getHandle(), swapchain->getHandle(), UINT64_MAX,
         bb->acquireSemaphore.has_value() ? bb->acquireSemaphore.value() : VK_NULL_HANDLE,
-        VK_NULL_HANDLE, &m_currentImageIndex);
+        VK_NULL_HANDLE, &index);
     if (res != VK_SUCCESS)
     {
         std::cerr << "Failed to acquire next image : " << res << std::endl;
         return -1;
     }
 
-    return m_currentImageIndex;
+    return index;
 }
 
-void MultiPassRendererBackend::begin()
+void LegacyRendererBackend::begin(const Framebuffer* framebuffer)
 {
     auto& cb = m_backBuffers[m_currentBackBufferIndex]->commandBuffer;
-    auto& fbo = m_framebuffers[m_currentRenderPassIndex][m_currentImageIndex];
 
     vkResetCommandBuffer(cb, 0);
 
@@ -90,9 +68,9 @@ void MultiPassRendererBackend::begin()
     VkRenderPassBeginInfo renderPassBeginInfo = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         // TODO : how to manage multiple render passes ?
-        .renderPass = m_renderPasses[m_currentRenderPassIndex]->handle,
-        .framebuffer = fbo->handle,
-        .renderArea = {.offset = {0, 0}, .extent = {fbo->width, fbo->height}},
+        .renderPass = m_renderPass->handle,
+        .framebuffer = framebuffer->handle,
+        .renderArea = {.offset = {0, 0}, .extent = {framebuffer->width, framebuffer->height}},
         .clearValueCount = static_cast<uint32_t>(clearValues.size()),
         .pClearValues = clearValues.data(),
     };
@@ -101,19 +79,19 @@ void MultiPassRendererBackend::begin()
     VkViewport viewport = {
         .x = 0.f,
         .y = 0.f,
-        .width = static_cast<float>(fbo->width),
-        .height = static_cast<float>(fbo->height),
+        .width = static_cast<float>(framebuffer->width),
+        .height = static_cast<float>(framebuffer->height),
         .minDepth = 0.f,
         .maxDepth = 1.f,
     };
     vkCmdSetViewport(cb, 0, 1, &viewport);
     VkRect2D scissor = {
-        .offset = {0,          0          },
-        .extent = {fbo->width, fbo->height},
+        .offset = {0,                  0                  },
+        .extent = {framebuffer->width, framebuffer->height},
     };
     vkCmdSetScissor(cb, 0, 1, &scissor);
 }
-void MultiPassRendererBackend::draw(/*const Scene& scene*/)
+void LegacyRendererBackend::draw(/*const Scene& scene*/)
 {
     auto& cb = m_backBuffers[m_currentBackBufferIndex]->commandBuffer;
 
@@ -128,7 +106,7 @@ void MultiPassRendererBackend::draw(/*const Scene& scene*/)
         vkCmdDrawIndexed(cb, indexCount, 1, 0, 0, 0);
     }
 }
-void MultiPassRendererBackend::end()
+void LegacyRendererBackend::end()
 {
     auto& cb = m_backBuffers[m_currentBackBufferIndex]->commandBuffer;
 
@@ -138,7 +116,7 @@ void MultiPassRendererBackend::end()
     if (res != VK_SUCCESS)
         std::cerr << "Failed to record command buffer : " << res << std::endl;
 }
-void MultiPassRendererBackend::submit()
+void LegacyRendererBackend::submit()
 {
     auto& bb = m_backBuffers[m_currentBackBufferIndex];
     auto& cb = bb->commandBuffer;
@@ -163,19 +141,26 @@ void MultiPassRendererBackend::submit()
     if (res != VK_SUCCESS)
         std::cerr << "Failed to submit draw command buffer : " << res << std::endl;
 }
-void MultiPassRendererBackend::present()
+void LegacyRendererBackend::present(
+    const std::vector<std::pair<const SwapChain*, uint32_t>> swapchainsAndImageIndices)
 {
     auto& bb = m_backBuffers[m_currentBackBufferIndex];
 
-    VkSwapchainKHR swapchains[] = {m_swapchain->getHandle()};
+    std::vector<VkSwapchainKHR> swapchains(swapchainsAndImageIndices.size());
+    std::vector<uint32_t> imageIndices(swapchainsAndImageIndices.size());
+    for (int i = 0; i < swapchainsAndImageIndices.size(); ++i)
+    {
+        swapchains[i] = swapchainsAndImageIndices[i].first->getHandle();
+        imageIndices[i] = swapchainsAndImageIndices[i].second;
+    }
     VkSemaphore waitSemaphores[] = {bb->renderSemaphore};
     VkPresentInfoKHR presentInfo = {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .waitSemaphoreCount = 1,
         .pWaitSemaphores = waitSemaphores,
-        .swapchainCount = 1,
-        .pSwapchains = swapchains,
-        .pImageIndices = &m_currentImageIndex,
+        .swapchainCount = static_cast<uint32_t>(swapchains.size()),
+        .pSwapchains = swapchains.data(),
+        .pImageIndices = imageIndices.data(),
         .pResults = nullptr,
     };
 
@@ -184,24 +169,25 @@ void MultiPassRendererBackend::present()
         std::cerr << "Failed to present : " << res << std::endl;
 }
 
-uint32_t SinglePassRendererBackend::acquire()
+uint32_t DynamicRendererBackend::acquire(const SwapChain* swapchain)
 {
     return 0;
 }
 
-void SinglePassRendererBackend::begin()
+void DynamicRendererBackend::begin(const Framebuffer* framebuffer)
 {
 }
-void SinglePassRendererBackend::draw(/*const Scene& scene*/)
+void DynamicRendererBackend::draw(/*const Scene& scene*/)
 {
 }
-void SinglePassRendererBackend::end()
+void DynamicRendererBackend::end()
 {
 }
-void SinglePassRendererBackend::submit()
+void DynamicRendererBackend::submit()
 {
 }
-void SinglePassRendererBackend::present()
+void DynamicRendererBackend::present(
+    const std::vector<std::pair<const SwapChain*, uint32_t>> swapchainsAndImageIndices)
 {
 }
 Renderer::Renderer(RendererCreateInfoT createInfo)

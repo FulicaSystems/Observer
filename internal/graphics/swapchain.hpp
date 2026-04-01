@@ -9,6 +9,8 @@
 class ContextABC;
 class LogicalDevice;
 class Surface;
+class RenderPass;
+class Framebuffer;
 
 struct SwapChainCreateInfoT
 {
@@ -20,6 +22,8 @@ struct SwapChainCreateInfoT
     VkExtent2D extent;
 
     ImageViewCreateInfoT viewCreateInfo;
+
+    std::optional<std::shared_ptr<RenderPass>> renderPass;
 };
 
 class SwapChain
@@ -37,12 +41,13 @@ class SwapChain
     std::vector<VkImage> images;
     std::vector<std::shared_ptr<ImageView>> imageViews;
 
-    // TODO
-    std::shared_ptr<Image> depthImage;
-    std::shared_ptr<ImageView> depthImageView;
+    std::optional<std::shared_ptr<Image>> depthImage;
+    std::optional<std::shared_ptr<ImageView>> depthImageView;
 
     // TODO : atomic bool validate swapchain
     // TODO : recreate swapchain handle (swapchain recreation without affecting the pointers to it)
+
+    std::optional<std::vector<std::shared_ptr<Framebuffer>>> m_framebuffers;
 
     SwapChain() = delete;
     SwapChain(const SwapChainCreateInfoT ci) : ci(ci) {}
@@ -67,7 +72,7 @@ class SwapChain
     {
         return imageViews;
     }
-    [[nodiscard]] inline const std::shared_ptr<ImageView>& getDepthImageView() const
+    [[nodiscard]] inline const std::optional<std::shared_ptr<ImageView>>& getDepthImageView() const
     {
         return depthImageView;
     }

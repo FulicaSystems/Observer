@@ -68,30 +68,10 @@ Application::Application()
             m_currentDeviceIndex = i;
     }
 
-    m_window->setSwapChain(m_devices[m_currentDeviceIndex]->createSwapChain(SwapChainCreateInfoT{
-        .surface = surface,
-        .surfaceFormat =
-            {
-                            .format = VK_FORMAT_B8G8R8A8_UNORM,
-                            .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
-                            },
-        .presentMode = VK_PRESENT_MODE_FIFO_KHR,
-        .extent =
-            {
-                            .width = width,
-                            .height = height,
-                            },
-        .viewCreateInfo =
-            ImageViewCreateInfoT{
-                            .aspect = VK_IMAGE_ASPECT_COLOR_BIT,
-                            },
-    }));
-
     auto backendCreateInfo = std::make_shared<LegacyRendererBackendCreateInfoT>();
     backendCreateInfo->bufferingType = BufferingTypeE::DOUBLE_BUFFERING;
     backendCreateInfo->device = m_devices[m_currentDeviceIndex].get();
-    backendCreateInfo->swapchain = m_window->getSwapChain();
-    backendCreateInfo->renderPasses = {
+    backendCreateInfo->renderPass = {
         m_devices[m_currentDeviceIndex]->createRenderPass(RenderPassCreateInfoT{
                                                                                 .colorAttachments =
                 {
@@ -109,20 +89,20 @@ Application::Application()
                                    .attachment = 0,
                                    .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                                }},
-                }, // .depthAttachment = std::make_optional<Attachment>(
-            // {VkAttachmentDescription{
-            //      .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-            //      .samples = VK_SAMPLE_COUNT_1_BIT,
-            //      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-            //      .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            //      .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-            //      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            //      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            //      .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-            //  },
-            //  VkAttachmentReference{
-            //      .attachment = 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL}}),
-            .subpasses =
+                }, .depthAttachment = std::make_optional<Attachment>(
+                {VkAttachmentDescription{
+                     .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                     .samples = VK_SAMPLE_COUNT_1_BIT,
+                     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                     .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                     .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                 },
+                 VkAttachmentReference{
+                     .attachment = 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL}}),
+                                                                                .subpasses =
                 {
                     SubpassDescriptionT{
                         .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -144,10 +124,29 @@ Application::Application()
                 }, }
         )
     };
-    m_renderer = std::make_unique<Renderer>(RendererCreateInfoT{
-        .device = m_devices[m_currentDeviceIndex].get(),
-        .swapchain = m_window->getSwapChain(),
-        .backend = std::make_unique<MultiPassRendererBackend>(backendCreateInfo)});
+    m_renderer = std::make_unique<Renderer>(
+        RendererCreateInfoT{.device = m_devices[m_currentDeviceIndex].get(),
+                            .backend = std::make_unique<LegacyRendererBackend>(backendCreateInfo)});
+
+    m_window->setSwapChain(m_devices[m_currentDeviceIndex]->createSwapChain(SwapChainCreateInfoT{
+        .surface = surface,
+        .surfaceFormat =
+            {
+                            .format = VK_FORMAT_B8G8R8A8_UNORM,
+                            .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
+                            },
+        .presentMode = VK_PRESENT_MODE_FIFO_KHR,
+        .extent =
+            {
+                            .width = width,
+                            .height = height,
+                            },
+        .viewCreateInfo =
+            ImageViewCreateInfoT{
+                            .aspect = VK_IMAGE_ASPECT_COLOR_BIT,
+                            },
+        .renderPass = backendCreateInfo->renderPass,
+    }));
 }
 
 Application::~Application()

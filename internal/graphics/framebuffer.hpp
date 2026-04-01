@@ -9,7 +9,7 @@
 
 struct FramebufferCreateInfoT
 {
-    const RenderPass* renderPass;
+    const std::shared_ptr<RenderPass> renderPass;
     std::vector<ImageView> attachments;
     uint32_t width;
     uint32_t height;
@@ -23,3 +23,5 @@ class Framebuffer
 
     VkFramebuffer handle;
 };
+
+// TODO : dynamic framebuffer (handle with no VkFramebuffer backend)
