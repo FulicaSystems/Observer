@@ -203,7 +203,7 @@ std::shared_ptr<RenderPass> LogicalDevice::createRenderPass(const RenderPassCrea
 
         subpassColorAttachments[i] =
             std::vector<VkAttachmentReference>(s.colorAttachmentIndices.size());
-        for (int j = 0; j < s.colorAttachmentIndices.size(); ++i)
+        for (int j = 0; j < s.colorAttachmentIndices.size(); ++j)
         {
             subpassColorAttachments[i][j] = ci.colorAttachments[s.colorAttachmentIndices[j]].second;
         }

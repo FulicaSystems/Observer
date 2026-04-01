@@ -1,25 +1,20 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include <vulkan/vulkan.h>
 
 #include "graphics/backbuffer.hpp"
-#include "graphics/device/asset/pipeline.hpp"
-
-class LogicalDevice;
-class SwapChain;
-
-struct RendererCreateInfoT
-{
-    const LogicalDevice* device;
-    const SwapChain* swapchain;
-};
+#include "graphics/device/asset/render_pass.hpp"
+#include "graphics/device/device.hpp"
+#include "graphics/framebuffer.hpp"
+#include "graphics/swapchain.hpp"
 
 class RendererI
 {
   public:
-    virtual ~RendererI() = 0;
+    virtual ~RendererI() {};
 
     /**
      * @brief acquire next image
@@ -58,56 +53,93 @@ class RendererI
     virtual void swap() = 0;
 };
 
-// TODO : move to other file
-class RenderState
+struct RendererBackendCreateInfoT
 {
   public:
-    VkDescriptorPool descriptorPool;
-    std::unique_ptr<Pipeline> pipeline;
+    virtual ~RendererBackendCreateInfoT() {}
+};
 
-} typedef Renderable, RenderObject;
+class RendererBackendABC : public RendererI
+{
+  protected:
+    BufferingTypeE m_bufferingType = BufferingTypeE::DOUBLE_BUFFERING;
+    std::vector<BackBufferT> m_backBuffers;
+
+  public:
+    RendererBackendABC() = delete;
+    explicit RendererBackendABC(const std::shared_ptr<RendererBackendCreateInfoT> createInfo) {}
+
+    virtual ~RendererBackendABC() override {}
+
+} typedef RendererPImplABC;
+
+struct LegacyRendererBackendCreateInfoT : RendererBackendCreateInfoT
+{
+    std::vector<std::shared_ptr<RenderPass>> renderPasses;
+};
+
+class MultiPassRendererBackend : public RendererBackendABC
+{
+  private:
+    std::vector<std::shared_ptr<RenderPass>> m_renderPasses;
+    std::vector<Framebuffer> m_framebuffers;
+
+  public:
+    MultiPassRendererBackend() = delete;
+    MultiPassRendererBackend(const std::shared_ptr<RendererBackendCreateInfoT> createInfo);
+
+    ~MultiPassRendererBackend() override {}
+
+    void acquire() override;
+    void begin() override;
+    void draw(/*const Scene& scene*/) override;
+    void end() override;
+    void submit() override;
+    void present() override;
+    void swap() override;
+
+} typedef RenderPassBasedRendererBackend, LegacyRendererBackend;
+
+class SinglePassRendererBackend : public RendererBackendABC
+{
+  public:
+    SinglePassRendererBackend() = delete;
+    SinglePassRendererBackend(const std::shared_ptr<RendererBackendCreateInfoT> createInfo);
+
+    ~SinglePassRendererBackend() override {}
+
+    void acquire() override;
+    void begin() override;
+    void draw(/*const Scene& scene*/) override;
+    void end() override;
+    void submit() override;
+    void present() override;
+    void swap() override;
+
+} typedef DynamicRendererBackend;
+
+struct RendererCreateInfoT final
+{
+    const LogicalDevice* device;
+    const SwapChain* swapchain;
+    std::unique_ptr<RendererBackendABC> backend;
+};
 
 /**
  * @brief the frame processor typedef states that the renderer primarily renders frame
  * TODO : soon to become a render phase within a render graph
  *
  */
-class RendererABC
-{
-  protected:
-    BufferingTypeE bufferingType = BufferingTypeE::DOUBLE_BUFFERING;
-
-    std::vector<BackBufferT> backBuffers;
-
-  public:
-    virtual ~RendererABC() = default;
-
-    virtual void render(/*const Scene& scene*/) = 0;
-
-} typedef FrameProcessorABC;
-
-struct LegacyRendererCreateInfoT
-{
-    std::vector<RenderPass> renderPasses;
-};
-
-class MultiPassRenderer : public RendererABC
+class Renderer
 {
   private:
-    // TODO : move array of render pass from create info to this variable
-    std::vector<RenderPass> renderPasses;
-    std::vector<VkFramebuffer> framebuffers;
+    std::unique_ptr<RendererBackendABC> m_backend;
 
   public:
-    MultiPassRenderer() = delete;
-    MultiPassRenderer(const RendererCreateInfoT* createInfo);
+    Renderer() = delete;
+    Renderer(RendererCreateInfoT createInfo);
 
-} typedef RenderPassBasedRenderer, LegacyRenderer;
+    void render(/*const Scene& scene*/);
+    void swap();
 
-class SinglePassRenderer : public RendererABC
-{
-  public:
-    SinglePassRenderer() = delete;
-    SinglePassRenderer(const RendererCreateInfoT* createInfo);
-
-} typedef DynamicRenderer;
+} typedef FrameProcessor;

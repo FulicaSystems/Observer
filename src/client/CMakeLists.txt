@@ -11,6 +11,7 @@ target_sources(${component}
 target_link_libraries(${component}
     PUBLIC wsi
     PUBLIC graphics
+    PUBLIC renderer
 )
 
 target_include_directories(${component} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")

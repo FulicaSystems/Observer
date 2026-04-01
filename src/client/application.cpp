@@ -10,6 +10,8 @@
 
 #include <wsi/window_glfw.hpp>
 
+#include <renderer/renderer.hpp>
+
 #include "application.hpp"
 
 Application::Application()
@@ -84,6 +86,67 @@ Application::Application()
                             .aspect = VK_IMAGE_ASPECT_COLOR_BIT,
                             },
     }));
+
+    auto backendCreateInfo = std::make_shared<LegacyRendererBackendCreateInfoT>();
+    backendCreateInfo->renderPasses = {
+        m_devices[m_currentDeviceIndex]->createRenderPass(RenderPassCreateInfoT{
+                                                                                .colorAttachments =
+                {
+                    Attachment{VkAttachmentDescription{
+                                   .format = m_window->getSwapChain()->getSurfaceFormat().format,
+                                   .samples = VK_SAMPLE_COUNT_1_BIT,
+                                   .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                   .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                                   .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                                   .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                                   .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                                   .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                               },
+                               VkAttachmentReference{
+                                   .attachment = 0,
+                                   .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                               }},
+                }, .depthAttachment =
+                Attachment{VkAttachmentDescription{
+                               .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                               .samples = VK_SAMPLE_COUNT_1_BIT,
+                               .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                               .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                               .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                               .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                               .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                               .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                           },
+                           VkAttachmentReference{
+                               .attachment = 1,
+                               .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL}},
+                                                                                .subpasses =
+                {
+                    SubpassDescriptionT{
+                        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+                        .colorAttachmentIndices = {0},
+                        .bDepthAttachment = true,
+                    },
+                }, .dependencies =
+                {
+                    VkSubpassDependency{
+                        .srcSubpass = VK_SUBPASS_EXTERNAL,
+                        .dstSubpass = 0,
+                        .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                                        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+                        .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                                        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+                        .srcAccessMask = 0,
+                        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                         VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                    },
+                }, }
+        )
+    };
+    m_renderer = std::make_unique<Renderer>(RendererCreateInfoT{
+        .device = m_devices[m_currentDeviceIndex].get(),
+        .swapchain = m_window->getSwapChain(),
+        .backend = std::make_unique<MultiPassRendererBackend>(backendCreateInfo)});
 }
 
 Application::~Application()
@@ -113,5 +176,5 @@ int Application::perFrame()
 
     m_window->swapBuffers();
     m_renderer->swap();
-    ` return 1;
+    return 1;
 }

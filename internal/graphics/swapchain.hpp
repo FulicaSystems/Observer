@@ -54,4 +54,6 @@ class SwapChain
   public:
     [[nodiscard]] inline VkSwapchainKHR& getHandle() { return m_handle; }
     [[nodiscard]] inline const VkSwapchainKHR& getHandle() const { return m_handle; }
+
+    [[nodiscard]] inline VkSurfaceFormatKHR getSurfaceFormat() const { return ci.surfaceFormat; }
 };

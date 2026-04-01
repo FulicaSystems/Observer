@@ -9,6 +9,7 @@ class ContextABC;
 class Instance;
 class PhysicalDevice;
 class LogicalDevice;
+class Renderer;
 
 class Application
 {
@@ -22,6 +23,8 @@ class Application
 
     std::vector<std::shared_ptr<PhysicalDevice>> m_physicalDevices;
     std::vector<std::unique_ptr<LogicalDevice>> m_devices;
+
+    std::unique_ptr<Renderer> m_renderer;
 
     /**
      * @brief used to select the wanted logical device (defaults to first discrete device if
