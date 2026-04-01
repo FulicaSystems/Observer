@@ -82,7 +82,13 @@ class HostResourceABC
     std::filesystem::path m_filepath = "";
 
     HostResourceABC() = delete;
-    HostResourceABC(const uint64_t index) : m_index(index) {}
+    /**
+     * @brief Construct a new Host Resource A B C object
+     * user must declare this contructor in the derived class
+     *
+     * @param index
+     */
+    explicit HostResourceABC(const uint64_t index) : m_index(index) {}
 
     inline uint64_t getIndex() const { return m_index; }
 

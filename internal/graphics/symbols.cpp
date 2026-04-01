@@ -80,14 +80,29 @@ void SDKSymbolsLoaderT::load(ContextABC* cx)
     VK_SDK_FUNCTION(cx, GetPhysicalDeviceSurfaceCapabilitiesKHR);
     VK_SDK_FUNCTION(cx, GetPhysicalDeviceSurfaceFormatsKHR);
     VK_SDK_FUNCTION(cx, GetPhysicalDeviceSurfacePresentModesKHR);
-    VK_SDK_FUNCTION(cx, CreateSwapchainKHR);
-    VK_SDK_FUNCTION(cx, GetSwapchainImagesKHR);
-    VK_SDK_FUNCTION(cx, DestroyImageView);
-    VK_SDK_FUNCTION(cx, DestroySwapchainKHR);
     VK_SDK_FUNCTION(cx, GetDeviceQueue);
     VK_SDK_FUNCTION(cx, DestroyDevice);
     VK_SDK_FUNCTION(cx, CreateCommandPool);
     VK_SDK_FUNCTION(cx, DestroyCommandPool);
+    VK_SDK_FUNCTION(cx, CreateSwapchainKHR);
+    VK_SDK_FUNCTION(cx, GetSwapchainImagesKHR);
+    VK_SDK_FUNCTION(cx, DestroySwapchainKHR);
+    VK_SDK_FUNCTION(cx, CreateImageView);
+    VK_SDK_FUNCTION(cx, DestroyImageView);
+    VK_SDK_FUNCTION(cx, CreateRenderPass);
+    VK_SDK_FUNCTION(cx, DestroyRenderPass);
+    VK_SDK_FUNCTION(cx, CreateShaderModule);
+    VK_SDK_FUNCTION(cx, DestroyShaderModule);
+    VK_SDK_FUNCTION(cx, CreateDescriptorSetLayout);
+    VK_SDK_FUNCTION(cx, CreatePipelineLayout);
+    VK_SDK_FUNCTION(cx, DestroyPipelineLayout);
+    VK_SDK_FUNCTION(cx, CreateGraphicsPipelines);
+    VK_SDK_FUNCTION(cx, DestroyPipeline);
+    VK_SDK_FUNCTION(cx, AllocateCommandBuffers);
+    VK_SDK_FUNCTION(cx, CreateSemaphore);
+    VK_SDK_FUNCTION(cx, CreateFence);
+    VK_SDK_FUNCTION(cx, CreateBuffer);
+    VK_SDK_FUNCTION(cx, DestroyBuffer);
 }
 
 void SDKSymbolsLoaderT::load(ContextABC* cx, const Instance* instance)
@@ -108,6 +123,27 @@ void RenderPassSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroyRenderPass);
 }
 
+void PipelineSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
+{
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateShaderModule);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroyShaderModule);
+
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateDescriptorSetLayout);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreatePipelineLayout);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroyPipelineLayout);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateGraphicsPipelines);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroyPipeline);
+}
+
+void BackBufferSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
+{
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), AllocateCommandBuffers);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateSemaphore);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateFence);
+}
+
 void BufferSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
 {
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateBuffer);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroyBuffer);
 }

@@ -98,7 +98,6 @@ struct InstanceSymbolsLoader2T : public SymbolsLoaderI
  */
 struct DeviceSymbolsT
 {
-
     PFN_DECLARE(PFN_vk, EnumerateDeviceExtensionProperties);
 
     PFN_DECLARE(PFN_vk, GetPhysicalDeviceQueueFamilyProperties);
@@ -121,10 +120,9 @@ struct DeviceSymbolsLoaderT : public SymbolsLoaderI
 
 struct SwapchainSymbolsT
 {
-
     PFN_DECLARE(PFN_vk, CreateSwapchainKHR);
-    PFN_DECLARE(PFN_vk, GetSwapchainImagesKHR);
     PFN_DECLARE(PFN_vk, DestroySwapchainKHR);
+    PFN_DECLARE(PFN_vk, GetSwapchainImagesKHR);
 };
 struct SwapchainSymbolsLoaderT : public SymbolsLoaderI
 {
@@ -138,6 +136,8 @@ struct SwapchainSymbolsLoaderT : public SymbolsLoaderI
 
 struct BufferSymbolsT : public SwapchainSymbolsT
 {
+    PFN_DECLARE(PFN_vk, CreateBuffer);
+    PFN_DECLARE(PFN_vk, DestroyBuffer);
 };
 struct BufferSymbolsLoaderT : public SwapchainSymbolsLoaderT
 {
@@ -168,6 +168,9 @@ struct RenderPassSymbolsT : public ImageSymbolsT
 {
     PFN_DECLARE(PFN_vk, CreateRenderPass);
     PFN_DECLARE(PFN_vk, DestroyRenderPass);
+
+    PFN_DECLARE(PFN_vk, CreateFramebuffer);
+    PFN_DECLARE(PFN_vk, DestroyFramebuffer);
 };
 struct RenderPassSymbolsLoaderT : public ImageSymbolsLoaderT
 {
@@ -179,16 +182,49 @@ struct RenderPassSymbolsLoaderT : public ImageSymbolsLoaderT
     void load(ContextABC* cx, const LogicalDevice* device) override;
 };
 
-struct DeviceSymbols2T : public RenderPassSymbolsT
+struct PipelineSymbolsT : public RenderPassSymbolsT
 {
+    PFN_DECLARE(PFN_vk, CreateShaderModule);
+    PFN_DECLARE(PFN_vk, DestroyShaderModule);
 
+    PFN_DECLARE(PFN_vk, CreateDescriptorSetLayout);
+    PFN_DECLARE(PFN_vk, CreatePipelineLayout);
+    PFN_DECLARE(PFN_vk, DestroyPipelineLayout);
+    PFN_DECLARE(PFN_vk, CreateGraphicsPipelines);
+    PFN_DECLARE(PFN_vk, DestroyPipeline);
+};
+struct PipelineSymbolsLoaderT : public RenderPassSymbolsLoaderT
+{
+    void load(ContextABC* cx) override {};
+    void load(ContextABC* cx, f6::bin::DynamicLibraryLoader* loader) override {}
+
+    void load(ContextABC* cx, const Instance* instance) override {}
+    void load(ContextABC* cx, const LogicalDevice* device) override;
+};
+struct BackBufferSymbolsT : public PipelineSymbolsT
+{
+    PFN_DECLARE(PFN_vk, AllocateCommandBuffers);
+    PFN_DECLARE(PFN_vk, CreateSemaphore);
+    PFN_DECLARE(PFN_vk, CreateFence);
+};
+struct BackBufferSymbolsLoaderT : public PipelineSymbolsLoaderT
+{
+    void load(ContextABC* cx) override {};
+    void load(ContextABC* cx, f6::bin::DynamicLibraryLoader* loader) override {}
+
+    void load(ContextABC* cx, const Instance* instance) override {}
+    void load(ContextABC* cx, const LogicalDevice* device) override;
+};
+
+struct DeviceSymbols2T : public BackBufferSymbolsT
+{
     PFN_DECLARE(PFN_vk, GetDeviceQueue);
     PFN_DECLARE(PFN_vk, DestroyDevice);
 
     PFN_DECLARE(PFN_vk, CreateCommandPool);
     PFN_DECLARE(PFN_vk, DestroyCommandPool);
 };
-struct DeviceSymbolsLoader2T : public RenderPassSymbolsLoaderT
+struct DeviceSymbolsLoader2T : public BackBufferSymbolsLoaderT
 {
   protected:
     void load(ContextABC* cx) override {};

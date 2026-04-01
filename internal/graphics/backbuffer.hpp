@@ -15,6 +15,7 @@ enum class BufferingTypeE
 struct BackBufferCreateInfoT
 {
     BufferingTypeE type = BufferingTypeE::DOUBLE_BUFFERING;
+    bool bHasAcquireSemaphore = true;
     bool bSignaled = true;
 };
 

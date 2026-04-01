@@ -38,6 +38,7 @@ class Shader : public ResourceABC
 class CPUShader : public HostResourceABC
 {
   public:
+    CPUShader(uint64_t index) : HostResourceABC(index) {}
     std::vector<char> source;
 };
 

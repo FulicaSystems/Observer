@@ -376,7 +376,8 @@ std::shared_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfo
             .pBindings = ci.setLayoutBindings[i].data(),
         };
 
-        VkResult res = vkCreateDescriptorSetLayout(m_handle, &createInfo, nullptr, &setLayouts[i]);
+        VkResult res =
+            cx->CreateDescriptorSetLayout(m_handle, &createInfo, nullptr, &setLayouts[i]);
         if (res != VK_SUCCESS)
             std::cerr << "Failed to create descriptor set layout : " << res << std::endl;
     }
@@ -390,10 +391,10 @@ std::shared_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfo
             ci.pushConstantRanges.empty() ? nullptr : ci.pushConstantRanges.data(),
     };
 
-    auto out = std::make_shared<Pipeline>();
+    auto out = std::make_shared<Pipeline>(ci);
 
-    VkResult res = vkCreatePipelineLayout(m_handle, &pipelineLayoutCreateInfo, nullptr,
-                                          &out->getLayoutHandle());
+    VkResult res = cx->CreatePipelineLayout(m_handle, &pipelineLayoutCreateInfo, nullptr,
+                                            &out->getLayoutHandle());
     if (res != VK_SUCCESS)
         std::cerr << "Failed to create pipeline layout : " << res << std::endl;
 
@@ -420,8 +421,8 @@ std::shared_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfo
         .basePipelineIndex = -1,
     };
 
-    res = vkCreateGraphicsPipelines(m_handle, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr,
-                                    &out->getHandle());
+    res = cx->CreateGraphicsPipelines(m_handle, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr,
+                                      &out->getHandle());
     if (res != VK_SUCCESS)
         std::cerr << "Failed to create graphics pipeline : " << res << std::endl;
 
@@ -429,8 +430,8 @@ std::shared_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfo
 }
 void LogicalDevice::destroyPipeline(std::shared_ptr<Pipeline>& pData) const
 {
-    vkDestroyPipeline(m_handle, pData->getHandle(), nullptr);
-    vkDestroyPipelineLayout(m_handle, pData->getLayoutHandle(), nullptr);
+    cx->DestroyPipeline(m_handle, pData->getHandle(), nullptr);
+    cx->DestroyPipelineLayout(m_handle, pData->getLayoutHandle(), nullptr);
 }
 
 std::shared_ptr<BackBufferAOST> LogicalDevice::createBackBufferAOS(
@@ -444,25 +445,32 @@ std::shared_ptr<BackBufferAOST> LogicalDevice::createBackBufferAOS(
     };
 
     auto out = std::make_shared<BackBufferAOST>();
-    VkResult res = vkAllocateCommandBuffers(m_handle, &allocInfo, &out->commandBuffer);
+    VkResult res = cx->AllocateCommandBuffers(m_handle, &allocInfo, &out->commandBuffer);
     if (res != VK_SUCCESS)
         std::cerr << "Failed to allocate command buffers : " << res << std::endl;
 
     VkSemaphoreCreateInfo semaphoreCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
     };
-    res = vkCreateSemaphore(m_handle, &semaphoreCreateInfo, nullptr, &out->acquireSemaphore);
-    if (res != VK_SUCCESS)
-        std::cerr << "Failed to create semaphore : " << res << std::endl;
-    res = vkCreateSemaphore(m_handle, &semaphoreCreateInfo, nullptr, &out->renderSemaphore);
+    if (ci.bHasAcquireSemaphore)
+    {
+        out->acquireSemaphore = std::make_optional<VkSemaphore>();
+        res = cx->CreateSemaphore(m_handle, &semaphoreCreateInfo, nullptr,
+                                  &out->acquireSemaphore.value());
+        if (res != VK_SUCCESS)
+            std::cerr << "Failed to create semaphore : " << res << std::endl;
+    }
+    res = cx->CreateSemaphore(m_handle, &semaphoreCreateInfo, nullptr, &out->renderSemaphore);
     if (res != VK_SUCCESS)
         std::cerr << "Failed to create semaphore : " << res << std::endl;
 
-    VkFenceCreateInfo fenceCreateInfo = {.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-                                         .flags =
-                                             ci.bSignaled ? VK_FENCE_CREATE_SIGNALED_BIT | 0, };
+    VkFenceCreateInfo fenceCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+    };
+    if (ci.bSignaled)
+        fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    res = vkCreateFence(m_handle, &fenceCreateInfo, nullptr, &out->inFlightFence);
+    res = cx->CreateFence(m_handle, &fenceCreateInfo, nullptr, &out->inFlightFence);
     if (res != VK_SUCCESS)
         std::cerr << "Failed to create fence : " << res << std::endl;
 
@@ -489,11 +497,12 @@ std::shared_ptr<BackBufferSOAT> LogicalDevice::createBackBufferSOA(
     auto out = std::make_shared<BackBufferSOAT>();
 
     out->commandBuffers = std::vector<VkCommandBuffer>(commandBufferCount);
-    VkResult res = vkAllocateCommandBuffers(m_handle, &allocInfo, out->commandBuffers.data());
+    VkResult res = cx->AllocateCommandBuffers(m_handle, &allocInfo, out->commandBuffers.data());
     if (res != VK_SUCCESS)
         std::cerr << "Failed to allocate command buffers : " << res << std::endl;
 
-    // TODO : finish
+    // TODO : finish semaphore creation
+    // TODO : finish fence creation
 
     return out;
 }
