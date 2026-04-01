@@ -5,8 +5,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include <f6/dynamic_library_loader.hpp>
-
 class ContextABC;
 class Instance;
 class LogicalDevice;

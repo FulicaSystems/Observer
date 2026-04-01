@@ -4,8 +4,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include <f6/dynamic_library_loader.hpp>
-
 #include "physical_device.hpp"
 
 class ContextABC;
@@ -20,12 +18,15 @@ class RenderPass;
 struct RenderPassCreateInfoT;
 class Framebuffer;
 struct FramebufferCreateInfoT;
+class Pipeline;
+struct PipelineCreateInfoT;
 class Buffer;
 struct BufferCreateInfoT;
-class ShaderModule;
-struct ShaderModuleCreateInfoT;
+class GPUShader;
+struct ShaderCreateInfoT;
 class Image;
 struct ImageCreateInfoT;
+struct BackBufferT;
 
 struct LogicalDeviceCreateInfoT
 {
@@ -100,16 +101,18 @@ class LogicalDevice
         const FramebufferCreateInfoT createInfo) const;
     void destroyFramebuffer(std::shared_ptr<Framebuffer>& pData) const;
 
+    [[nodiscard]] std::shared_ptr<GPUShader> createShader(const ShaderCreateInfoT createInfo) const;
+    void destroyShader(std::shared_ptr<GPUShader>& pData) const;
+
     [[nodiscard]] std::shared_ptr<Pipeline> createPipeline(
         const PipelineCreateInfoT createInfo) const;
     void destroyPipeline(std::shared_ptr<Pipeline>& pData) const;
 
+    [[nodiscard]] std::shared_ptr<BackBufferT> createBackBuffer() const;
+    void destroyBackBuffer(std::shared_ptr<BackBufferT>& pData) const;
+
     [[nodiscard]] std::shared_ptr<Buffer> createBuffer(const BufferCreateInfoT createInfo) const;
     void destroyBuffer(std::shared_ptr<Buffer>& pData) const;
-
-    [[nodiscard]] std::shared_ptr<ShaderModule> createShaderModule(
-        const ShaderModuleCreateInfoT createInfo) const;
-    void destroyShaderModule(std::shared_ptr<ShaderModule>& pData) const;
 
     [[nodiscard]] std::shared_ptr<Image> createImage(const ImageCreateInfoT createInfo) const;
     void destroyImage(std::shared_ptr<Image>& pData) const;

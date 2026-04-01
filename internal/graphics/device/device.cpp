@@ -9,7 +9,9 @@
 #include "memory/buffer.hpp"
 #include "memory/image.hpp"
 // #include "asset/shader.hpp"
+#include "asset/pipeline.hpp"
 #include "asset/render_pass.hpp"
+#include "asset/shader.hpp"
 #include "framebuffer.hpp"
 #include "swapchain.hpp"
 
@@ -132,7 +134,6 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(SwapChainCreateInfoT c
 
     return std::move(out);
 }
-
 void LogicalDevice::destroySwapChain(SwapChain& sc) const
 {
     for (auto& imageView : sc.imageViews)
@@ -174,6 +175,9 @@ std::shared_ptr<ImageView> LogicalDevice::createImageView(const ImageViewCreateI
         std::cerr << "Failed to create image view : " << res << std::endl;
 
     return std::make_shared<ImageView>(imageView);
+}
+void LogicalDevice::destroyImageView(std::shared_ptr<ImageView>& pData) const
+{
 }
 
 std::shared_ptr<RenderPass> LogicalDevice::createRenderPass(const RenderPassCreateInfoT ci) const
@@ -227,7 +231,6 @@ std::shared_ptr<RenderPass> LogicalDevice::createRenderPass(const RenderPassCrea
 
     return std::make_shared<RenderPass>(renderPass);
 }
-
 void LogicalDevice::destroyRenderPass(std::shared_ptr<RenderPass>& pData) const
 {
 }
@@ -256,8 +259,182 @@ std::shared_ptr<Framebuffer> LogicalDevice::createFramebuffer(const FramebufferC
 
     return std::make_shared<Framebuffer>(fbo);
 }
-
 void LogicalDevice::destroyFramebuffer(std::shared_ptr<Framebuffer>& pData) const
+{
+}
+
+std::shared_ptr<GPUShader> LogicalDevice::createShader(const ShaderCreateInfoT ci) const
+{
+    VkShaderModuleCreateInfo createInfo = {
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .codeSize = ci.source.size(),
+        .pCode = reinterpret_cast<const uint32_t*>(ci.source.data()),
+    };
+
+    std::shared_ptr<GPUShader> out = std::make_shared<GPUShader>(ci);
+    VkResult res = cx->CreateShaderModule(m_handle, &createInfo, nullptr, &out->module);
+    if (res != VK_SUCCESS)
+        std::cerr << "Failed to create shader module : " << res << std::endl;
+
+    return out;
+}
+void LogicalDevice::destroyShader(std::shared_ptr<GPUShader>& pData) const
+{
+    cx->DestroyShaderModule(m_handle, pData->module, nullptr);
+}
+
+std::shared_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfoT ci) const
+{
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfos(ci.shaderStages.size());
+    for (int i = 0; i < ci.shaderStages.size(); ++i)
+    {
+        shaderStagesCreateInfos[i] = {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = ci.shaderStages[i]->ci.stage,
+            .module = ci.shaderStages[i]->module,
+            .pName = ci.shaderStages[i]->ci.entryPoint,
+        };
+    }
+
+    VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .dynamicStateCount = static_cast<uint32_t>(ci.dynamicStates.size()),
+        .pDynamicStates = ci.dynamicStates.data(),
+    };
+
+    // vertex (enabling the binding for the Vertex structure)
+    VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+        .vertexBindingDescriptionCount = static_cast<uint32_t>(ci.vertexBindings.size()),
+        .pVertexBindingDescriptions = ci.vertexBindings.data(),
+        .vertexAttributeDescriptionCount = static_cast<uint32_t>(ci.vertexAttributes.size()),
+        .pVertexAttributeDescriptions = ci.vertexAttributes.data(),
+    };
+
+    // draw mode
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+        .topology = ci.topology,
+        .primitiveRestartEnable = ci.bPrimitiveRestartEnable,
+    };
+
+    // viewport
+    VkViewport viewport = {
+        .x = 0.f,
+        .y = 0.f,
+        .width = static_cast<float>(ci.viewportWidth),
+        .height = static_cast<float>(ci.viewportHeight),
+        .minDepth = 0.f,
+        .maxDepth = 1.f,
+    };
+
+    VkRect2D scissor = {
+        .offset = {0, 0},
+        .extent =
+            VkExtent2D{
+                   .width = ci.viewportWidth,
+                   .height = ci.viewportHeight,
+                   },
+    };
+
+    VkPipelineViewportStateCreateInfo viewportStateCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+        .viewportCount = 1,
+        .scissorCount = 1,
+    };
+
+    // rasterizer
+    VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo = ci.rasterizerCreateInfo;
+
+    // multisampling, anti-aliasing
+    VkPipelineMultisampleStateCreateInfo multisamplingCreateInfo = ci.multisamplingCreateInfo;
+
+    VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = ci.depthStencilCreateInfo;
+
+    // color blending
+    VkPipelineColorBlendStateCreateInfo colorBlendCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+        .logicOpEnable = VK_FALSE,
+        .logicOp = VK_LOGIC_OP_COPY,
+        .attachmentCount = static_cast<uint32_t>(ci.colorBlendAttachment.size()),
+        .pAttachments = ci.colorBlendAttachment.data(),
+        .blendConstants = {ci.blendConstants[0], ci.blendConstants[1], ci.blendConstants[2],
+                           ci.blendConstants[3]},
+    };
+
+    // pipeline layout
+    std::vector<VkDescriptorSetLayout> setLayouts(ci.setLayoutBindings.size());
+    for (int i = 0; i < ci.setLayoutBindings.size(); ++i)
+    {
+        VkDescriptorSetLayoutCreateInfo createInfo = {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .bindingCount = static_cast<uint32_t>(ci.setLayoutBindings[i].size()),
+            .pBindings = ci.setLayoutBindings[i].data(),
+        };
+
+        VkResult res = vkCreateDescriptorSetLayout(m_handle, &createInfo, nullptr, &setLayouts[i]);
+        if (res != VK_SUCCESS)
+            std::cerr << "Failed to create descriptor set layout : " << res << std::endl;
+    }
+
+    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .setLayoutCount = static_cast<uint32_t>(setLayouts.size()),
+        .pSetLayouts = setLayouts.data(),
+        .pushConstantRangeCount = static_cast<uint32_t>(ci.pushConstantRanges.size()),
+        .pPushConstantRanges =
+            ci.pushConstantRanges.empty() ? nullptr : ci.pushConstantRanges.data(),
+    };
+
+    auto out = std::make_shared<Pipeline>();
+
+    VkResult res = vkCreatePipelineLayout(m_handle, &pipelineLayoutCreateInfo, nullptr,
+                                          &out->getLayoutHandle());
+    if (res != VK_SUCCESS)
+        std::cerr << "Failed to create pipeline layout : " << res << std::endl;
+
+    VkGraphicsPipelineCreateInfo pipelineCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        // shader stage
+        .stageCount = static_cast<uint32_t>(shaderStagesCreateInfos.size()),
+        .pStages = shaderStagesCreateInfos.data(),
+        // fixed function stage
+        .pVertexInputState = &vertexInputCreateInfo,
+        .pInputAssemblyState = &inputAssemblyCreateInfo,
+        .pViewportState = &viewportStateCreateInfo,
+        .pRasterizationState = &rasterizerCreateInfo,
+        .pMultisampleState = &multisamplingCreateInfo,
+        .pDepthStencilState = &depthStencilCreateInfo,
+        .pColorBlendState = &colorBlendCreateInfo,
+        .pDynamicState = &dynamicStateCreateInfo,
+        // pipeline layout
+        .layout = layout,
+        // render pass
+        .renderPass = ci.renderPass.handle,
+        .subpass = ci.subpassIndex,
+        .basePipelineHandle = VK_NULL_HANDLE,
+        .basePipelineIndex = -1,
+    };
+
+    res = vkCreateGraphicsPipelines(m_handle, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr,
+                                    &out->getHandle());
+    if (res != VK_SUCCESS)
+        std::cerr << "Failed to create graphics pipeline : " << res << std::endl;
+
+    return out;
+}
+void LogicalDevice::destroyPipeline(std::shared_ptr<Pipeline>& pData) const
+{
+    vkDestroyPipeline(m_handle, pData->getHandle(), nullptr);
+    vkDestroyPipelineLayout(m_handle, pData0->getLayoutHandle(), nullptr);
+}
+
+std::shared_ptr<BackBufferT> LogicalDevice::createBackBuffer() const
+{
+    return std::shared_ptr<BackBufferT>();
+}
+
+void LogicalDevice::destroyBackBuffer(std::shared_ptr<BackBufferT>& pData) const
 {
 }
 
@@ -271,27 +448,10 @@ std::shared_ptr<Buffer> LogicalDevice::createBuffer(const BufferCreateInfoT crea
     // return out;
     return nullptr;
 }
-
 void LogicalDevice::destroyBuffer(std::shared_ptr<Buffer>& pData) const
 {
     // cx->DestroyBuffer(handle, pData->handle, nullptr);
 }
-
-// std::shared_ptr<ShaderModule> LogicalDevice::createShaderModule(
-//     const ShaderModuleCreateInfoT createInfo) const
-// {
-//     auto shaderModuleCreateInfo = (VkShaderModuleCreateInfo*)createInfo;
-//     assert(shaderModuleCreateInfo &&
-//            shaderModuleCreateInfo->sType == VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
-//     std::shared_ptr<ShaderModule> out = std::make_shared<ShaderModule>();
-//     cx->CreateShaderModule(handle, (VkShaderModuleCreateInfo*)createInfo, nullptr, &out->handle);
-//     return out;
-// }
-
-// void LogicalDevice::destroyShaderModule(std::shared_ptr<ShaderModule>& pData) const
-// {
-//     cx->DestroyShaderModule(handle, pData->handle, nullptr);
-// }
 
 void LogicalDevice::retrieveQueues()
 {

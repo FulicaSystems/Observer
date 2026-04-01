@@ -11,6 +11,7 @@ set_property(TARGET ${component}
     surface.hpp
     swapchain.hpp
     graphics_api.hpp
+    framebuffer.hpp
 )
 
 target_sources(${component}
@@ -25,13 +26,13 @@ target_sources(${component}
     surface.cpp
     swapchain.hpp
     swapchain.cpp
+    framebuffer.hpp
 )
 
 depends(PRECOMPILED CONFIGURE_DEPENDS OUTPUT_TARGET F6::Bin DIRECTORIES project_binary/install FILES binary INCLUDE_PATHS include)
 
 target_link_libraries(${component}
     PUBLIC graphics::device
-
     PUBLIC F6::Bin
 )
 

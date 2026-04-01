@@ -4,22 +4,14 @@
 
 #include <vulkan/vulkan.h>
 
-#include "pipeline.hpp"
-
-enum class BufferingTypeE
-{
-    SINGLE_BUFFERING = 1,
-    DOUBLE_BUFFERING = 2,
-    TRIPLE_BUFFERING = 3,
-    COUNT,
-};
+#include "graphics/device/asset/pipeline.hpp"
 
 class RendererI
 {
   public:
     virtual ~RendererI() = 0;
 
-    virtual void renderFrame(Scene) = 0;
+    // virtual void renderFrame(Scene) = 0;
     virtual void presentFrame() = 0;
 };
 

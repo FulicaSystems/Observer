@@ -1,55 +1,35 @@
-#include "utils/binary.hpp"
+#include <f6/reader.hpp>
 
-#include "device.hpp"
+#include "device/device.hpp"
 
 #include "shader.hpp"
 
-Shader::Shader(const uint64_t index, const ResourceLoadInfoI *loadInfo) : Super(index, loadInfo)
+void Shader::loadHost(const uint64_t index, const ResourceLoadInfoT& loadInfo)
 {
-    filepath = loadInfo->filepath;
-    local = std::make_shared<GPUShader>(loadInfo->deviceptr, this);
+    hostResource = std::make_shared<CPUShader>(index);
+    hostResource->m_filepath = loadInfo.filepath;
+    auto r = std::static_pointer_cast<CPUShader>(hostResource);
+    r->source = f6::bin::read(loadInfo.filepath.string());
+
+    cpuSideLoaded.test_and_set();
+    cpuSideLoaded.notify_all();
 }
 
-void Shader::load()
+void Shader::loadLocal(const ResourceLoadInfoT& loadInfo)
 {
-    std::string str = filepath.string();
-    vs = bin::read(str + ".vert.spv");
-    fs = bin::read(str + ".frag.spv");
+    localResource = loadInfo.deviceptr->createShader(ShaderCreateInfoT{loadInfo});
+    localResource->deviceptr = loadInfo.deviceptr;
 
-    loaded.test_and_set();
-}
-
-void Shader::unload()
-{
-    vs.clear();
-    fs.clear();
-}
-
-void GPUShader::load()
-{
-    auto base = (Shader *)host;
-
-    // vertex shader module
-    VkShaderModuleCreateInfo vsModuleCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .codeSize = base->vs.size(),
-        .pCode = reinterpret_cast<const uint32_t *>(base->vs.data()),
-    };
-    vsModule = device.create<ShaderModule>(&vsModuleCreateInfo);
-    // fragment shader module
-    VkShaderModuleCreateInfo fsModuleCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .codeSize = base->fs.size(),
-        .pCode = reinterpret_cast<const uint32_t *>(base->fs.data()),
-    };
-    fsModule = device.create<ShaderModule>(&fsModuleCreateInfo);
-
+    gpuSideLoaded.test_and_set();
     loaded.test_and_set();
     loaded.notify_all();
 }
 
-void GPUShader::unload()
+void Shader::unloadHost(const ResourceLoadInfoT& loadInfo)
 {
-    device.destroy<ShaderModule>(vsModule);
-    device.destroy<ShaderModule>(fsModule);
+    std::static_pointer_cast<CPUShader>(hostResource)->source.clear();
+}
+
+void Shader::unloadLocal(const ResourceLoadInfoT& loadInfo)
+{
 }

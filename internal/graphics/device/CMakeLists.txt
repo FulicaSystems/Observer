@@ -20,8 +20,8 @@ set_property(TARGET ${component}
     memory/image.hpp
 
     asset/render_pass.hpp
-    framebuffer.hpp
 
+    asset/shader.hpp
     asset/pipeline.hpp
 )
 
@@ -37,8 +37,9 @@ target_sources(${component}
     memory/image.hpp
 
     asset/render_pass.hpp
-    framebuffer.hpp
 
+    asset/shader.hpp
+    asset/shader.cpp
     asset/pipeline.hpp
 )
 
@@ -51,6 +52,7 @@ target_include_directories(${component}
 target_link_libraries(${component}
     PUBLIC ${Vulkan_LIBRARY}
     PUBLIC F6::Bin
+    PUBLIC data
 )
 
 target_include_directories(${component} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
