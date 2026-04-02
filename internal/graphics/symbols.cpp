@@ -53,6 +53,9 @@ void DeviceSymbolsLoader2T::load(ContextABC* cx, const LogicalDevice* device)
     BufferSymbolsLoaderT::load(cx, device);
     ImageSymbolsLoaderT::load(cx, device);
     RenderPassSymbolsLoaderT::load(cx, device);
+    PipelineSymbolsLoaderT::load(cx, device);
+    BackBufferSymbolsLoaderT::load(cx, device);
+    RenderingSymbolsLoaderT::load(cx, device);
 }
 
 void SwapchainSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
