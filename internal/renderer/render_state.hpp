@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "data/saved/mesh.hpp"
 #include "graphics/device/asset/pipeline.hpp"
 
 class RenderStateABC
@@ -17,5 +18,6 @@ class RenderStateABC
 class MeshRenderDescription : public RenderStateABC
 {
   private:
-    std::unique_ptr<Mesh> m_meshes;
+    // TODO : uniform block/uniform buffer
+    std::shared_ptr<GPUMesh> m_meshes;
 };

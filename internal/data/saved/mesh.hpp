@@ -20,11 +20,13 @@ class Mesh : public ResourceABC
 
 class CPUMesh : public HostResourceABC
 {
-
-  private:
+  public:
     std::vector<Vertex> vertices;
 
   public:
+    CPUMesh() = delete;
+    CPUMesh(uint64_t index) : HostResourceABC(index) {}
+
     inline const uint32_t getVertexCount() const { return vertices.size(); }
     inline const size_t getDataSize() const { return vertices.size() * sizeof(Vertex); }
     inline constexpr const std::vector<Vertex> getData() const { return vertices; }

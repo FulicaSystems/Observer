@@ -592,19 +592,22 @@ void LogicalDevice::destroyBackBufferSOA(std::shared_ptr<BackBufferSOAT>& pData)
 {
 }
 
-std::shared_ptr<Buffer> LogicalDevice::createBuffer(const BufferCreateInfoT createInfo) const
+std::shared_ptr<Buffer> LogicalDevice::createBuffer(const BufferCreateInfoT ci) const
 {
-    // auto bufferCreateInfo = (VkBufferCreateInfo*)createInfo;
-    // assert(bufferCreateInfo && bufferCreateInfo->sType == VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
-    // std::shared_ptr<Buffer> out = std::make_shared<Buffer>();
-    // cx->CreateBuffer(handle, (VkBufferCreateInfo*)createInfo, nullptr, &out->handle);
-    // // TODO : memory allocation
-    // return out;
-    return nullptr;
+    VkBufferCreateInfo bufferInfo = {VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
+    bufferInfo.size = ci.size;
+    bufferInfo.usage = ci.usage;
+
+    VmaAllocationCreateInfo allocInfo = {};
+    allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+
+    auto out = std::make_shared<Buffer>();
+    vmaCreateBuffer(allocator, &bufferInfo, &allocInfo, &out->handle, &out->memory, nullptr);
+
+    return out;
 }
 void LogicalDevice::destroyBuffer(std::shared_ptr<Buffer>& pData) const
 {
-    // cx->DestroyBuffer(handle, pData->handle, nullptr);
 }
 
 std::shared_ptr<Image> LogicalDevice::createImage(const ImageCreateInfoT ci) const

@@ -26,5 +26,12 @@ target_sources(${component}
     saved/mesh.cpp
 )
 
+# TODO : use fulica's mathematics library
+depends(PACKAGE FROM_SOURCE DIRECTORY glm/install CONFIG glm)
+target_link_libraries(${component}
+    PUBLIC glm::glm
+    PUBLIC graphics::device
+)
+
 target_include_directories(${component} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 target_include_directories(${component} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/..")
