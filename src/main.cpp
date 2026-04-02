@@ -3,7 +3,6 @@
 // TODO : memory leaks (trouver alternative à Valgrind (Linux))
 // TODO : texture
 // TODO : mvp
-// TODO : assimp
 // TODO : option pour retirer des api de la compilation
 // TODO : option pour changer d'api en runtime
 // TODO : opengl

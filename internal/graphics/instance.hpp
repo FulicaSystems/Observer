@@ -62,7 +62,7 @@ class Instance
     Instance(Instance &&) = delete;
     Instance &operator=(Instance &&) = delete;
 
-    Instance(const InstanceCreateInfoT createInfo);
+    explicit Instance(const InstanceCreateInfoT createInfo);
 
     ~Instance();
 

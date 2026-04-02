@@ -66,7 +66,7 @@ class ContextABC : public InstanceSymbolsT,
     ContextABC(ContextABC&&) = delete;
     ContextABC& operator=(ContextABC&&) = delete;
 
-    ContextABC(const ContextCreateInfoT createInfo);
+    explicit ContextABC(const ContextCreateInfoT createInfo);
 
     virtual ~ContextABC() {}
 

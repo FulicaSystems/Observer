@@ -2,18 +2,42 @@
 
 #include <vector>
 
-#include "buffer.hpp"
+#include "mesh.hpp"
 
-// TODO : scene
-class Scene
+class RenderPass;
+
+struct SceneLoadInfoT : public ResourceLoadInfoT
+{
+    std::optional<std::shared_ptr<RenderPass>> renderPass;
+};
+
+/**
+ * @brief description of a scene made specifically for a rendering engine (this one, Observer)
+ *
+ */
+class Scene : public ResourceABC
 {
   private:
-    // TODO : store Objects, Meshes or VBOs
-    std::vector<const Buffer &> VBOs;
-
   public:
-    void addVBO(const Buffer &ref)
-    {
-        VBOs.push_back(ref);
-    }
+    void loadHost(const uint64_t index, const std::shared_ptr<ResourceLoadInfoT> loadInfo);
+    void loadLocal(const std::shared_ptr<ResourceLoadInfoT> loadInfo);
+
+    void unloadHost();
+    void unloadLocal();
+};
+
+class CPUScene : public HostResourceABC
+{
+  public:
+    // TODO : other objects that can be rendered such as billboards, or particles (later)
+    std::vector<std::shared_ptr<Mesh>> m_meshes;
+
+    CPUScene() = delete;
+    CPUScene(uint64_t index) : HostResourceABC(index) {}
+};
+
+class GPUScene : public LocalResourceABC
+{
+  public:
+    std::vector<std::shared_ptr<MeshRenderDescription>> m_meshRenderStates;
 };

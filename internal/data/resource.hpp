@@ -2,36 +2,51 @@
 
 #include <filesystem>
 #include <memory>
+#include <optional>
 
 class LogicalDevice;
 
 struct ResourceLoadInfoT
 {
-    // device on which the resource will be allocated/created
+    /**
+     * @brief device on which the resource will be allocated/created
+     *
+     */
     const LogicalDevice* deviceptr;
 
-    // resource path if relevant
-    const std::filesystem::path filepath;
+    /**
+     * @brief resource path if relevant
+     * TODO : find a way to make const
+     *
+     */
+    /*const*/ std::optional<std::filesystem::path> filepath;
 
     virtual ~ResourceLoadInfoT() = default;
-    virtual std::size_t hash() const = 0;
+    virtual std::size_t hash() const
+    {
+        if (filepath.has_value())
+            return std::hash<const char*>{}(filepath.value().string().c_str());
+        else
+            return -1ULL;
+    }
 };
 
 class LoadableI
 {
   public:
-    virtual ~LoadableI() = 0;
+    virtual ~LoadableI() = default;
 
     /**
      * @brief load host
      *
      */
-    virtual void loadHost(const uint64_t index, const ResourceLoadInfoT* loadInfo) = 0;
+    virtual void loadHost(const uint64_t index,
+                          const std::shared_ptr<ResourceLoadInfoT> loadInfo) = 0;
     /**
      * @brief load local
      *
      */
-    virtual void loadLocal(const ResourceLoadInfoT* loadInfo) = 0;
+    virtual void loadLocal(const std::shared_ptr<ResourceLoadInfoT> loadInfo) = 0;
 
     /**
      * @brief unload host

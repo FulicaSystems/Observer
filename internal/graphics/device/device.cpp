@@ -347,10 +347,12 @@ void LogicalDevice::destroyFramebuffer(std::shared_ptr<Framebuffer>& pData) cons
 
 std::shared_ptr<GPUShader> LogicalDevice::createShader(const ShaderCreateInfoT ci) const
 {
+    assert(ci.source.has_value());
+
     VkShaderModuleCreateInfo createInfo = {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .codeSize = ci.source.size(),
-        .pCode = reinterpret_cast<const uint32_t*>(ci.source.data()),
+        .codeSize = ci.source.value().size(),
+        .pCode = reinterpret_cast<const uint32_t*>(ci.source.value().data()),
     };
 
     std::shared_ptr<GPUShader> out = std::make_shared<GPUShader>();
@@ -372,7 +374,7 @@ void LogicalDevice::destroyShader(std::shared_ptr<GPUShader>& pData) const
     cx->DestroyShaderModule(m_handle, pData->module, nullptr);
 }
 
-std::shared_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfoT ci) const
+std::unique_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfoT ci) const
 {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfos(ci.shaderStages.size());
     for (int i = 0; i < ci.shaderStages.size(); ++i)
@@ -472,7 +474,7 @@ std::shared_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfo
             ci.pushConstantRanges.empty() ? nullptr : ci.pushConstantRanges.data(),
     };
 
-    auto out = std::make_shared<Pipeline>(ci);
+    auto out = std::make_unique<Pipeline>(ci);
 
     VkResult res = cx->CreatePipelineLayout(m_handle, &pipelineLayoutCreateInfo, nullptr,
                                             &out->getLayoutHandle());
@@ -495,12 +497,12 @@ std::shared_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfo
         .pDynamicState = &dynamicStateCreateInfo,
         // pipeline layout
         .layout = out->getLayoutHandle(),
-        // render pass
-        .renderPass = ci.renderPass.handle,
         .subpass = ci.subpassIndex,
         .basePipelineHandle = VK_NULL_HANDLE,
         .basePipelineIndex = -1,
     };
+    if (ci.renderPass)
+        pipelineCreateInfo.renderPass = ci.renderPass->handle;
 
     res = cx->CreateGraphicsPipelines(m_handle, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr,
                                       &out->getHandle());
@@ -509,7 +511,7 @@ std::shared_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfo
 
     return out;
 }
-void LogicalDevice::destroyPipeline(std::shared_ptr<Pipeline>& pData) const
+void LogicalDevice::destroyPipeline(Pipeline* pData) const
 {
     cx->DestroyPipeline(m_handle, pData->getHandle(), nullptr);
     cx->DestroyPipelineLayout(m_handle, pData->getLayoutHandle(), nullptr);

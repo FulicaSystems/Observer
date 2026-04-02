@@ -109,7 +109,7 @@ struct PipelineCreateInfoT
     std::vector<std::vector<VkDescriptorSetLayoutBinding>> setLayoutBindings;
     std::vector<VkPushConstantRange> pushConstantRanges;
 
-    RenderPass renderPass;
+    std::shared_ptr<RenderPass> renderPass;
     uint32_t subpassIndex = 0;
 };
 

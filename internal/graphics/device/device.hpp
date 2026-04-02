@@ -128,9 +128,9 @@ class LogicalDevice
     [[nodiscard]] std::shared_ptr<GPUShader> createShader(const ShaderCreateInfoT createInfo) const;
     void destroyShader(std::shared_ptr<GPUShader>& pData) const;
 
-    [[nodiscard]] std::shared_ptr<Pipeline> createPipeline(
+    [[nodiscard]] std::unique_ptr<Pipeline> createPipeline(
         const PipelineCreateInfoT createInfo) const;
-    void destroyPipeline(std::shared_ptr<Pipeline>& pData) const;
+    void destroyPipeline(Pipeline* pData) const;
 
     /**
      * @brief Create a Back Buffer A O S object

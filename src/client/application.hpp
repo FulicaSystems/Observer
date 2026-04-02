@@ -10,6 +10,7 @@ class Instance;
 class PhysicalDevice;
 class LogicalDevice;
 class Renderer;
+class Scene;
 
 class Application
 {
@@ -25,6 +26,8 @@ class Application
     std::vector<std::unique_ptr<LogicalDevice>> m_devices;
 
     std::unique_ptr<Renderer> m_renderer;
+
+    std::shared_ptr<Scene> m_scene;
 
     /**
      * @brief used to select the wanted logical device (defaults to first discrete device if

@@ -2,8 +2,16 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "data/saved/mesh.hpp"
 #include "graphics/device/asset/pipeline.hpp"
+#include "graphics/device/device.hpp"
+
+struct RenderStateCreateInfoT
+{
+    const LogicalDevice* deviceptr;
+    PipelineCreateInfoT pipelineCreateInfo;
+
+    virtual ~RenderStateCreateInfoT() = default;
+};
 
 class RenderStateABC
 {
@@ -11,13 +19,13 @@ class RenderStateABC
     VkDescriptorPool descriptorPool;
     std::unique_ptr<Pipeline> pipeline;
 
-    virtual RenderStateABC() {}
+  public:
+    RenderStateABC() = delete;
+    explicit RenderStateABC(std::shared_ptr<RenderStateCreateInfoT> createInfo)
+    {
+        pipeline = createInfo->deviceptr->createPipeline(createInfo->pipelineCreateInfo);
+    }
+
+    virtual ~RenderStateABC() {}
 
 } typedef RenderableABC, RenderObjectABC, RenderDescriptionABC;
-
-class MeshRenderDescription : public RenderStateABC
-{
-  private:
-    // TODO : uniform block/uniform buffer
-    std::shared_ptr<GPUMesh> m_meshes;
-};

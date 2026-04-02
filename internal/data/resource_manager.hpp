@@ -13,7 +13,7 @@
 template<> class std::hash<ResourceLoadInfoT*>
 {
   public:
-    std::size_t operator()(const ResourceLoadInfoT* li) const { return li->hash(); }
+    std::size_t operator()(const std::shared_ptr<ResourceLoadInfoT> li) const { return li->hash(); }
 };
 
 // TODO : maybe make this class an external library (new repository), when moving this class in a
@@ -54,7 +54,8 @@ class ResourceManager
   public:
     template<class TResource>
         requires std::is_base_of<ResourceABC, TResource>::value
-    static inline std::shared_ptr<TResource> load(const ResourceLoadInfoT* loadInfo);
+    static inline std::shared_ptr<TResource> load(
+        const std::shared_ptr<ResourceLoadInfoT> loadInfo);
 
     static void clearAllResources();
 
@@ -63,13 +64,14 @@ class ResourceManager
 
 template<class TResource>
     requires std::is_base_of<ResourceABC, TResource>::value
-inline std::shared_ptr<TResource> ResourceManager::load(const ResourceLoadInfoT* loadInfo)
+inline std::shared_ptr<TResource> ResourceManager::load(
+    const std::shared_ptr<ResourceLoadInfoT> loadInfo)
 {
     ResourceManager& rm = getInstance();
 
     // TODO : retrieve if resource already existing (or reload)
 
-    ++resourceCount;
+    ++rm.resourceCount;
     auto resource = std::make_shared<TResource>();
 
     {
@@ -82,7 +84,7 @@ inline std::shared_ptr<TResource> ResourceManager::load(const ResourceLoadInfoT*
     }
 
     // TODO : multithreading
-    resource->loadHost(resourceCount, loadInfo);
+    resource->loadHost(rm.resourceCount, loadInfo);
     resource->loadLocal(loadInfo);
 
     return std::dynamic_pointer_cast<TResource>(resource);

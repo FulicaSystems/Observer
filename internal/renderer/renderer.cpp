@@ -2,6 +2,8 @@
 
 #include "graphics/context.hpp"
 
+#include "data/saved/scene.hpp"
+
 #include "renderer.hpp"
 
 LegacyRendererBackend::LegacyRendererBackend(
@@ -19,7 +21,7 @@ void RendererBackendABC::swap()
     m_currentBackBufferIndex = (m_currentBackBufferIndex + 1) % (uint32_t)m_bufferingType;
 }
 
-uint32_t LegacyRendererBackend::acquire(const SwapChain* swapchain)
+uint32_t LegacyRendererBackend::acquire(const SwapChain* swapchain) const
 {
     auto& bb = m_backBuffers[m_currentBackBufferIndex];
     auto* cx = m_device->getContext();
@@ -41,7 +43,7 @@ uint32_t LegacyRendererBackend::acquire(const SwapChain* swapchain)
     return index;
 }
 
-void LegacyRendererBackend::begin(const Framebuffer* framebuffer)
+void LegacyRendererBackend::begin(const Framebuffer* framebuffer) const
 {
     auto& cb = m_backBuffers[m_currentBackBufferIndex]->commandBuffer;
 
@@ -91,22 +93,26 @@ void LegacyRendererBackend::begin(const Framebuffer* framebuffer)
     };
     vkCmdSetScissor(cb, 0, 1, &scissor);
 }
-void LegacyRendererBackend::draw(/*const Scene& scene*/)
+void LegacyRendererBackend::draw(const std::shared_ptr<Scene> scene) const
 {
     auto& cb = m_backBuffers[m_currentBackBufferIndex]->commandBuffer;
 
-    for (int i = 0; i < scene->renderStates.size(); ++i)
+    auto s = std::static_pointer_cast<GPUScene>(scene->localResource);
+    for (int i = 0; i < s->m_meshRenderStates.size(); ++i)
     {
-        vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        auto& rs = s->m_meshRenderStates[i];
 
-        VkBuffer vbos[] = {vertexBuffer};
+        vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rs->pipeline->getHandle());
+
+        auto view = rs->getGPUMesh();
+        VkBuffer vbos[] = {view->vertexBuffer->handle};
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(cb, 0, 1, vbos, offsets);
-        vkCmdBindIndexBuffer(cb, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-        vkCmdDrawIndexed(cb, indexCount, 1, 0, 0, 0);
+        vkCmdBindIndexBuffer(cb, view->indexBuffer->handle, 0, VK_INDEX_TYPE_UINT16);
+        vkCmdDrawIndexed(cb, view->indexCount, 1, 0, 0, 0);
     }
 }
-void LegacyRendererBackend::end()
+void LegacyRendererBackend::end() const
 {
     auto& cb = m_backBuffers[m_currentBackBufferIndex]->commandBuffer;
 
@@ -116,7 +122,7 @@ void LegacyRendererBackend::end()
     if (res != VK_SUCCESS)
         std::cerr << "Failed to record command buffer : " << res << std::endl;
 }
-void LegacyRendererBackend::submit()
+void LegacyRendererBackend::submit() const
 {
     auto& bb = m_backBuffers[m_currentBackBufferIndex];
     auto& cb = bb->commandBuffer;
@@ -142,7 +148,7 @@ void LegacyRendererBackend::submit()
         std::cerr << "Failed to submit draw command buffer : " << res << std::endl;
 }
 void LegacyRendererBackend::present(
-    const std::vector<std::pair<const SwapChain*, uint32_t>> swapchainsAndImageIndices)
+    const std::vector<std::pair<const SwapChain*, uint32_t>> swapchainsAndImageIndices) const
 {
     auto& bb = m_backBuffers[m_currentBackBufferIndex];
 
@@ -169,25 +175,25 @@ void LegacyRendererBackend::present(
         std::cerr << "Failed to present : " << res << std::endl;
 }
 
-uint32_t DynamicRendererBackend::acquire(const SwapChain* swapchain)
+uint32_t DynamicRendererBackend::acquire(const SwapChain* swapchain) const
 {
     return 0;
 }
 
-void DynamicRendererBackend::begin(const Framebuffer* framebuffer)
+void DynamicRendererBackend::begin(const Framebuffer* framebuffer) const
 {
 }
-void DynamicRendererBackend::draw(/*const Scene& scene*/)
+void DynamicRendererBackend::draw(const std::shared_ptr<Scene> scene) const
 {
 }
-void DynamicRendererBackend::end()
+void DynamicRendererBackend::end() const
 {
 }
-void DynamicRendererBackend::submit()
+void DynamicRendererBackend::submit() const
 {
 }
 void DynamicRendererBackend::present(
-    const std::vector<std::pair<const SwapChain*, uint32_t>> swapchainsAndImageIndices)
+    const std::vector<std::pair<const SwapChain*, uint32_t>> swapchainsAndImageIndices) const
 {
 }
 Renderer::Renderer(RendererCreateInfoT createInfo)
@@ -195,17 +201,13 @@ Renderer::Renderer(RendererCreateInfoT createInfo)
     m_backend = std::move(createInfo.backend);
 }
 
-void Renderer::render()
+void Renderer::render(const Framebuffer* framebuffer, const std::shared_ptr<Scene> scene)
 {
-    m_backend->acquire();
-
-    m_backend->begin();
-    m_backend->draw(/*const Scene& scene*/);
+    m_backend->begin(framebuffer);
+    m_backend->draw(scene);
     m_backend->end();
 
     m_backend->submit();
-
-    m_backend->present();
 }
 
 void Renderer::swap()

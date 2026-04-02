@@ -12,6 +12,10 @@
 
 #include <renderer/renderer.hpp>
 
+#include <data/saved/scene.hpp>
+
+#include <data/resource_manager.hpp>
+
 #include "application.hpp"
 
 Application::Application()
@@ -148,6 +152,12 @@ Application::Application()
                             },
         .renderPass = backendCreateInfo->renderPass,
     }));
+
+    auto li = std::make_shared<SceneLoadInfoT>();
+    li->deviceptr = m_devices[m_currentDeviceIndex].get();
+    li->filepath = ".";
+    li->renderPass = backendCreateInfo->renderPass;
+    m_scene = ResourceManager::load<Scene>(li);
 }
 
 Application::~Application()
@@ -173,9 +183,26 @@ int Application::perFrame()
     m_window->pollEvents();
     // TODO : threadpool poll main queue
 
-    m_renderer->render(/*const Scene& scene*/);
+    auto legacyRenderer = dynamic_cast<const LegacyRendererBackend*>(m_renderer->getBackend());
+    uint32_t imageIndex;
+    const Framebuffer* framebuffer = nullptr;
+    auto sc = m_window->getSwapChain();
+    if (legacyRenderer)
+    {
+        imageIndex = legacyRenderer->acquire(sc);
+        framebuffer = sc->m_framebuffers.value()[imageIndex].get();
+    }
+
+    assert(framebuffer);
+    m_renderer->render(framebuffer, m_scene);
+
+    if (legacyRenderer)
+        legacyRenderer->present({
+            {sc, imageIndex}
+        });
 
     m_window->swapBuffers();
     m_renderer->swap();
+
     return 1;
 }
