@@ -30,6 +30,8 @@ struct ImageCreateInfoT;
 struct BackBufferAOST;
 struct BackBufferSOAT;
 struct BackBufferCreateInfoT;
+class Semaphore;
+struct SemaphoreCreateInfoT;
 
 struct LogicalDeviceCreateInfoT
 {
@@ -117,9 +119,9 @@ class LogicalDevice
         const ImageViewCreateInfoT createInfo) const;
     void destroyImageView(std::shared_ptr<ImageView>& pData) const;
 
-    [[nodiscard]] std::shared_ptr<RenderPass> createRenderPass(
+    [[nodiscard]] std::unique_ptr<RenderPass> createRenderPass(
         const RenderPassCreateInfoT createInfo) const;
-    void destroyRenderPass(std::shared_ptr<RenderPass>& pData) const;
+    void destroyRenderPass(RenderPass* pData) const;
 
     [[nodiscard]] std::shared_ptr<Framebuffer> createFramebuffer(
         const FramebufferCreateInfoT createInfo) const;
@@ -131,6 +133,10 @@ class LogicalDevice
     [[nodiscard]] std::unique_ptr<Pipeline> createPipeline(
         const PipelineCreateInfoT createInfo) const;
     void destroyPipeline(Pipeline* pData) const;
+
+    [[nodiscard]] std::shared_ptr<Semaphore> createSemaphore(
+        const SemaphoreCreateInfoT createInfo) const;
+    void destroySemaphore(std::shared_ptr<Semaphore> pData) const;
 
     /**
      * @brief Create a Back Buffer A O S object

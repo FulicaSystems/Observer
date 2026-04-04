@@ -15,6 +15,7 @@
 #include "memory/buffer.hpp"
 #include "memory/image.hpp"
 #include "swapchain.hpp"
+#include "synchronization.hpp"
 
 #include "device.hpp"
 
@@ -107,7 +108,7 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(SwapChainCreateInfoT c
                                            .imageColorSpace = surfaceFormat.colorSpace,
                                            .imageExtent = extent,
                                            .imageArrayLayers = 1,
-                                           .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                                           .imageUsage = ci.imageUsage,
                                            .preTransform = capabilities.currentTransform,
                                            .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
                                            .presentMode = presentMode,
@@ -151,6 +152,10 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(SwapChainCreateInfoT c
     cx->GetSwapchainImagesKHR(m_handle, out->getHandle(), &imageCount, out->images.data());
 
     out->imageViews.reserve(imageCount);
+    out->m_presentSemaphores.resize(imageCount);
+    VkSemaphoreCreateInfo semaphoreCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+    };
     for (int i = 0; i < imageCount; ++i)
     {
         if (!ci.viewCreateInfo.image.has_value())
@@ -158,6 +163,8 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(SwapChainCreateInfoT c
         if (!ci.viewCreateInfo.format.has_value())
             ci.viewCreateInfo.format = surfaceFormat.format;
         out->imageViews.emplace_back(createImageView(ci.viewCreateInfo));
+
+        out->m_presentSemaphores[i] = createSemaphore(SemaphoreCreateInfoT{});
     }
 
     out->imageFormat = surfaceFormat.format;
@@ -165,6 +172,32 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(SwapChainCreateInfoT c
 
     if (ci.renderPass.has_value())
     {
+        if (ci.renderPass.value()->info.depthAttachment.has_value())
+        {
+            out->depthImage = createImage(ImageCreateInfoT{
+                .imageType = VK_IMAGE_TYPE_2D,
+                .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                .extent =
+                    {
+                             .width = extent.width,
+                             .height = extent.height,
+                             .depth = 1U,
+                             },
+                .mipLevels = 1U,
+                .arrayLayers = 1U,
+                .samples = VK_SAMPLE_COUNT_1_BIT,
+                .tiling = VK_IMAGE_TILING_OPTIMAL,
+                .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            });
+            out->depthImageView = createImageView(ImageViewCreateInfoT{
+                .image = out->depthImage.value()->handle,
+                .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                .aspect = VK_IMAGE_ASPECT_DEPTH_BIT,
+            });
+        }
+
         out->m_framebuffers = std::make_optional<std::vector<std::shared_ptr<Framebuffer>>>();
         out->m_framebuffers->reserve(imageCount);
         for (int i = 0; i < imageCount; ++i)
@@ -173,36 +206,14 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(SwapChainCreateInfoT c
                 .renderPass = ci.renderPass.value(),
                 .attachments =
                     {
-                                  *out->imageViews[i],
+                                  out->imageViews[i],
                                   },
                 .width = extent.width,
                 .height = extent.height,
             };
             if (ci.renderPass.value()->info.depthAttachment.has_value())
             {
-                out->depthImage = createImage(ImageCreateInfoT{
-                    .imageType = VK_IMAGE_TYPE_2D,
-                    .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                    .extent =
-                        {
-                                 .width = extent.width,
-                                 .height = extent.height,
-                                 .depth = 1U,
-                                 },
-                    .mipLevels = 1U,
-                    .arrayLayers = 1U,
-                    .samples = VK_SAMPLE_COUNT_1_BIT,
-                    .tiling = VK_IMAGE_TILING_OPTIMAL,
-                    .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                });
-                out->depthImageView = createImageView(ImageViewCreateInfoT{
-                    .image = out->depthImage.value()->handle,
-                    .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                    .aspect = VK_IMAGE_ASPECT_DEPTH_BIT,
-                });
-                fboCreateInfo.attachments.emplace_back(*out->depthImageView.value());
+                fboCreateInfo.attachments.emplace_back(out->depthImageView.value());
             }
             out->m_framebuffers->emplace_back(createFramebuffer(fboCreateInfo));
         }
@@ -257,7 +268,7 @@ void LogicalDevice::destroyImageView(std::shared_ptr<ImageView>& pData) const
 {
 }
 
-std::shared_ptr<RenderPass> LogicalDevice::createRenderPass(const RenderPassCreateInfoT ci) const
+std::unique_ptr<RenderPass> LogicalDevice::createRenderPass(const RenderPassCreateInfoT ci) const
 {
     std::vector<VkAttachmentDescription> attachments(ci.colorAttachments.size());
     std::vector<VkAttachmentReference> colorAttachmentRefs(ci.colorAttachments.size());
@@ -280,6 +291,7 @@ std::shared_ptr<RenderPass> LogicalDevice::createRenderPass(const RenderPassCrea
 
         subpassColorAttachments[i] =
             std::vector<VkAttachmentReference>(s.colorAttachmentIndices.size());
+        assert(!s.colorAttachmentIndices.empty());
         for (int j = 0; j < s.colorAttachmentIndices.size(); ++j)
         {
             subpassColorAttachments[i][j] = ci.colorAttachments[s.colorAttachmentIndices[j]].second;
@@ -302,7 +314,7 @@ std::shared_ptr<RenderPass> LogicalDevice::createRenderPass(const RenderPassCrea
         .pDependencies = ci.dependencies.data(),
     };
 
-    auto out = std::make_shared<RenderPass>();
+    auto out = std::make_unique<RenderPass>();
     VkResult res = cx->CreateRenderPass(m_handle, &createInfo, nullptr, &out->handle);
     if (res != VK_SUCCESS)
         std::cerr << "Failed to create render pass : " << res << std::endl;
@@ -311,7 +323,7 @@ std::shared_ptr<RenderPass> LogicalDevice::createRenderPass(const RenderPassCrea
 
     return out;
 }
-void LogicalDevice::destroyRenderPass(std::shared_ptr<RenderPass>& pData) const
+void LogicalDevice::destroyRenderPass(RenderPass* pData) const
 {
 }
 
@@ -320,7 +332,7 @@ std::shared_ptr<Framebuffer> LogicalDevice::createFramebuffer(const FramebufferC
     std::vector<VkImageView> attachments(ci.attachments.size());
     for (int i = 0; i < ci.attachments.size(); ++i)
     {
-        attachments[i] = ci.attachments[i].handle;
+        attachments[i] = ci.attachments[i]->handle;
     }
     VkFramebufferCreateInfo createInfo = {
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -517,6 +529,26 @@ void LogicalDevice::destroyPipeline(Pipeline* pData) const
     cx->DestroyPipelineLayout(m_handle, pData->getLayoutHandle(), nullptr);
 }
 
+std::shared_ptr<Semaphore> LogicalDevice::createSemaphore(const SemaphoreCreateInfoT ci) const
+{
+    std::optional<VkSemaphoreTypeCreateInfo> next = ci.type;
+    VkSemaphoreCreateInfo semaphoreCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+        .pNext = next.has_value() ? &next.value() : nullptr,
+    };
+
+    auto out = std::make_shared<Semaphore>();
+    VkResult res = cx->CreateSemaphore(m_handle, &semaphoreCreateInfo, nullptr, &out->handle);
+    if (res != VK_SUCCESS)
+        std::cerr << "Failed to create semaphore : " << res << std::endl;
+
+    return out;
+}
+
+void LogicalDevice::destroySemaphore(std::shared_ptr<Semaphore> pData) const
+{
+}
+
 std::shared_ptr<BackBufferAOST> LogicalDevice::createBackBufferAOS(
     const BackBufferCreateInfoT ci) const
 {
@@ -532,25 +564,13 @@ std::shared_ptr<BackBufferAOST> LogicalDevice::createBackBufferAOS(
     if (res != VK_SUCCESS)
         std::cerr << "Failed to allocate command buffers : " << res << std::endl;
 
-    VkSemaphoreCreateInfo semaphoreCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-    };
-    if (ci.bHasAcquireSemaphore)
-    {
-        out->acquireSemaphore = std::make_optional<VkSemaphore>();
-        res = cx->CreateSemaphore(m_handle, &semaphoreCreateInfo, nullptr,
-                                  &out->acquireSemaphore.value());
-        if (res != VK_SUCCESS)
-            std::cerr << "Failed to create semaphore : " << res << std::endl;
-    }
-    res = cx->CreateSemaphore(m_handle, &semaphoreCreateInfo, nullptr, &out->renderSemaphore);
-    if (res != VK_SUCCESS)
-        std::cerr << "Failed to create semaphore : " << res << std::endl;
+    if (ci.bHasBeforeSubmissionSemaphore)
+        out->beforeSubmissionSemaphore = createSemaphore(SemaphoreCreateInfoT{});
 
     VkFenceCreateInfo fenceCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
     };
-    if (ci.bSignaled)
+    if (ci.bFenceStartsSignaled)
         fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     res = cx->CreateFence(m_handle, &fenceCreateInfo, nullptr, &out->inFlightFence);

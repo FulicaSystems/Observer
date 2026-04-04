@@ -75,6 +75,8 @@ void Scene::loadLocal(const std::shared_ptr<ResourceLoadInfoT> loadInfo)
                         .format = VK_FORMAT_R32G32_SFLOAT,
                         .offset = offsetof(Vertex, uv),
                     }, },
+            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+            .bPrimitiveRestartEnable = false,
             .viewportWidth = 1366,
             .viewportHeight = 768,
             .setLayoutBindings =

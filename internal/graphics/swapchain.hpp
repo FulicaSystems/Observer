@@ -11,6 +11,7 @@ class LogicalDevice;
 class Surface;
 class RenderPass;
 class Framebuffer;
+class Semaphore;
 
 struct SwapChainCreateInfoT
 {
@@ -21,9 +22,11 @@ struct SwapChainCreateInfoT
     VkPresentModeKHR presentMode;
     VkExtent2D extent;
 
+    VkImageUsageFlags imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
     ImageViewCreateInfoT viewCreateInfo;
 
-    std::optional<std::shared_ptr<RenderPass>> renderPass;
+    std::optional<const RenderPass*> renderPass;
 };
 
 class SwapChain
@@ -48,6 +51,13 @@ class SwapChain
     // TODO : recreate swapchain handle (swapchain recreation without affecting the pointers to it)
 
     std::optional<std::vector<std::shared_ptr<Framebuffer>>> m_framebuffers;
+
+    /**
+     * @brief These semaphores are signaled by the submit operation. They indicate the image present
+     * availability.
+     *
+     */
+    std::vector<std::shared_ptr<Semaphore>> m_presentSemaphores;
 
     SwapChain() = delete;
     SwapChain(const SwapChainCreateInfoT ci) : ci(ci) {}

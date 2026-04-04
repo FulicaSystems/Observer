@@ -9,8 +9,8 @@
 
 struct FramebufferCreateInfoT
 {
-    const std::shared_ptr<RenderPass> renderPass;
-    std::vector<ImageView> attachments;
+    const RenderPass* renderPass;
+    std::vector<std::shared_ptr<ImageView>> attachments;
     uint32_t width;
     uint32_t height;
 };

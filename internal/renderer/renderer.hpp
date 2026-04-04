@@ -18,6 +18,7 @@ class RendererI
   public:
     virtual ~RendererI() {};
 
+    virtual void wait() const = 0;
     /**
      * @brief begin drawing/begin render pass
      *
@@ -39,10 +40,9 @@ class RendererI
      * @brief submit command buffers
      *
      */
-    // TODO
-    virtual void submit(/*std::vector<VkSemaphore> additionalWaitSemaphores, std::vector<VkSemaphore> additionalSignalSemaphores*/) const = 0;
+    virtual void submit() const = 0;
     /**
-     * @brief swap back buffers
+     * @brief swap back buffers (only affect the back buffer index)
      *
      */
     virtual void swap() = 0;
@@ -51,17 +51,20 @@ class RendererI
 class SwapChainRendererI
 {
   public:
+    typedef std::pair<const SwapChain*, uint32_t> AvailableImage;
+
+    virtual void addSwapChain(const SwapChain* swapchain) = 0;
+
     /**
      * @brief acquire next swap chain image
      *
      */
-    [[nodiscard]] virtual uint32_t acquire(const SwapChain* swapchain) const = 0;
+    virtual std::vector<uint32_t> acquire() = 0;
     /**
      * @brief present last rendered frame
      *
      */
-    virtual void present(const std::vector<std::pair<const SwapChain*, uint32_t>>
-                             swapchainsAndImageIndices) const = 0;
+    virtual void present() const = 0;
 };
 
 struct RendererBackendCreateInfoT
@@ -93,21 +96,22 @@ class RendererBackendABC : public RendererI
 
     virtual ~RendererBackendABC() override {}
 
-    virtual void swap() override;
+    void wait() const override;
+    void swap() override;
 
 } typedef RendererPImplABC;
 
 struct LegacyRendererBackendCreateInfoT : RendererBackendCreateInfoT
 {
-    // TODO : make unique_ptr
-    std::shared_ptr<RenderPass> renderPass;
+    RenderPassCreateInfoT renderPassCreateInfo;
 };
 
 class LegacyRendererBackend : public RendererBackendABC, public SwapChainRendererI
 {
   private:
-    // TODO : make unique_ptr
-    std::shared_ptr<RenderPass> m_renderPass;
+    std::unique_ptr<RenderPass> m_renderPass;
+    std::vector<const SwapChain*> m_swapchains;
+    std::vector<uint32_t> m_currentSwapchainImageIndices;
     /**
      * @brief one group of framebuffers per render pass
      *
@@ -120,36 +124,43 @@ class LegacyRendererBackend : public RendererBackendABC, public SwapChainRendere
 
     ~LegacyRendererBackend() override {}
 
-    [[nodiscard]] uint32_t acquire(const SwapChain* swapchain) const override;
+    void addSwapChain(const SwapChain* swapchain) override { m_swapchains.emplace_back(swapchain); }
+
+    std::vector<uint32_t> acquire() override;
 
     void begin(const Framebuffer* framebuffer) const override;
     void draw(const std::shared_ptr<Scene> scene) const override;
     void end() const override;
     void submit() const override;
 
-    void present(const std::vector<std::pair<const SwapChain*, uint32_t>> swapchainsAndImageIndices)
-        const override;
+    void present() const override;
+
+  public:
+    [[nodiscard]] const RenderPass* getRenderPass() const { return m_renderPass.get(); }
 
 } typedef RenderPassBasedRendererBackend;
 
 class DynamicRendererBackend : public RendererBackendABC, public SwapChainRendererI
 {
   private:
+    std::vector<const SwapChain*> m_swapchains;
+
   public:
     DynamicRendererBackend() = delete;
     DynamicRendererBackend(const std::shared_ptr<RendererBackendCreateInfoT> createInfo);
 
     ~DynamicRendererBackend() override {}
 
-    [[nodiscard]] uint32_t acquire(const SwapChain* swapchain) const override;
+    void addSwapChain(const SwapChain* swapchain) override { m_swapchains.emplace_back(swapchain); }
+
+    std::vector<uint32_t> acquire() override;
 
     void begin(const Framebuffer* framebuffer) const override;
     void draw(const std::shared_ptr<Scene> scene) const override;
     void end() const override;
     void submit() const override;
 
-    void present(const std::vector<std::pair<const SwapChain*, uint32_t>> swapchainsAndImageIndices)
-        const override;
+    void present() const override;
 
 } typedef StateBasedRendererBackend;
 
@@ -174,9 +185,9 @@ class Renderer
     Renderer(RendererCreateInfoT createInfo);
 
     void render(const Framebuffer* framebuffer, const std::shared_ptr<Scene> scene);
-    void swap();
 
   public:
     [[nodiscard]] inline const RendererBackendABC* getBackend() const { return m_backend.get(); }
+    [[nodiscard]] inline RendererBackendABC* getBackend() { return m_backend.get(); }
 
 } typedef FrameProcessor, RendererFrontend;

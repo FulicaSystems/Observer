@@ -8,7 +8,7 @@ class RenderPass;
 
 struct SceneLoadInfoT : public ResourceLoadInfoT
 {
-    std::optional<std::shared_ptr<RenderPass>> renderPass;
+    std::optional<const RenderPass*> renderPass;
 };
 
 /**

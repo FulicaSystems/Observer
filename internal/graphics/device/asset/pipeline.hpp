@@ -45,7 +45,12 @@ struct PipelineCreateInfoT
     std::vector<VkVertexInputAttributeDescription> vertexAttributes;
 
     VkPrimitiveTopology topology;
-    bool bPrimitiveRestartEnable;
+    /**
+     * @brief
+     * https://docs.vulkan.org/refpages/latest/refpages/source/VkPipelineInputAssemblyStateCreateInfo.html#_members
+     *
+     */
+    bool bPrimitiveRestartEnable = false;
 
     uint32_t viewportWidth;
     uint32_t viewportHeight;
@@ -109,7 +114,7 @@ struct PipelineCreateInfoT
     std::vector<std::vector<VkDescriptorSetLayoutBinding>> setLayoutBindings;
     std::vector<VkPushConstantRange> pushConstantRanges;
 
-    std::shared_ptr<RenderPass> renderPass;
+    const RenderPass* renderPass;
     uint32_t subpassIndex = 0;
 };
 

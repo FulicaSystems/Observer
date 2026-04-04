@@ -76,58 +76,56 @@ Application::Application()
     auto backendCreateInfo = std::make_shared<LegacyRendererBackendCreateInfoT>();
     backendCreateInfo->bufferingType = BufferingTypeE::DOUBLE_BUFFERING;
     backendCreateInfo->device = m_devices[m_currentDeviceIndex].get();
-    backendCreateInfo->renderPass = {
-        m_devices[m_currentDeviceIndex]->createRenderPass(RenderPassCreateInfoT{
-                                                                                .colorAttachments =
-                {
-                    Attachment{VkAttachmentDescription{
-                                   .format = VK_FORMAT_B8G8R8A8_UNORM,
-                                   .samples = VK_SAMPLE_COUNT_1_BIT,
-                                   .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                   .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                                   .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                   .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                   .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                   .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+    backendCreateInfo->renderPassCreateInfo = RenderPassCreateInfoT{
+        .colorAttachments =
+            {
+                               Attachment{VkAttachmentDescription{
+                               .format = VK_FORMAT_B8G8R8A8_UNORM,
+                               .samples = VK_SAMPLE_COUNT_1_BIT,
+                               .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                               .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                               .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                               .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                               .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                               .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                           },
+                           VkAttachmentReference{
+                               .attachment = 0,
+                               .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                           }},
                                },
-                               VkAttachmentReference{
-                                   .attachment = 0,
-                                   .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                               }},
-                }, .depthAttachment = std::make_optional<Attachment>(
-                {VkAttachmentDescription{
-                     .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                     .samples = VK_SAMPLE_COUNT_1_BIT,
-                     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                     .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                     .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                 },
-                 VkAttachmentReference{
-                     .attachment = 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL}}),
-                                                                                .subpasses =
-                {
-                    SubpassDescriptionT{
-                        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-                        .colorAttachmentIndices = {0},
-                    },
-                }, .dependencies =
-                {
-                    VkSubpassDependency{
-                        .srcSubpass = VK_SUBPASS_EXTERNAL,
-                        .dstSubpass = 0,
-                        .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-                                        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-                        .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-                                        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-                        .srcAccessMask = 0,
-                        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                                         VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-                    },
-                }, }
-        )
+        .depthAttachment = std::make_optional<Attachment>(
+            {VkAttachmentDescription{
+                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                 .samples = VK_SAMPLE_COUNT_1_BIT,
+                 .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                 .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                 .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                 .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                 .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                 .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+             }, VkAttachmentReference{.attachment = 1,
+                                   .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL}}
+             ),
+        .subpasses =
+            {
+                               SubpassDescriptionT{
+                    .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    .colorAttachmentIndices = {0},
+                }, },
+        .dependencies =
+            {
+                               VkSubpassDependency{
+                    .srcSubpass = VK_SUBPASS_EXTERNAL,
+                    .dstSubpass = 0,
+                    .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                                    VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+                    .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                                    VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+                    .srcAccessMask = 0,
+                    .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                     VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                }, },
     };
     m_renderer = std::make_unique<Renderer>(
         RendererCreateInfoT{.device = m_devices[m_currentDeviceIndex].get(),
@@ -150,13 +148,17 @@ Application::Application()
             ImageViewCreateInfoT{
                             .aspect = VK_IMAGE_ASPECT_COLOR_BIT,
                             },
-        .renderPass = backendCreateInfo->renderPass,
+        .renderPass =
+            static_cast<const LegacyRendererBackend*>(m_renderer->getBackend())->getRenderPass(),
     }));
+    static_cast<LegacyRendererBackend*>(m_renderer->getBackend())
+        ->addSwapChain(m_window->getSwapChain());
 
     auto li = std::make_shared<SceneLoadInfoT>();
     li->deviceptr = m_devices[m_currentDeviceIndex].get();
     li->filepath = ".";
-    li->renderPass = backendCreateInfo->renderPass;
+    li->renderPass =
+        static_cast<const LegacyRendererBackend*>(m_renderer->getBackend())->getRenderPass();
     m_scene = ResourceManager::load<Scene>(li);
 }
 
@@ -183,26 +185,24 @@ int Application::perFrame()
     m_window->pollEvents();
     // TODO : threadpool poll main queue
 
-    auto legacyRenderer = dynamic_cast<const LegacyRendererBackend*>(m_renderer->getBackend());
-    uint32_t imageIndex;
+    auto legacyRenderer = dynamic_cast<LegacyRendererBackend*>(m_renderer->getBackend());
+
+    std::vector<uint32_t> imageIndices;
     const Framebuffer* framebuffer = nullptr;
     auto sc = m_window->getSwapChain();
     if (legacyRenderer)
     {
-        imageIndex = legacyRenderer->acquire(sc);
-        framebuffer = sc->m_framebuffers.value()[imageIndex].get();
+        legacyRenderer->wait();
+        imageIndices = legacyRenderer->acquire();
+        framebuffer = sc->m_framebuffers.value()[imageIndices[0]].get();
+
+        m_renderer->render(framebuffer, m_scene);
+
+        legacyRenderer->present();
+        legacyRenderer->swap();
     }
 
-    assert(framebuffer);
-    m_renderer->render(framebuffer, m_scene);
-
-    if (legacyRenderer)
-        legacyRenderer->present({
-            {sc, imageIndex}
-        });
-
     m_window->swapBuffers();
-    m_renderer->swap();
 
     return 1;
 }

@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "graphics/context.hpp"
+#include "graphics/synchronization.hpp"
 
 #include "data/saved/scene.hpp"
 
@@ -13,7 +14,16 @@ LegacyRendererBackend::LegacyRendererBackend(
     auto ci = std::dynamic_pointer_cast<LegacyRendererBackendCreateInfoT>(createInfo);
     assert(ci);
 
-    m_renderPass = ci->renderPass;
+    m_renderPass = createInfo->device->createRenderPass(ci->renderPassCreateInfo);
+}
+
+void RendererBackendABC::wait() const
+{
+    auto& bb = m_backBuffers[m_currentBackBufferIndex];
+    auto* cx = m_device->getContext();
+
+    cx->WaitForFences(m_device->getHandle(), 1, &bb->inFlightFence, VK_TRUE, UINT64_MAX);
+    cx->ResetFences(m_device->getHandle(), 1, &bb->inFlightFence);
 }
 
 void RendererBackendABC::swap()
@@ -21,26 +31,37 @@ void RendererBackendABC::swap()
     m_currentBackBufferIndex = (m_currentBackBufferIndex + 1) % (uint32_t)m_bufferingType;
 }
 
-uint32_t LegacyRendererBackend::acquire(const SwapChain* swapchain) const
+std::vector<uint32_t> LegacyRendererBackend::acquire()
 {
     auto& bb = m_backBuffers[m_currentBackBufferIndex];
     auto* cx = m_device->getContext();
 
-    cx->WaitForFences(m_device->getHandle(), 1, &bb->inFlightFence, VK_TRUE, UINT64_MAX);
-    cx->ResetFences(m_device->getHandle(), 1, &bb->inFlightFence);
-
-    uint32_t index;
-    VkResult res = cx->AcquireNextImageKHR(
-        m_device->getHandle(), swapchain->getHandle(), UINT64_MAX,
-        bb->acquireSemaphore.has_value() ? bb->acquireSemaphore.value() : VK_NULL_HANDLE,
-        VK_NULL_HANDLE, &index);
-    if (res != VK_SUCCESS)
+    m_currentSwapchainImageIndices.clear();
+    m_currentSwapchainImageIndices.resize(m_swapchains.size());
+    for (int i = 0; i < m_swapchains.size(); ++i)
     {
-        std::cerr << "Failed to acquire next image : " << res << std::endl;
-        return -1;
+
+        uint32_t index;
+        VkResult res =
+            cx->AcquireNextImageKHR(m_device->getHandle(), m_swapchains[i]->getHandle(), UINT64_MAX,
+                                    bb->beforeSubmissionSemaphore.has_value()
+                                        ? bb->beforeSubmissionSemaphore.value()->handle
+                                        : VK_NULL_HANDLE,
+                                    VK_NULL_HANDLE, &index);
+        if (res != VK_SUCCESS)
+        {
+            std::cerr << "Failed to acquire next image : " << res << std::endl;
+            return {-1U};
+        }
+
+        m_currentSwapchainImageIndices[i] = index;
     }
 
-    return index;
+    // TODO : remove
+    std::printf("cmd : %d, image : %d, acq : %d, present : %d\n", m_currentBackBufferIndex,
+                m_currentSwapchainImageIndices[0], m_currentBackBufferIndex,
+                m_currentSwapchainImageIndices[0]);
+    return m_currentSwapchainImageIndices;
 }
 
 void LegacyRendererBackend::begin(const Framebuffer* framebuffer) const
@@ -69,7 +90,6 @@ void LegacyRendererBackend::begin(const Framebuffer* framebuffer) const
     std::array<VkClearValue, 2> clearValues = {clearColor, clearDepth};
     VkRenderPassBeginInfo renderPassBeginInfo = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-        // TODO : how to manage multiple render passes ?
         .renderPass = m_renderPass->handle,
         .framebuffer = framebuffer->handle,
         .renderArea = {.offset = {0, 0}, .extent = {framebuffer->width, framebuffer->height}},
@@ -128,10 +148,14 @@ void LegacyRendererBackend::submit() const
     auto& cb = bb->commandBuffer;
 
     std::vector<VkSemaphore> waitSemaphores;
-    if (bb->acquireSemaphore.has_value())
-        waitSemaphores.emplace_back(bb->acquireSemaphore.value());
+    if (bb->beforeSubmissionSemaphore.has_value())
+        waitSemaphores.emplace_back(bb->beforeSubmissionSemaphore.value()->handle);
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-    VkSemaphore signalSemaphores[] = {bb->renderSemaphore};
+    assert(m_swapchains.size());
+    std::vector<VkSemaphore> signalSemaphores;
+    signalSemaphores.emplace_back(
+        // TODO : do not use hardcoded index
+        m_swapchains[0]->m_presentSemaphores[m_currentSwapchainImageIndices[0]]->handle);
     VkSubmitInfo submitInfo = {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
@@ -139,31 +163,34 @@ void LegacyRendererBackend::submit() const
         .pWaitDstStageMask = waitStages,
         .commandBufferCount = 1,
         .pCommandBuffers = &cb,
-        .signalSemaphoreCount = 1,
-        .pSignalSemaphores = signalSemaphores,
+        .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()),
+        .pSignalSemaphores = signalSemaphores.data(),
     };
 
     VkResult res = vkQueueSubmit(m_device->graphicsQueue, 1, &submitInfo, bb->inFlightFence);
     if (res != VK_SUCCESS)
         std::cerr << "Failed to submit draw command buffer : " << res << std::endl;
 }
-void LegacyRendererBackend::present(
-    const std::vector<std::pair<const SwapChain*, uint32_t>> swapchainsAndImageIndices) const
+void LegacyRendererBackend::present() const
 {
     auto& bb = m_backBuffers[m_currentBackBufferIndex];
 
-    std::vector<VkSwapchainKHR> swapchains(swapchainsAndImageIndices.size());
-    std::vector<uint32_t> imageIndices(swapchainsAndImageIndices.size());
-    for (int i = 0; i < swapchainsAndImageIndices.size(); ++i)
+    std::vector<VkSwapchainKHR> swapchains(m_swapchains.size());
+    std::vector<uint32_t> imageIndices(m_swapchains.size());
+    std::vector<VkSemaphore> waitSemaphores;
+    for (int i = 0; i < m_swapchains.size(); ++i)
     {
-        swapchains[i] = swapchainsAndImageIndices[i].first->getHandle();
-        imageIndices[i] = swapchainsAndImageIndices[i].second;
+        auto& sc = m_swapchains[i];
+        auto& imageIndex = m_currentSwapchainImageIndices[i];
+
+        swapchains[i] = sc->getHandle();
+        imageIndices[i] = imageIndex;
+        waitSemaphores.emplace_back(sc->m_presentSemaphores[imageIndex]->handle);
     }
-    VkSemaphore waitSemaphores[] = {bb->renderSemaphore};
     VkPresentInfoKHR presentInfo = {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-        .waitSemaphoreCount = 1,
-        .pWaitSemaphores = waitSemaphores,
+        .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
+        .pWaitSemaphores = waitSemaphores.data(),
         .swapchainCount = static_cast<uint32_t>(swapchains.size()),
         .pSwapchains = swapchains.data(),
         .pImageIndices = imageIndices.data(),
@@ -175,9 +202,9 @@ void LegacyRendererBackend::present(
         std::cerr << "Failed to present : " << res << std::endl;
 }
 
-uint32_t DynamicRendererBackend::acquire(const SwapChain* swapchain) const
+std::vector<uint32_t> DynamicRendererBackend::acquire()
 {
-    return 0;
+    return {-1U};
 }
 
 void DynamicRendererBackend::begin(const Framebuffer* framebuffer) const
@@ -192,8 +219,7 @@ void DynamicRendererBackend::end() const
 void DynamicRendererBackend::submit() const
 {
 }
-void DynamicRendererBackend::present(
-    const std::vector<std::pair<const SwapChain*, uint32_t>> swapchainsAndImageIndices) const
+void DynamicRendererBackend::present() const
 {
 }
 Renderer::Renderer(RendererCreateInfoT createInfo)
@@ -210,11 +236,6 @@ void Renderer::render(const Framebuffer* framebuffer, const std::shared_ptr<Scen
     m_backend->submit();
 }
 
-void Renderer::swap()
-{
-    m_backend->swap();
-}
-
 RendererBackendABC::RendererBackendABC(const std::shared_ptr<RendererBackendCreateInfoT> createInfo)
     : m_device(createInfo->device)
 {
@@ -223,8 +244,8 @@ RendererBackendABC::RendererBackendABC(const std::shared_ptr<RendererBackendCrea
     {
         m_backBuffers.emplace_back(m_device->createBackBufferAOS(BackBufferCreateInfoT{
             .type = createInfo->bufferingType,
-            .bHasAcquireSemaphore = true,
-            .bSignaled = true,
+            .bHasBeforeSubmissionSemaphore = true,
+            .bFenceStartsSignaled = true,
         }));
     }
 }

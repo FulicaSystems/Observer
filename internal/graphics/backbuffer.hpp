@@ -4,19 +4,21 @@
 
 #include <vulkan/vulkan.hpp>
 
+class Semaphore;
+
 enum class BufferingTypeE
 {
     SINGLE_BUFFERING = 1,
     DOUBLE_BUFFERING = 2,
     TRIPLE_BUFFERING = 3,
     COUNT,
-};
+} typedef FrameLagE;
 
 struct BackBufferCreateInfoT
 {
     BufferingTypeE type = BufferingTypeE::DOUBLE_BUFFERING;
-    bool bHasAcquireSemaphore = true;
-    bool bSignaled = true;
+    bool bHasBeforeSubmissionSemaphore = true;
+    bool bFenceStartsSignaled = true;
 };
 
 /**
@@ -27,8 +29,12 @@ struct BackBufferAOST
 {
     VkCommandBuffer commandBuffer;
 
-    std::optional<VkSemaphore> acquireSemaphore;
-    VkSemaphore renderSemaphore;
+    std::optional<std::shared_ptr<Semaphore>> beforeSubmissionSemaphore;
+    /**
+     * @brief this fence ensures that each backbuffer (each command buffer) can only be reused
+     * (rerecorded) after being submitted
+     *
+     */
     VkFence inFlightFence;
 
 } typedef BackBufferT;
@@ -43,8 +49,6 @@ struct BackBufferSOAT
     BufferingTypeE type = BufferingTypeE::DOUBLE_BUFFERING;
 
     std::vector<VkCommandBuffer> commandBuffers;
-
-    std::vector<std::optional<VkSemaphore>> acquireSemaphores;
-    std::vector<VkSemaphore> renderSemaphores;
+    std::optional<std::vector<std::shared_ptr<Semaphore>>> beforeSubmissionSemaphores;
     std::vector<VkFence> inFlightFences;
 };
