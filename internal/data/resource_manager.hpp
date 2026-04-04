@@ -52,6 +52,8 @@ class ResourceManager
     static ResourceManager& getInstance() { return *m_instance; }
 
   public:
+    ~ResourceManager() { clearAllResources(); }
+
     template<class TResource>
         requires std::is_base_of<ResourceABC, TResource>::value
     static inline std::shared_ptr<TResource> load(

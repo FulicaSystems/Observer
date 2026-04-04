@@ -40,8 +40,8 @@ LogicalDevice::LogicalDevice(const LogicalDeviceCreateInfoT createInfo)
 void LogicalDevice::createAllocator()
 {
     VmaVulkanFunctions vulkanFunctions = {};
-    vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
-    vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
+    vulkanFunctions.vkGetInstanceProcAddr = cx->GetInstanceProcAddr;
+    vulkanFunctions.vkGetDeviceProcAddr = cx->GetDeviceProcAddr;
 
     VmaAllocatorCreateInfo allocatorCreateInfo = {};
     allocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
@@ -61,6 +61,13 @@ void LogicalDevice::destroyAllocator()
 
 void LogicalDevice::destroyCommandPools()
 {
+#ifdef ENABLE_VIDEO_TRANSCODE
+    if (commandPoolEncode)
+        cx->DestroyCommandPool(m_handle, commandPoolEncode, nullptr);
+    if (commandPoolDecode)
+        cx->DestroyCommandPool(m_handle, commandPoolDecode, nullptr);
+#endif
+
     cx->DestroyCommandPool(m_handle, commandPoolTransient, nullptr);
     cx->DestroyCommandPool(m_handle, commandPool, nullptr);
 }
@@ -69,16 +76,23 @@ LogicalDevice::~LogicalDevice()
 {
     destroyAllocator();
 
-#ifdef ENABLE_VIDEO_TRANSCODE
-    if (commandPoolEncode)
-        cx->DestroyCommandPool(m_handle, commandPoolEncode, nullptr);
-    if (commandPoolDecode)
-        cx->DestroyCommandPool(m_handle, commandPoolDecode, nullptr);
-#endif
-
     destroyCommandPools();
 
     cx->DestroyDevice(m_handle, nullptr);
+}
+
+void LogicalDevice::wait() const
+{
+    cx->DeviceWaitIdle(m_handle);
+}
+
+void LogicalDevice::waitForGraphicsQueue() const
+{
+    cx->QueueWaitIdle(graphicsQueue);
+}
+void LogicalDevice::waitForPresentQueue() const
+{
+    cx->QueueWaitIdle(presentQueue);
 }
 
 std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(SwapChainCreateInfoT ci) const
@@ -222,10 +236,17 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(SwapChainCreateInfoT c
 }
 void LogicalDevice::destroySwapChain(SwapChain& sc) const
 {
-    for (auto& imageView : sc.imageViews)
+    for (int i = 0; i < sc.imageViews.size(); ++i)
     {
-        cx->DestroyImageView(m_handle, imageView->handle, nullptr);
+        if (sc.m_framebuffers.has_value())
+            destroyFramebuffer(sc.m_framebuffers.value()[i]);
+        destroyImageView(sc.imageViews[i]);
+        destroySemaphore(sc.m_presentSemaphores[i]);
     }
+    if (sc.depthImageView.has_value())
+        destroyImageView(sc.depthImageView.value());
+    if (sc.depthImage.has_value())
+        destroyImage(sc.depthImage.value());
     cx->DestroySwapchainKHR(m_handle, sc.getHandle(), nullptr);
 }
 
@@ -265,6 +286,7 @@ std::shared_ptr<ImageView> LogicalDevice::createImageView(const ImageViewCreateI
 }
 void LogicalDevice::destroyImageView(std::shared_ptr<ImageView>& pData) const
 {
+    cx->DestroyImageView(m_handle, pData->handle, nullptr);
 }
 
 std::unique_ptr<RenderPass> LogicalDevice::createRenderPass(const RenderPassCreateInfoT ci) const
@@ -324,6 +346,7 @@ std::unique_ptr<RenderPass> LogicalDevice::createRenderPass(const RenderPassCrea
 }
 void LogicalDevice::destroyRenderPass(RenderPass* pData) const
 {
+    cx->DestroyRenderPass(m_handle, pData->handle, nullptr);
 }
 
 std::shared_ptr<Framebuffer> LogicalDevice::createFramebuffer(const FramebufferCreateInfoT ci) const
@@ -354,6 +377,7 @@ std::shared_ptr<Framebuffer> LogicalDevice::createFramebuffer(const FramebufferC
 }
 void LogicalDevice::destroyFramebuffer(std::shared_ptr<Framebuffer>& pData) const
 {
+    cx->DestroyFramebuffer(m_handle, pData->handle, nullptr);
 }
 
 std::shared_ptr<GPUShader> LogicalDevice::createShader(const ShaderCreateInfoT ci) const
@@ -524,8 +548,8 @@ std::unique_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfo
 }
 void LogicalDevice::destroyPipeline(Pipeline* pData) const
 {
-    cx->DestroyPipeline(m_handle, pData->getHandle(), nullptr);
     cx->DestroyPipelineLayout(m_handle, pData->getLayoutHandle(), nullptr);
+    cx->DestroyPipeline(m_handle, pData->getHandle(), nullptr);
 }
 
 std::shared_ptr<Semaphore> LogicalDevice::createSemaphore(const SemaphoreCreateInfoT ci) const
@@ -546,6 +570,7 @@ std::shared_ptr<Semaphore> LogicalDevice::createSemaphore(const SemaphoreCreateI
 
 void LogicalDevice::destroySemaphore(std::shared_ptr<Semaphore> pData) const
 {
+    cx->DestroySemaphore(m_handle, pData->handle, nullptr);
 }
 
 std::shared_ptr<BackBufferAOST> LogicalDevice::createBackBufferAOS(
@@ -585,6 +610,14 @@ std::shared_ptr<BackBufferAOST> LogicalDevice::createBackBufferAOS(
 
 void LogicalDevice::destroyBackBufferAOS(std::shared_ptr<BackBufferAOST>& pData) const
 {
+    cx->DestroyFence(m_handle, pData->inFlightFence, nullptr);
+    if (pData->beforeSubmissionSemaphores.has_value())
+    {
+        for (int i = 0; i < pData->beforeSubmissionSemaphores.value().size(); ++i)
+        {
+            destroySemaphore(pData->beforeSubmissionSemaphores.value()[i]);
+        }
+    }
 }
 
 std::shared_ptr<BackBufferSOAT> LogicalDevice::createBackBufferSOA(
@@ -615,6 +648,7 @@ std::shared_ptr<BackBufferSOAT> LogicalDevice::createBackBufferSOA(
 
 void LogicalDevice::destroyBackBufferSOA(std::shared_ptr<BackBufferSOAT>& pData) const
 {
+    // TODO
 }
 
 std::shared_ptr<Buffer> LogicalDevice::createBuffer(const BufferCreateInfoT ci) const
@@ -633,6 +667,7 @@ std::shared_ptr<Buffer> LogicalDevice::createBuffer(const BufferCreateInfoT ci) 
 }
 void LogicalDevice::destroyBuffer(std::shared_ptr<Buffer>& pData) const
 {
+    vmaDestroyBuffer(allocator, pData->handle, pData->memory);
 }
 
 std::shared_ptr<Image> LogicalDevice::createImage(const ImageCreateInfoT ci) const
@@ -668,6 +703,7 @@ std::shared_ptr<Image> LogicalDevice::createImage(const ImageCreateInfoT ci) con
 
 void LogicalDevice::destroyImage(std::shared_ptr<Image>& pData) const
 {
+    vmaDestroyImage(allocator, pData->handle, pData->memory);
 }
 
 void LogicalDevice::retrieveQueues()

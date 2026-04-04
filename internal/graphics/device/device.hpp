@@ -105,6 +105,10 @@ class LogicalDevice
 
     ~LogicalDevice();
 
+    void wait() const;
+    void waitForGraphicsQueue() const;
+    void waitForPresentQueue() const;
+
     /**
      * create a swapchain for a specified surface
      */

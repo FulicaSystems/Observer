@@ -12,6 +12,8 @@ ContextDLL::ContextDLL(const ContextCreateInfoT createInfo) : ContextABC(createI
     m_loader = std::make_unique<f6::bin::DynamicLibraryLoader>("vulkan-1");
     InstanceSymbolsLoaderT::load(this, m_loader.get());
     DeviceSymbolsLoaderT::load(this, m_loader.get());
+    enumerateAvailableInstanceLayers();
+    enumerateAvailableInstanceExtensions();
 }
 
 ContextABC::ContextABC(const ContextCreateInfoT createInfo)
@@ -24,21 +26,18 @@ ContextABC::ContextABC(const ContextCreateInfoT createInfo)
     ci.instanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     ci.instanceExtensions.emplace_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 #endif
-
-    enumerateAvailableInstanceLayers();
-    enumerateAvailableInstanceExtensions();
 }
 
 std::vector<std::string> ContextABC::enumerateAvailableInstanceLayers(const bool bDump) const
 {
     uint32_t layerCount = 0;
-    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+    EnumerateInstanceLayerProperties(&layerCount, nullptr);
 
     std::vector<std::string> out;
     out.reserve(layerCount);
 
     std::vector<VkLayerProperties> layers(layerCount);
-    vkEnumerateInstanceLayerProperties(&layerCount, layers.data());
+    EnumerateInstanceLayerProperties(&layerCount, layers.data());
     if (bDump)
         std::cout << "available layers : " << layerCount << '\n';
     for (const auto& layer : layers)
@@ -53,13 +52,13 @@ std::vector<std::string> ContextABC::enumerateAvailableInstanceLayers(const bool
 std::vector<std::string> ContextABC::enumerateAvailableInstanceExtensions(const bool bDump) const
 {
     uint32_t extensionCount = 0;
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+    EnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
     std::vector<std::string> out;
     out.reserve(extensionCount);
 
     std::vector<VkExtensionProperties> extensions(extensionCount);
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+    EnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
     if (bDump)
         std::cout << "available instance extensions : " << extensionCount << '\n';
     for (const auto& extension : extensions)

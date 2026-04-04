@@ -62,14 +62,15 @@ std::vector<uint32_t> LegacyRendererBackend::acquire()
 void LegacyRendererBackend::begin(const Framebuffer* framebuffer) const
 {
     auto& cb = m_backBuffers[m_currentBackBufferIndex]->commandBuffer;
+    auto cx = m_device->getContext();
 
-    vkResetCommandBuffer(cb, 0);
+    cx->ResetCommandBuffer(cb, 0);
 
     VkCommandBufferBeginInfo commandBufferBeginInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .flags = 0,
         .pInheritanceInfo = nullptr};
-    VkResult res = vkBeginCommandBuffer(cb, &commandBufferBeginInfo);
+    VkResult res = cx->BeginCommandBuffer(cb, &commandBufferBeginInfo);
     if (res != VK_SUCCESS)
     {
         std::cerr << "Failed to begin recording command buffer : " << res << std::endl;
@@ -91,7 +92,7 @@ void LegacyRendererBackend::begin(const Framebuffer* framebuffer) const
         .clearValueCount = static_cast<uint32_t>(clearValues.size()),
         .pClearValues = clearValues.data(),
     };
-    vkCmdBeginRenderPass(cb, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    cx->CmdBeginRenderPass(cb, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
     VkViewport viewport = {
         .x = 0.f,
@@ -101,39 +102,41 @@ void LegacyRendererBackend::begin(const Framebuffer* framebuffer) const
         .minDepth = 0.f,
         .maxDepth = 1.f,
     };
-    vkCmdSetViewport(cb, 0, 1, &viewport);
+    cx->CmdSetViewport(cb, 0, 1, &viewport);
     VkRect2D scissor = {
         .offset = {0,                  0                  },
         .extent = {framebuffer->width, framebuffer->height},
     };
-    vkCmdSetScissor(cb, 0, 1, &scissor);
+    cx->CmdSetScissor(cb, 0, 1, &scissor);
 }
 void LegacyRendererBackend::draw(const std::shared_ptr<Scene> scene) const
 {
     auto& cb = m_backBuffers[m_currentBackBufferIndex]->commandBuffer;
+    auto cx = m_device->getContext();
 
     auto s = std::static_pointer_cast<GPUScene>(scene->localResource);
     for (int i = 0; i < s->m_meshRenderStates.size(); ++i)
     {
         auto& rs = s->m_meshRenderStates[i];
 
-        vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rs->pipeline->getHandle());
+        cx->CmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rs->pipeline->getHandle());
 
         auto view = rs->getGPUMesh();
         VkBuffer vbos[] = {view->vertexBuffer->handle};
         VkDeviceSize offsets[] = {0};
-        vkCmdBindVertexBuffers(cb, 0, 1, vbos, offsets);
-        vkCmdBindIndexBuffer(cb, view->indexBuffer->handle, 0, VK_INDEX_TYPE_UINT16);
-        vkCmdDrawIndexed(cb, view->indexCount, 1, 0, 0, 0);
+        cx->CmdBindVertexBuffers(cb, 0, 1, vbos, offsets);
+        cx->CmdBindIndexBuffer(cb, view->indexBuffer->handle, 0, VK_INDEX_TYPE_UINT16);
+        cx->CmdDrawIndexed(cb, view->indexCount, 1, 0, 0, 0);
     }
 }
 void LegacyRendererBackend::end() const
 {
     auto& cb = m_backBuffers[m_currentBackBufferIndex]->commandBuffer;
+    auto cx = m_device->getContext();
 
-    vkCmdEndRenderPass(cb);
+    cx->CmdEndRenderPass(cb);
 
-    VkResult res = vkEndCommandBuffer(cb);
+    VkResult res = cx->EndCommandBuffer(cb);
     if (res != VK_SUCCESS)
         std::cerr << "Failed to record command buffer : " << res << std::endl;
 }
@@ -141,6 +144,7 @@ void LegacyRendererBackend::submit() const
 {
     auto& bb = m_backBuffers[m_currentBackBufferIndex];
     auto& cb = bb->commandBuffer;
+    auto cx = m_device->getContext();
 
     // TODO : do not use hardcoded index
     int submitIndex = 0;
@@ -168,13 +172,14 @@ void LegacyRendererBackend::submit() const
         .pSignalSemaphores = signalSemaphores.data(),
     };
 
-    VkResult res = vkQueueSubmit(m_device->graphicsQueue, 1, &submitInfo, bb->inFlightFence);
+    VkResult res = cx->QueueSubmit(m_device->graphicsQueue, 1, &submitInfo, bb->inFlightFence);
     if (res != VK_SUCCESS)
         std::cerr << "Failed to submit draw command buffer : " << res << std::endl;
 }
 void LegacyRendererBackend::present() const
 {
     auto& bb = m_backBuffers[m_currentBackBufferIndex];
+    auto cx = m_device->getContext();
 
     std::vector<VkSwapchainKHR> swapchains(m_swapchains.size());
     std::vector<uint32_t> imageIndices(m_swapchains.size());
@@ -198,7 +203,7 @@ void LegacyRendererBackend::present() const
         .pResults = nullptr,
     };
 
-    VkResult res = vkQueuePresentKHR(m_device->presentQueue, &presentInfo);
+    VkResult res = cx->QueuePresentKHR(m_device->presentQueue, &presentInfo);
     if (res != VK_SUCCESS)
         std::cerr << "Failed to present : " << res << std::endl;
 }

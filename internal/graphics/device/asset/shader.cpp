@@ -66,4 +66,6 @@ void Shader::unloadHost()
 
 void Shader::unloadLocal()
 {
+    auto local = std::static_pointer_cast<GPUShader>(localResource);
+    local->deviceptr->destroyShader(local);
 }

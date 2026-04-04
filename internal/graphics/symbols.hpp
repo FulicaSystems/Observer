@@ -205,7 +205,9 @@ struct BackBufferSymbolsT : public PipelineSymbolsT
 {
     PFN_DECLARE(PFN_vk, AllocateCommandBuffers);
     PFN_DECLARE(PFN_vk, CreateSemaphore);
+    PFN_DECLARE(PFN_vk, DestroySemaphore);
     PFN_DECLARE(PFN_vk, CreateFence);
+    PFN_DECLARE(PFN_vk, DestroyFence);
 };
 struct BackBufferSymbolsLoaderT : public PipelineSymbolsLoaderT
 {
@@ -221,6 +223,22 @@ struct RenderingSymbolsT : public BackBufferSymbolsT
     PFN_DECLARE(PFN_vk, WaitForFences);
     PFN_DECLARE(PFN_vk, ResetFences);
     PFN_DECLARE(PFN_vk, AcquireNextImageKHR);
+
+    PFN_DECLARE(PFN_vk, ResetCommandBuffer);
+    PFN_DECLARE(PFN_vk, BeginCommandBuffer);
+
+    PFN_DECLARE(PFN_vk, CmdBeginRenderPass);
+    PFN_DECLARE(PFN_vk, CmdSetViewport);
+    PFN_DECLARE(PFN_vk, CmdSetScissor);
+    PFN_DECLARE(PFN_vk, CmdBindPipeline);
+    PFN_DECLARE(PFN_vk, CmdBindVertexBuffers);
+    PFN_DECLARE(PFN_vk, CmdBindIndexBuffer);
+    PFN_DECLARE(PFN_vk, CmdDrawIndexed);
+    PFN_DECLARE(PFN_vk, CmdEndRenderPass);
+    PFN_DECLARE(PFN_vk, EndCommandBuffer);
+
+    PFN_DECLARE(PFN_vk, QueueSubmit);
+    PFN_DECLARE(PFN_vk, QueuePresentKHR);
 };
 struct RenderingSymbolsLoaderT : public BackBufferSymbolsLoaderT
 {
@@ -238,6 +256,9 @@ struct DeviceSymbols2T : public RenderingSymbolsT
 
     PFN_DECLARE(PFN_vk, CreateCommandPool);
     PFN_DECLARE(PFN_vk, DestroyCommandPool);
+
+    PFN_DECLARE(PFN_vk, DeviceWaitIdle);
+    PFN_DECLARE(PFN_vk, QueueWaitIdle);
 };
 struct DeviceSymbolsLoader2T : public RenderingSymbolsLoaderT
 {

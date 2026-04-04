@@ -165,8 +165,15 @@ Application::Application()
 
 Application::~Application()
 {
+    m_devices[m_currentDeviceIndex]->wait();
+
     m_window.reset();
     m_wsi.reset();
+
+    m_renderer.reset();
+    m_scene.reset();
+
+    ResourceManager::clearAllResources();
 
     m_devices.clear();
     m_physicalDevices.clear();

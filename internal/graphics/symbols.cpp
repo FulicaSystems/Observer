@@ -49,6 +49,9 @@ void DeviceSymbolsLoader2T::load(ContextABC* cx, const LogicalDevice* device)
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateCommandPool);
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroyCommandPool);
 
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DeviceWaitIdle);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), QueueWaitIdle);
+
     SwapchainSymbolsLoaderT::load(cx, device);
     BufferSymbolsLoaderT::load(cx, device);
     ImageSymbolsLoaderT::load(cx, device);
@@ -103,7 +106,9 @@ void SDKSymbolsLoaderT::load(ContextABC* cx)
     VK_SDK_FUNCTION(cx, DestroyPipeline);
     VK_SDK_FUNCTION(cx, AllocateCommandBuffers);
     VK_SDK_FUNCTION(cx, CreateSemaphore);
+    VK_SDK_FUNCTION(cx, DestroySemaphore);
     VK_SDK_FUNCTION(cx, CreateFence);
+    VK_SDK_FUNCTION(cx, DestroyFence);
     VK_SDK_FUNCTION(cx, CreateBuffer);
     VK_SDK_FUNCTION(cx, DestroyBuffer);
     VK_SDK_FUNCTION(cx, CreateFramebuffer);
@@ -111,6 +116,21 @@ void SDKSymbolsLoaderT::load(ContextABC* cx)
     VK_SDK_FUNCTION(cx, WaitForFences);
     VK_SDK_FUNCTION(cx, ResetFences);
     VK_SDK_FUNCTION(cx, AcquireNextImageKHR);
+    VK_SDK_FUNCTION(cx, ResetCommandBuffer);
+    VK_SDK_FUNCTION(cx, BeginCommandBuffer);
+    VK_SDK_FUNCTION(cx, CmdBeginRenderPass);
+    VK_SDK_FUNCTION(cx, CmdSetViewport);
+    VK_SDK_FUNCTION(cx, CmdSetScissor);
+    VK_SDK_FUNCTION(cx, CmdBindPipeline);
+    VK_SDK_FUNCTION(cx, CmdBindVertexBuffers);
+    VK_SDK_FUNCTION(cx, CmdBindIndexBuffer);
+    VK_SDK_FUNCTION(cx, CmdDrawIndexed);
+    VK_SDK_FUNCTION(cx, CmdEndRenderPass);
+    VK_SDK_FUNCTION(cx, EndCommandBuffer);
+    VK_SDK_FUNCTION(cx, QueueSubmit);
+    VK_SDK_FUNCTION(cx, QueuePresentKHR);
+    VK_SDK_FUNCTION(cx, DeviceWaitIdle);
+    VK_SDK_FUNCTION(cx, QueueWaitIdle);
 }
 
 void SDKSymbolsLoaderT::load(ContextABC* cx, const Instance* instance)
@@ -147,7 +167,9 @@ void BackBufferSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
 {
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), AllocateCommandBuffers);
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateSemaphore);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroySemaphore);
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateFence);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), DestroyFence);
 }
 
 void BufferSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
@@ -161,4 +183,20 @@ void RenderingSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), WaitForFences);
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), ResetFences);
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), AcquireNextImageKHR);
+
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), ResetCommandBuffer);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), BeginCommandBuffer);
+
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CmdBeginRenderPass);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CmdSetViewport);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CmdSetScissor);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CmdBindPipeline);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CmdBindVertexBuffers);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CmdBindIndexBuffer);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CmdDrawIndexed);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CmdEndRenderPass);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), EndCommandBuffer);
+
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), QueueSubmit);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), QueuePresentKHR);
 }

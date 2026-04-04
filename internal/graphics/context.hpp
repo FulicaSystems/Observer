@@ -121,6 +121,8 @@ class ContextSDK : public ContextABC, public SDKSymbolsLoaderT
     ContextSDK(const ContextCreateInfoT createInfo) : ContextABC(createInfo)
     {
         SDKSymbolsLoaderT::load(this);
+        enumerateAvailableInstanceLayers();
+        enumerateAvailableInstanceExtensions();
     }
 
     void loadTop(const Instance* inst) override { SDKSymbolsLoaderT::load(this, inst); }
