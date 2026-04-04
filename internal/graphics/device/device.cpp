@@ -564,8 +564,12 @@ std::shared_ptr<BackBufferAOST> LogicalDevice::createBackBufferAOS(
     if (res != VK_SUCCESS)
         std::cerr << "Failed to allocate command buffers : " << res << std::endl;
 
-    if (ci.bHasBeforeSubmissionSemaphore)
-        out->beforeSubmissionSemaphore = createSemaphore(SemaphoreCreateInfoT{});
+    out->beforeSubmissionSemaphores.emplace();
+    out->beforeSubmissionSemaphores->reserve(ci.submitCountPerCommandBuffer);
+    for (int i = 0; i < ci.submitCountPerCommandBuffer; ++i)
+    {
+        out->beforeSubmissionSemaphores->emplace_back(createSemaphore(SemaphoreCreateInfoT{}));
+    }
 
     VkFenceCreateInfo fenceCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,

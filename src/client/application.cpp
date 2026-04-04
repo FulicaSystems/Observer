@@ -76,6 +76,7 @@ Application::Application()
     auto backendCreateInfo = std::make_shared<LegacyRendererBackendCreateInfoT>();
     backendCreateInfo->bufferingType = BufferingTypeE::DOUBLE_BUFFERING;
     backendCreateInfo->device = m_devices[m_currentDeviceIndex].get();
+    backendCreateInfo->submitCountPerCommandBuffer = 1U;
     backendCreateInfo->renderPassCreateInfo = RenderPassCreateInfoT{
         .colorAttachments =
             {
@@ -186,15 +187,12 @@ int Application::perFrame()
     // TODO : threadpool poll main queue
 
     auto legacyRenderer = dynamic_cast<LegacyRendererBackend*>(m_renderer->getBackend());
-
-    std::vector<uint32_t> imageIndices;
-    const Framebuffer* framebuffer = nullptr;
-    auto sc = m_window->getSwapChain();
     if (legacyRenderer)
     {
         legacyRenderer->wait();
-        imageIndices = legacyRenderer->acquire();
-        framebuffer = sc->m_framebuffers.value()[imageIndices[0]].get();
+        std::vector<uint32_t> imageIndices = legacyRenderer->acquire();
+        auto sc = m_window->getSwapChain();
+        const Framebuffer* framebuffer = sc->m_framebuffers.value()[imageIndices[0]].get();
 
         m_renderer->render(framebuffer, m_scene);
 

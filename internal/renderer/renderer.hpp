@@ -71,6 +71,7 @@ struct RendererBackendCreateInfoT
 {
     BufferingTypeE bufferingType = BufferingTypeE::DOUBLE_BUFFERING;
     const LogicalDevice* device;
+    uint32_t submitCountPerCommandBuffer;
 
   public:
     virtual ~RendererBackendCreateInfoT() {}

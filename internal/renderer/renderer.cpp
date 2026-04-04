@@ -40,12 +40,11 @@ std::vector<uint32_t> LegacyRendererBackend::acquire()
     m_currentSwapchainImageIndices.resize(m_swapchains.size());
     for (int i = 0; i < m_swapchains.size(); ++i)
     {
-
         uint32_t index;
         VkResult res =
             cx->AcquireNextImageKHR(m_device->getHandle(), m_swapchains[i]->getHandle(), UINT64_MAX,
-                                    bb->beforeSubmissionSemaphore.has_value()
-                                        ? bb->beforeSubmissionSemaphore.value()->handle
+                                    bb->beforeSubmissionSemaphores.has_value()
+                                        ? bb->beforeSubmissionSemaphores.value()[i]->handle
                                         : VK_NULL_HANDLE,
                                     VK_NULL_HANDLE, &index);
         if (res != VK_SUCCESS)
@@ -147,15 +146,21 @@ void LegacyRendererBackend::submit() const
     auto& bb = m_backBuffers[m_currentBackBufferIndex];
     auto& cb = bb->commandBuffer;
 
+    // TODO : do not use hardcoded index
+    int submitIndex = 0;
+
     std::vector<VkSemaphore> waitSemaphores;
-    if (bb->beforeSubmissionSemaphore.has_value())
-        waitSemaphores.emplace_back(bb->beforeSubmissionSemaphore.value()->handle);
+    if (bb->beforeSubmissionSemaphores.has_value())
+        waitSemaphores.emplace_back(bb->beforeSubmissionSemaphores.value()[submitIndex]->handle);
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+
     assert(m_swapchains.size());
     std::vector<VkSemaphore> signalSemaphores;
     signalSemaphores.emplace_back(
-        // TODO : do not use hardcoded index
-        m_swapchains[0]->m_presentSemaphores[m_currentSwapchainImageIndices[0]]->handle);
+        m_swapchains[submitIndex]
+            ->m_presentSemaphores[m_currentSwapchainImageIndices[submitIndex]]
+            ->handle);
+
     VkSubmitInfo submitInfo = {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
@@ -244,7 +249,7 @@ RendererBackendABC::RendererBackendABC(const std::shared_ptr<RendererBackendCrea
     {
         m_backBuffers.emplace_back(m_device->createBackBufferAOS(BackBufferCreateInfoT{
             .type = createInfo->bufferingType,
-            .bHasBeforeSubmissionSemaphore = true,
+            .submitCountPerCommandBuffer = createInfo->submitCountPerCommandBuffer,
             .bFenceStartsSignaled = true,
         }));
     }

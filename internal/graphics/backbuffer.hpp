@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <memory>
 
 #include <vulkan/vulkan.hpp>
 
@@ -14,10 +15,12 @@ enum class BufferingTypeE
     COUNT,
 } typedef FrameLagE;
 
+typedef std::vector<std::shared_ptr<Semaphore>> SubmissionSemaphores;
+
 struct BackBufferCreateInfoT
 {
     BufferingTypeE type = BufferingTypeE::DOUBLE_BUFFERING;
-    bool bHasBeforeSubmissionSemaphore = true;
+    uint32_t submitCountPerCommandBuffer = 1U;
     bool bFenceStartsSignaled = true;
 };
 
@@ -29,7 +32,14 @@ struct BackBufferAOST
 {
     VkCommandBuffer commandBuffer;
 
-    std::optional<std::shared_ptr<Semaphore>> beforeSubmissionSemaphore;
+    /**
+     * @brief There are as many semaphores as there are command buffers times the submit count
+     * (hence the vector of semaphores). There will be a vector of back buffers therefore a certain
+     * number of submit per command buffer (same number of "acquire" semaphore/"before submission"
+     * semaphore).
+     *
+     */
+    std::optional<SubmissionSemaphores> beforeSubmissionSemaphores;
     /**
      * @brief this fence ensures that each backbuffer (each command buffer) can only be reused
      * (rerecorded) after being submitted
@@ -49,6 +59,6 @@ struct BackBufferSOAT
     BufferingTypeE type = BufferingTypeE::DOUBLE_BUFFERING;
 
     std::vector<VkCommandBuffer> commandBuffers;
-    std::optional<std::vector<std::shared_ptr<Semaphore>>> beforeSubmissionSemaphores;
+    std::optional<std::vector<SubmissionSemaphores>> beforeSubmissionSemaphores;
     std::vector<VkFence> inFlightFences;
 };
