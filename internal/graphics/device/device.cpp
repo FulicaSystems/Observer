@@ -158,8 +158,7 @@ std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(SwapChainCreateInfoT c
     };
     for (int i = 0; i < imageCount; ++i)
     {
-        if (!ci.viewCreateInfo.image.has_value())
-            ci.viewCreateInfo.image = out->images[i];
+        ci.viewCreateInfo.image = out->images[i];
         if (!ci.viewCreateInfo.format.has_value())
             ci.viewCreateInfo.format = surfaceFormat.format;
         out->imageViews.emplace_back(createImageView(ci.viewCreateInfo));

@@ -56,10 +56,6 @@ std::vector<uint32_t> LegacyRendererBackend::acquire()
         m_currentSwapchainImageIndices[i] = index;
     }
 
-    // TODO : remove
-    std::printf("cmd : %d, image : %d, acq : %d, present : %d\n", m_currentBackBufferIndex,
-                m_currentSwapchainImageIndices[0], m_currentBackBufferIndex,
-                m_currentSwapchainImageIndices[0]);
     return m_currentSwapchainImageIndices;
 }
 
