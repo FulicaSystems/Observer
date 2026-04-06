@@ -1,8 +1,8 @@
-#include <iostream>
 #include <cassert>
+#include <iostream>
 
-#include "device.hpp"
 #include "context.hpp"
+#include "device.hpp"
 
 #include "pipeline.hpp"
 
@@ -24,8 +24,8 @@ void Pipeline::recreateDescriptorSets(const BufferingTypeE& type)
         .pPoolSizes = ci.poolSizes.data(),
     };
 
-    VkResult res =
-        cx->CreateDescriptorPool(ci.device->getHandle(), &createInfo, nullptr, &m_descriptorBlock->pool);
+    VkResult res = cx->CreateDescriptorPool(ci.device->getHandle(), &createInfo, nullptr,
+                                            &m_descriptorBlock->pool);
     if (res != VK_SUCCESS)
         std::cerr << "Failed to create descriptor pool : " << res << std::endl;
 
@@ -40,7 +40,8 @@ void Pipeline::recreateDescriptorSets(const BufferingTypeE& type)
         };
 
         m_descriptorBlock->sets[i].resize(m_setLayouts.size());
-        res = cx->AllocateDescriptorSets(ci.device->getHandle(), &allocInfo, m_descriptorBlock->sets[i].data());
+        res = cx->AllocateDescriptorSets(ci.device->getHandle(), &allocInfo,
+                                         m_descriptorBlock->sets[i].data());
         if (res != VK_SUCCESS)
             std::cerr << "Failed to allocate descriptor sets : " << res << std::endl;
     }

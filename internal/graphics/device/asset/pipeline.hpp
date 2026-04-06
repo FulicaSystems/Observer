@@ -115,6 +115,15 @@ struct PipelineCreateInfoT
 
     BufferingTypeE type;
 
+    // TODO : have different usage for descriptor sets
+    struct SetLayoutBindingsT
+    {
+        std::vector<VkDescriptorSetLayoutBinding> perFrame;
+        std::vector<VkDescriptorSetLayoutBinding> perPass;
+        std::vector<VkDescriptorSetLayoutBinding> perMaterial;
+        std::vector<VkDescriptorSetLayoutBinding> perObject;
+    };
+
     /**
      * @brief different set layout bindings may be used in different set layout
      *
@@ -127,10 +136,30 @@ struct PipelineCreateInfoT
     uint32_t subpassIndex = 0;
 };
 
+// TODO : use
+enum class DescriptorTypeE
+{
+    PER_FRAME = 0,
+    PER_PASS = 1,
+    PER_MATERIAL = 2,
+    PER_OBJECT = 3,
+    COUNT = 4,
+};
+
 class DescriptorBlock
 {
   public:
     VkDescriptorPool pool;
+
+    // TODO : have different usage for descriptor sets
+    struct SetT
+    {
+        std::vector<VkDescriptorSet> perFrame;
+        std::vector<VkDescriptorSet> perPass;
+        std::vector<VkDescriptorSet> perMaterial;
+        std::vector<VkDescriptorSet> perObject;
+    };
+
     /**
      * @brief One set of sets per back buffer
      *
@@ -174,7 +203,16 @@ class Pipeline
         return m_setLayouts;
     }
     [[nodiscard]] VkPipelineLayout& getLayoutHandle() { return m_layout; }
+    [[nodiscard]] const VkPipelineLayout& getLayoutHandle() const { return m_layout; }
 
     [[nodiscard]] VkPipeline& getHandle() { return m_handle; }
     [[nodiscard]] const VkPipeline& getHandle() const { return m_handle; }
+
+    // TODO : return std::vector<>
+    [[nodiscard]] const VkDescriptorSet& getDescriptorSetHandle(uint32_t backBufferIndex,
+                                                                const DescriptorTypeE type) const
+    {
+        // TODO : do not use hardcoded index
+        return m_descriptorBlock->sets[backBufferIndex][0];
+    }
 };

@@ -134,6 +134,7 @@ void SDKSymbolsLoaderT::load(ContextABC* cx)
     VK_SDK_FUNCTION(cx, QueueWaitIdle);
     VK_SDK_FUNCTION(cx, CreateDescriptorPool);
     VK_SDK_FUNCTION(cx, AllocateDescriptorSets);
+    VK_SDK_FUNCTION(cx, CmdBindDescriptorSets);
 }
 
 void SDKSymbolsLoaderT::load(ContextABC* cx, const Instance* instance)
@@ -208,4 +209,5 @@ void DescriptorSetSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* devi
 {
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateDescriptorPool);
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), AllocateDescriptorSets);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CmdBindDescriptorSets);
 }

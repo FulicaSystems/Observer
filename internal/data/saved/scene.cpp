@@ -86,7 +86,7 @@ void Scene::loadLocal(const std::shared_ptr<ResourceLoadInfoT> loadInfo)
                                 {
                                     {
                                         VkDescriptorSetLayoutBinding{
-                                            .binding = 2,
+                                            .binding = 0,
                                             .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                                             .descriptorCount = 1,
                                             .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,

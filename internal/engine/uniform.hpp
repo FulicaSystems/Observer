@@ -2,20 +2,20 @@
 
 #include <glm/glm.hpp>
 
-class DescriptorSetPerFrame
+class UniformPerFrame
 {
     double time;
 };
 
-class DescriptorSetPerPass
+class UniformPerPass
 {
 };
 
-class DescriptorSetPerMaterial
+class UniformPerMaterial
 {
 };
 
-class DescriptorSetPerObject
+class UniformPerObject
 {
     glm::mat4 model;
     glm::mat4 view;

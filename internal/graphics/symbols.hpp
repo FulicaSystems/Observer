@@ -253,6 +253,7 @@ struct DescriptorSetSymbolsT : public RenderingSymbolsT
 {
     PFN_DECLARE(PFN_vk, CreateDescriptorPool);
     PFN_DECLARE(PFN_vk, AllocateDescriptorSets);
+    PFN_DECLARE(PFN_vk, CmdBindDescriptorSets);
 };
 struct DescriptorSetSymbolsLoaderT : public RenderingSymbolsLoaderT
 {

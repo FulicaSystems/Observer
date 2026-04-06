@@ -119,10 +119,17 @@ void LegacyRendererBackend::draw(const std::shared_ptr<Scene> scene) const
     {
         auto& rs = s->m_renderStates[i];
 
-        cx->CmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rs->getPipeline()->getHandle());
+        const auto& pipeline = rs->getPipeline();
+        cx->CmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getHandle());
 
         for (const auto& obj : rs->getObjects())
         {
+            cx->CmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                      pipeline->getLayoutHandle(), 0, 1,
+                                      &pipeline->getDescriptorSetHandle(
+                                          m_currentBackBufferIndex, DescriptorTypeE::PER_OBJECT),
+                                      0, nullptr);
+
             const auto& mrd = std::dynamic_pointer_cast<MeshRenderDescription>(obj);
             if (mrd)
             {
