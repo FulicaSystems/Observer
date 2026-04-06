@@ -5,10 +5,12 @@
 #include "mesh.hpp"
 
 class RenderPass;
+enum class BufferingTypeE;
 
 struct SceneLoadInfoT : public ResourceLoadInfoT
 {
     std::optional<const RenderPass*> renderPass;
+    BufferingTypeE type;
 };
 
 /**
@@ -39,5 +41,5 @@ class CPUScene : public HostResourceABC
 class GPUScene : public LocalResourceABC
 {
   public:
-    std::vector<std::shared_ptr<MeshRenderDescription>> m_meshRenderStates;
+    std::vector<std::unique_ptr<RenderState>> m_renderStates;
 };

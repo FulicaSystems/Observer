@@ -160,6 +160,7 @@ Application::Application()
     li->filepath = ".";
     li->renderPass =
         static_cast<const LegacyRendererBackend*>(m_renderer->getBackend())->getRenderPass();
+    li->type = m_renderer->getBackend()->getBufferingType(),
     m_scene = ResourceManager::load<Scene>(li);
 }
 

@@ -484,8 +484,11 @@ std::unique_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfo
                            ci.blendConstants[3]},
     };
 
+    auto out = std::make_unique<Pipeline>(ci);
+
     // pipeline layout
-    std::vector<VkDescriptorSetLayout> setLayouts(ci.setLayoutBindings.size());
+    auto& setLayouts = out->getSetLayouts();
+    setLayouts.resize(ci.setLayoutBindings.size());
     for (int i = 0; i < ci.setLayoutBindings.size(); ++i)
     {
         VkDescriptorSetLayoutCreateInfo createInfo = {
@@ -509,12 +512,13 @@ std::unique_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfo
             ci.pushConstantRanges.empty() ? nullptr : ci.pushConstantRanges.data(),
     };
 
-    auto out = std::make_unique<Pipeline>(ci);
-
     VkResult res = cx->CreatePipelineLayout(m_handle, &pipelineLayoutCreateInfo, nullptr,
                                             &out->getLayoutHandle());
     if (res != VK_SUCCESS)
         std::cerr << "Failed to create pipeline layout : " << res << std::endl;
+
+    // descriptor pool and sets
+    out->recreateDescriptorSets(ci.type);
 
     VkGraphicsPipelineCreateInfo pipelineCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,

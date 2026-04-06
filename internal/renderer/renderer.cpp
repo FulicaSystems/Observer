@@ -115,18 +115,25 @@ void LegacyRendererBackend::draw(const std::shared_ptr<Scene> scene) const
     auto cx = m_device->getContext();
 
     auto s = std::static_pointer_cast<GPUScene>(scene->localResource);
-    for (int i = 0; i < s->m_meshRenderStates.size(); ++i)
+    for (int i = 0; i < s->m_renderStates.size(); ++i)
     {
-        auto& rs = s->m_meshRenderStates[i];
+        auto& rs = s->m_renderStates[i];
 
-        cx->CmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rs->pipeline->getHandle());
+        cx->CmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rs->getPipeline()->getHandle());
 
-        auto view = rs->getGPUMesh();
-        VkBuffer vbos[] = {view->vertexBuffer->handle};
-        VkDeviceSize offsets[] = {0};
-        cx->CmdBindVertexBuffers(cb, 0, 1, vbos, offsets);
-        cx->CmdBindIndexBuffer(cb, view->indexBuffer->handle, 0, VK_INDEX_TYPE_UINT16);
-        cx->CmdDrawIndexed(cb, view->indexCount, 1, 0, 0, 0);
+        for (const auto& obj : rs->getObjects())
+        {
+            const auto& mrd = std::dynamic_pointer_cast<MeshRenderDescription>(obj);
+            if (mrd)
+            {
+                auto view = mrd->getGPUMesh();
+                VkBuffer vbos[] = {view->vertexBuffer->handle};
+                VkDeviceSize offsets[] = {0};
+                cx->CmdBindVertexBuffers(cb, 0, 1, vbos, offsets);
+                cx->CmdBindIndexBuffer(cb, view->indexBuffer->handle, 0, VK_INDEX_TYPE_UINT16);
+                cx->CmdDrawIndexed(cb, view->indexCount, 1, 0, 0, 0);
+            }
+        }
     }
 }
 void LegacyRendererBackend::end() const

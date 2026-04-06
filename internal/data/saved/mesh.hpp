@@ -62,15 +62,11 @@ class GPUMesh : public LocalResourceABC
     std::shared_ptr<Buffer> indexBuffer;
 };
 
-struct MeshRenderDescriptionCreateInfoT : public RenderStateCreateInfoT
-{
-    std::shared_ptr<GPUMesh> meshView;
-};
-
-class MeshRenderDescription : public RenderStateABC
+class MeshRenderDescription : public RenderableABC
 {
   private:
-    // TODO : uniform block/uniform buffer
+    std::vector<std::unique_ptr<Buffer>> m_uniformBuffer;
+    std::vector<std::vector<void*>> m_hostUniformBufferData;
 
     /**
      * @brief description of the mesh GPU side
@@ -80,13 +76,7 @@ class MeshRenderDescription : public RenderStateABC
 
   public:
     MeshRenderDescription() = delete;
-    MeshRenderDescription(std::shared_ptr<RenderStateCreateInfoT> createInfo)
-        : RenderStateABC(createInfo)
-    {
-        auto ci = std::dynamic_pointer_cast<MeshRenderDescriptionCreateInfoT>(createInfo);
-        if (ci)
-            meshView = ci->meshView;
-    }
+    MeshRenderDescription(std::shared_ptr<GPUMesh> meshView) : meshView(meshView) {}
 
     const GPUMesh* getGPUMesh() const { return meshView.get(); }
 };

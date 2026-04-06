@@ -41,6 +41,7 @@ target_sources(${component}
     asset/shader.hpp
     asset/shader.cpp
     asset/pipeline.hpp
+    asset/pipeline.cpp
 )
 
 depends(MODULE CONFIG Vulkan)

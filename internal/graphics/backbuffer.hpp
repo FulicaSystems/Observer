@@ -1,11 +1,12 @@
 #pragma once
 
-#include <optional>
 #include <memory>
+#include <optional>
 
 #include <vulkan/vulkan.hpp>
 
 class Semaphore;
+class Buffer;
 
 enum class BufferingTypeE
 {
@@ -13,6 +14,7 @@ enum class BufferingTypeE
     DOUBLE_BUFFERING = 2,
     TRIPLE_BUFFERING = 3,
     COUNT,
+
 } typedef FrameLagE;
 
 typedef std::vector<std::shared_ptr<Semaphore>> SubmissionSemaphores;

@@ -100,6 +100,9 @@ class RendererBackendABC : public RendererI
     void wait() const override;
     void swap() override;
 
+  public:
+    [[nodiscard]] const BufferingTypeE& getBufferingType() const { return m_bufferingType; }
+
 } typedef RendererPImplABC;
 
 struct LegacyRendererBackendCreateInfoT : RendererBackendCreateInfoT

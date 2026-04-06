@@ -11,6 +11,8 @@
 
 #include "shader.hpp"
 
+class LogicalDevice;
+
 enum class PipelineTypeE
 {
     /**
@@ -34,8 +36,12 @@ enum class PipelineTypeE
     COUNT = 3,
 };
 
+enum class BufferingTypeE;
+
 struct PipelineCreateInfoT
 {
+    const LogicalDevice* device;
+
     std::vector<std::shared_ptr<Shader>> shaderStages;
 
     std::vector<VkDynamicState> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT,
@@ -107,15 +113,29 @@ struct PipelineCreateInfoT
     };
     float blendConstants[4] = {0.f, 0.f, 0.f, 0.f};
 
+    BufferingTypeE type;
+
     /**
      * @brief different set layout bindings may be used in different set layout
      *
      */
     std::vector<std::vector<VkDescriptorSetLayoutBinding>> setLayoutBindings;
+    std::vector<VkDescriptorPoolSize> poolSizes;
     std::vector<VkPushConstantRange> pushConstantRanges;
 
     const RenderPass* renderPass;
     uint32_t subpassIndex = 0;
+};
+
+class DescriptorBlock
+{
+  public:
+    VkDescriptorPool pool;
+    /**
+     * @brief One set of sets per back buffer
+     *
+     */
+    std::vector<std::vector<VkDescriptorSet>> sets;
 };
 
 class Pipeline
@@ -123,13 +143,15 @@ class Pipeline
   private:
     PipelineCreateInfoT ci;
 
-    // shaders containing all the pipeline stage information (vertex shader stage, fragment shader
-    // stage, ray tracing, ...)
+    /**
+     * @brief shaders containing all the pipeline stage information (vertex shader stage, fragment
+     * shader stage, ray tracing, ...)
+     *
+     */
     std::vector<std::shared_ptr<Shader>> shaderProgram;
 
-    VkDescriptorSetLayout setlayout;
-    std::vector<VkDescriptorSet> sets;
-
+    std::unique_ptr<DescriptorBlock> m_descriptorBlock;
+    std::vector<VkDescriptorSetLayout> m_setLayouts;
     VkPipelineLayout m_layout;
 
     VkPipeline m_handle;
@@ -143,7 +165,14 @@ class Pipeline
         // TODO
     }
 
+    void recreateDescriptorSets(const BufferingTypeE& type);
+
   public:
+    [[nodiscard]] std::vector<VkDescriptorSetLayout>& getSetLayouts() { return m_setLayouts; }
+    [[nodiscard]] const std::vector<VkDescriptorSetLayout>& getSetLayouts() const
+    {
+        return m_setLayouts;
+    }
     [[nodiscard]] VkPipelineLayout& getLayoutHandle() { return m_layout; }
 
     [[nodiscard]] VkPipeline& getHandle() { return m_handle; }

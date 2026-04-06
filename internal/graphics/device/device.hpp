@@ -32,6 +32,8 @@ struct BackBufferSOAT;
 struct BackBufferCreateInfoT;
 class Semaphore;
 struct SemaphoreCreateInfoT;
+class DescriptorBlock;
+struct DescriptorBlockCreateInfoT;
 
 struct LogicalDeviceCreateInfoT
 {

@@ -59,6 +59,7 @@ void DeviceSymbolsLoader2T::load(ContextABC* cx, const LogicalDevice* device)
     PipelineSymbolsLoaderT::load(cx, device);
     BackBufferSymbolsLoaderT::load(cx, device);
     RenderingSymbolsLoaderT::load(cx, device);
+    DescriptorSetSymbolsLoaderT::load(cx, device);
 }
 
 void SwapchainSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
@@ -131,6 +132,8 @@ void SDKSymbolsLoaderT::load(ContextABC* cx)
     VK_SDK_FUNCTION(cx, QueuePresentKHR);
     VK_SDK_FUNCTION(cx, DeviceWaitIdle);
     VK_SDK_FUNCTION(cx, QueueWaitIdle);
+    VK_SDK_FUNCTION(cx, CreateDescriptorPool);
+    VK_SDK_FUNCTION(cx, AllocateDescriptorSets);
 }
 
 void SDKSymbolsLoaderT::load(ContextABC* cx, const Instance* instance)
@@ -199,4 +202,10 @@ void RenderingSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
 
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), QueueSubmit);
     VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), QueuePresentKHR);
+}
+
+void DescriptorSetSymbolsLoaderT::load(ContextABC* cx, const LogicalDevice* device)
+{
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), CreateDescriptorPool);
+    VK_GET_DEVICE_PROC_ADDR(cx, device->getHandle(), AllocateDescriptorSets);
 }
