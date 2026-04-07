@@ -6,6 +6,7 @@
 
 class RenderPass;
 enum class BufferingTypeE;
+class Buffer;
 
 struct SceneLoadInfoT : public ResourceLoadInfoT
 {

@@ -95,6 +95,14 @@ void LogicalDevice::waitForPresentQueue() const
     cx->QueueWaitIdle(presentQueue);
 }
 
+void LogicalDevice::mapBufferMemory(const std::shared_ptr<Buffer>& buffer,
+                                    void** mappedMemory) const
+{
+    // cx->MapMemory(m_handle, buffer->memory->GetMemory(), 0, buffer->size, 0, mappedMemory);
+    // TODO : abstraction
+    vmaMapMemory(allocator, buffer->memory, mappedMemory);
+}
+
 std::unique_ptr<SwapChain> LogicalDevice::createSwapChain(SwapChainCreateInfoT ci) const
 {
     VkSurfaceCapabilitiesKHR capabilities = physicalHandle->getSurfaceCapabilities(*ci.surface);
@@ -666,6 +674,7 @@ std::shared_ptr<Buffer> LogicalDevice::createBuffer(const BufferCreateInfoT ci) 
 
     auto out = std::make_shared<Buffer>();
     vmaCreateBuffer(allocator, &bufferInfo, &allocInfo, &out->handle, &out->memory, nullptr);
+    out->size = ci.size;
 
     return out;
 }

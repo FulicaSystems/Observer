@@ -3,6 +3,8 @@
 
 #include "context.hpp"
 #include "device.hpp"
+#include "device/memory/buffer.hpp"
+#include "device/memory/descriptor.hpp"
 
 #include "pipeline.hpp"
 
@@ -30,6 +32,7 @@ void Pipeline::recreateDescriptorSets(const BufferingTypeE& type)
         std::cerr << "Failed to create descriptor pool : " << res << std::endl;
 
     m_descriptorBlock->sets.resize(backBufferCount);
+    m_descriptorBlock->descriptors.resize(backBufferCount);
     for (int i = 0; i < backBufferCount; ++i)
     {
         VkDescriptorSetAllocateInfo allocInfo = {
@@ -44,5 +47,45 @@ void Pipeline::recreateDescriptorSets(const BufferingTypeE& type)
                                          m_descriptorBlock->sets[i].data());
         if (res != VK_SUCCESS)
             std::cerr << "Failed to allocate descriptor sets : " << res << std::endl;
+
+        std::vector<VkWriteDescriptorSet> writes;
+        writes.reserve(ci.descriptorCreateInfos.size());
+        m_descriptorBlock->descriptors[i].reserve(ci.descriptorCreateInfos.size());
+        for (int j = 0; j < ci.descriptorCreateInfos.size(); ++j)
+        {
+            auto& dci = ci.descriptorCreateInfos[j];
+            switch (dci->type)
+            {
+            case DescriptorTypeE::UNIFORM_BUFFER: {
+                m_descriptorBlock->descriptors[i].push_back(std::make_unique<UniformBuffer>(dci));
+                const auto ub =
+                    static_cast<UniformBuffer*>(m_descriptorBlock->descriptors[i].back().get());
+
+                VkDescriptorBufferInfo bufferInfo = {
+                    .buffer = ub->getBuffer()->handle,
+                    .offset = 0,
+                    .range = ub->getBuffer()->size,
+                };
+
+                writes.emplace_back(VkWriteDescriptorSet{
+                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    .dstSet = m_descriptorBlock->sets[i][dci->setLayoutIndex],
+                    .dstBinding = 0,
+                    .dstArrayElement = 0,
+                    .descriptorCount = 1,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                    .pBufferInfo = &bufferInfo,
+                    .pTexelBufferView = nullptr,
+                });
+                break;
+            }
+                // TODO : other descriptor types
+            default:
+                throw;
+                break;
+            }
+        }
+        cx->UpdateDescriptorSets(ci.device->getHandle(), static_cast<uint32_t>(writes.size()),
+                                 writes.data(), 0, nullptr);
     }
 }

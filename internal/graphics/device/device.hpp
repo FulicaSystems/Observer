@@ -111,6 +111,8 @@ class LogicalDevice
     void waitForGraphicsQueue() const;
     void waitForPresentQueue() const;
 
+    void mapBufferMemory(const std::shared_ptr<Buffer>& buffer, void** mappedMemory) const;
+
     /**
      * create a swapchain for a specified surface
      */

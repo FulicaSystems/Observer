@@ -65,9 +65,6 @@ class GPUMesh : public LocalResourceABC
 class MeshRenderDescription : public RenderableABC
 {
   private:
-    std::vector<std::unique_ptr<Buffer>> m_uniformBuffer;
-    std::vector<std::vector<void*>> m_hostUniformBufferData;
-
     /**
      * @brief description of the mesh GPU side
      *

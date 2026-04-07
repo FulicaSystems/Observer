@@ -254,6 +254,7 @@ struct DescriptorSetSymbolsT : public RenderingSymbolsT
     PFN_DECLARE(PFN_vk, CreateDescriptorPool);
     PFN_DECLARE(PFN_vk, AllocateDescriptorSets);
     PFN_DECLARE(PFN_vk, CmdBindDescriptorSets);
+    PFN_DECLARE(PFN_vk, UpdateDescriptorSets);
 };
 struct DescriptorSetSymbolsLoaderT : public RenderingSymbolsLoaderT
 {
@@ -274,6 +275,8 @@ struct DeviceSymbols2T : public DescriptorSetSymbolsT
 
     PFN_DECLARE(PFN_vk, DeviceWaitIdle);
     PFN_DECLARE(PFN_vk, QueueWaitIdle);
+
+    PFN_DECLARE(PFN_vk, MapMemory);
 };
 struct DeviceSymbolsLoader2T : public DescriptorSetSymbolsLoaderT
 {

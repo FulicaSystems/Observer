@@ -34,6 +34,7 @@ target_sources(${component}
     device.cpp
 
     memory/buffer.hpp
+    memory/buffer.cpp
     memory/image.hpp
 
     asset/render_pass.hpp

@@ -12,6 +12,9 @@
 #include "shader.hpp"
 
 class LogicalDevice;
+struct DescriptorCreateInfoT;
+class DescriptorABC;
+enum class DescriptorFrequencyE;
 
 enum class PipelineTypeE
 {
@@ -132,18 +135,10 @@ struct PipelineCreateInfoT
     std::vector<VkDescriptorPoolSize> poolSizes;
     std::vector<VkPushConstantRange> pushConstantRanges;
 
+    std::vector<std::shared_ptr<DescriptorCreateInfoT>> descriptorCreateInfos;
+
     const RenderPass* renderPass;
     uint32_t subpassIndex = 0;
-};
-
-// TODO : use
-enum class DescriptorTypeE
-{
-    PER_FRAME = 0,
-    PER_PASS = 1,
-    PER_MATERIAL = 2,
-    PER_OBJECT = 3,
-    COUNT = 4,
 };
 
 class DescriptorBlock
@@ -165,6 +160,12 @@ class DescriptorBlock
      *
      */
     std::vector<std::vector<VkDescriptorSet>> sets;
+
+    /**
+     * @brief One set of descriptors per descriptor sets
+     *
+     */
+    std::vector<std::vector<std::unique_ptr<DescriptorABC>>> descriptors;
 };
 
 class Pipeline
@@ -209,8 +210,8 @@ class Pipeline
     [[nodiscard]] const VkPipeline& getHandle() const { return m_handle; }
 
     // TODO : return std::vector<>
-    [[nodiscard]] const VkDescriptorSet& getDescriptorSetHandle(uint32_t backBufferIndex,
-                                                                const DescriptorTypeE type) const
+    [[nodiscard]] const VkDescriptorSet& getDescriptorSetHandle(
+        uint32_t backBufferIndex, const DescriptorFrequencyE type) const
     {
         // TODO : do not use hardcoded index
         return m_descriptorBlock->sets[backBufferIndex][0];

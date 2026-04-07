@@ -1,4 +1,11 @@
+#include <vk_mem_alloc.h>
+
+#include "context.hpp"
 #include "resource_manager.hpp"
+
+#include "device/memory/buffer.hpp"
+#include "device/memory/descriptor.hpp"
+#include "engine/uniform.hpp"
 
 #include "scene.hpp"
 
@@ -18,6 +25,8 @@ void Scene::loadLocal(const std::shared_ptr<ResourceLoadInfoT> loadInfo)
     localResource = r;
 
     auto li = std::dynamic_pointer_cast<SceneLoadInfoT>(loadInfo);
+    auto& device = li->deviceptr;
+    const auto& cx = device->getContext();
 
     auto vertexShaderCreateInfo = std::make_shared<ShaderLoadInfoT>();
     vertexShaderCreateInfo->deviceptr = loadInfo->deviceptr;
@@ -30,6 +39,12 @@ void Scene::loadLocal(const std::shared_ptr<ResourceLoadInfoT> loadInfo)
     fragmentShaderCreateInfo->filepath = "shaders/triangle.frag.spv";
     fragmentShaderCreateInfo->stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     fragmentShaderCreateInfo->entryPoint = "main";
+
+    auto descriptorCreateInfo = std::make_shared<UniformBufferCreateInfoT>();
+    descriptorCreateInfo->devicePtr = loadInfo->deviceptr;
+    descriptorCreateInfo->size = sizeof(UniformPerFrame);
+    descriptorCreateInfo->setLayoutIndex = 0;
+    descriptorCreateInfo->type = DescriptorTypeE::UNIFORM_BUFFER;
 
     r->m_renderStates
         .push_back(
@@ -52,7 +67,6 @@ void Scene::loadLocal(const std::shared_ptr<ResourceLoadInfoT> loadInfo)
                                     },
                                 }, .vertexAttributes =
                                 {
-
                                     VkVertexInputAttributeDescription{
                                         .location = 0,
                                         .binding = 0,
@@ -97,6 +111,7 @@ void Scene::loadLocal(const std::shared_ptr<ResourceLoadInfoT> loadInfo)
                                 .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                                 .descriptorCount = 1,
                             }},
+                                            .descriptorCreateInfos = {descriptorCreateInfo},
                                             .renderPass =
                                 li && li->renderPass.has_value() ? li->renderPass.value() : nullptr,
                                             },

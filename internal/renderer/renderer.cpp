@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "device/memory/descriptor.hpp"
 #include "graphics/context.hpp"
 #include "graphics/synchronization.hpp"
 
@@ -124,11 +125,11 @@ void LegacyRendererBackend::draw(const std::shared_ptr<Scene> scene) const
 
         for (const auto& obj : rs->getObjects())
         {
-            cx->CmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                      pipeline->getLayoutHandle(), 0, 1,
-                                      &pipeline->getDescriptorSetHandle(
-                                          m_currentBackBufferIndex, DescriptorTypeE::PER_OBJECT),
-                                      0, nullptr);
+            cx->CmdBindDescriptorSets(
+                cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getLayoutHandle(), 0, 1,
+                &pipeline->getDescriptorSetHandle(m_currentBackBufferIndex,
+                                                  DescriptorFrequencyE::PER_OBJECT),
+                0, nullptr);
 
             const auto& mrd = std::dynamic_pointer_cast<MeshRenderDescription>(obj);
             if (mrd)
