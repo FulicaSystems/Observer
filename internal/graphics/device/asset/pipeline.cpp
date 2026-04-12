@@ -16,76 +16,72 @@ void Pipeline::recreateDescriptorSets(const BufferingTypeE& type)
     int backBufferCount = static_cast<uint32_t>(type);
     const auto& cx = ci.device->getContext();
 
-    m_descriptorBlock.reset();
-    m_descriptorBlock = std::make_unique<DescriptorBlock>();
+    m_descriptorBlocks.clear();
+    m_descriptorBlocks.reserve(backBufferCount);
 
-    VkDescriptorPoolCreateInfo createInfo = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .maxSets = backBufferCount * static_cast<uint32_t>(m_setLayouts.size()),
-        .poolSizeCount = static_cast<uint32_t>(ci.poolSizes.size()),
-        .pPoolSizes = ci.poolSizes.data(),
-    };
-
-    VkResult res = cx->CreateDescriptorPool(ci.device->getHandle(), &createInfo, nullptr,
-                                            &m_descriptorBlock->pool);
-    if (res != VK_SUCCESS)
-        std::cerr << "Failed to create descriptor pool : " << res << std::endl;
-
-    m_descriptorBlock->sets.resize(backBufferCount);
-    m_descriptorBlock->descriptors.resize(backBufferCount);
     for (int i = 0; i < backBufferCount; ++i)
     {
+        VkDescriptorPoolCreateInfo createInfo = {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+            .maxSets = static_cast<uint32_t>(m_setLayouts.size()),
+            .poolSizeCount = static_cast<uint32_t>(ci.poolSizes.size()),
+            .pPoolSizes = ci.poolSizes.data(),
+        };
+
+        m_descriptorBlocks.emplace_back(std::make_unique<DescriptorBlock>());
+        auto& block = m_descriptorBlocks[i];
+        VkResult res =
+            cx->CreateDescriptorPool(ci.device->getHandle(), &createInfo, nullptr, &block->pool);
+        if (res != VK_SUCCESS)
+            std::cerr << "Failed to create descriptor pool : " << res << std::endl;
+
         VkDescriptorSetAllocateInfo allocInfo = {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            .descriptorPool = m_descriptorBlock->pool,
+            .descriptorPool = block->pool,
             .descriptorSetCount = static_cast<uint32_t>(m_setLayouts.size()),
             .pSetLayouts = m_setLayouts.data(),
         };
 
-        m_descriptorBlock->sets[i].resize(m_setLayouts.size());
-        res = cx->AllocateDescriptorSets(ci.device->getHandle(), &allocInfo,
-                                         m_descriptorBlock->sets[i].data());
-        if (res != VK_SUCCESS)
-            std::cerr << "Failed to allocate descriptor sets : " << res << std::endl;
-
-        std::vector<VkWriteDescriptorSet> writes;
-        writes.reserve(ci.descriptorCreateInfos.size());
-        m_descriptorBlock->descriptors[i].reserve(ci.descriptorCreateInfos.size());
-        for (int j = 0; j < ci.descriptorCreateInfos.size(); ++j)
+        for (int j = 0; j < ci.setDescriptions.size(); ++j)
         {
-            auto& dci = ci.descriptorCreateInfos[j];
-            switch (dci->type)
-            {
-            case DescriptorTypeE::UNIFORM_BUFFER: {
-                m_descriptorBlock->descriptors[i].push_back(std::make_unique<UniformBuffer>(dci));
-                const auto ub =
-                    static_cast<UniformBuffer*>(m_descriptorBlock->descriptors[i].back().get());
+            const auto& desc = ci.setDescriptions[j];
 
-                VkDescriptorBufferInfo bufferInfo = {
-                    .buffer = ub->getBuffer()->handle,
-                    .offset = 0,
-                    .range = ub->getBuffer()->size,
-                };
-
-                writes.emplace_back(VkWriteDescriptorSet{
-                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                    .dstSet = m_descriptorBlock->sets[i][dci->setLayoutIndex],
-                    .dstBinding = 0,
-                    .dstArrayElement = 0,
-                    .descriptorCount = 1,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                    .pBufferInfo = &bufferInfo,
-                    .pTexelBufferView = nullptr,
-                });
-                break;
-            }
-                // TODO : other descriptor types
-            default:
-                throw;
-                break;
-            }
+            block->sets[desc.frequency].resize(desc.setLayoutBindings.size());
+            res = cx->AllocateDescriptorSets(ci.device->getHandle(), &allocInfo,
+                                             block->sets[desc.frequency].data());
+            if (res != VK_SUCCESS)
+                std::cerr << "Failed to allocate descriptor sets : " << res << std::endl;
         }
-        cx->UpdateDescriptorSets(ci.device->getHandle(), static_cast<uint32_t>(writes.size()),
-                                 writes.data(), 0, nullptr);
+    }
+}
+
+void Pipeline::writeDescriptorSets(const DescriptorFrequencyE frequency, const uint32_t setIndex,
+                                   const UniformBuffer& ubo) const
+{
+    const auto& buff = ubo.getBuffer();
+    assert((size_t)buff->size == m_descriptorBlocks.size() * ubo.size);
+
+    for (int i = 0; i < m_descriptorBlocks.size(); ++i)
+    {
+        const auto& sets = m_descriptorBlocks[i]->sets[frequency];
+
+        VkDescriptorBufferInfo bufferInfo = {
+            .buffer = buff->handle,
+            .offset = i * ubo.size,
+            .range = ubo.size,
+        };
+
+        VkWriteDescriptorSet writes = VkWriteDescriptorSet{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = sets[setIndex],
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pBufferInfo = &bufferInfo,
+            .pTexelBufferView = nullptr,
+        };
+        ci.device->getContext()->UpdateDescriptorSets(ci.device->getHandle(), 1, &writes, 0,
+                                                      nullptr);
     }
 }

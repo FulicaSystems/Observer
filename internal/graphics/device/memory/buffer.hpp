@@ -11,6 +11,7 @@ struct BufferCreateInfoT
     VkDeviceSize size;
     VkBufferUsageFlags usage;
     VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    VkMemoryPropertyFlags memoryPropertyFlags;
 };
 
 class Buffer
@@ -34,6 +35,8 @@ class UniformBuffer : public DescriptorABC
     void* mappedMemory;
 
   public:
+    size_t size;
+
     UniformBuffer() = delete;
     UniformBuffer(std::shared_ptr<DescriptorCreateInfoT> createInfo);
 

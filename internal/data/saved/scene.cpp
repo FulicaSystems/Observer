@@ -40,12 +40,6 @@ void Scene::loadLocal(const std::shared_ptr<ResourceLoadInfoT> loadInfo)
     fragmentShaderCreateInfo->stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     fragmentShaderCreateInfo->entryPoint = "main";
 
-    auto descriptorCreateInfo = std::make_shared<UniformBufferCreateInfoT>();
-    descriptorCreateInfo->devicePtr = loadInfo->deviceptr;
-    descriptorCreateInfo->size = sizeof(UniformPerFrame);
-    descriptorCreateInfo->setLayoutIndex = 0;
-    descriptorCreateInfo->type = DescriptorTypeE::UNIFORM_BUFFER;
-
     r->m_renderStates
         .push_back(
             std::make_unique<RenderState>(
@@ -96,26 +90,43 @@ void Scene::loadLocal(const std::shared_ptr<ResourceLoadInfoT> loadInfo)
                                             .viewportWidth = 1366,
                                             .viewportHeight = 768,
                                             .type = li->type,
-                                            .setLayoutBindings =
+                                            .setDescriptions =
                                 {
-                                    {
-                                        VkDescriptorSetLayoutBinding{
-                                            .binding = 0,
-                                            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                                            .descriptorCount = 1,
-                                            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-                                            .pImmutableSamplers = nullptr,
-                                        },
+                                    PipelineCreateInfoT::DescriptorSetDescriptionT{
+                                        .frequency =
+                                            DescriptorFrequencyE::PER_OBJECT,
+                                        .setLayoutBindings =
+                                            {
+                                                VkDescriptorSetLayoutBinding{
+                                                    .binding = 0,
+                                                    .descriptorType =
+                                                        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                                                    .descriptorCount = 1,
+                                                    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+                                                    .pImmutableSamplers = nullptr,
+                                                },
+                                            }},
+                                }, .poolSizes =
+                                {
+                                    VkDescriptorPoolSize{
+                                        .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                                        .descriptorCount = 1,
                                     },
-                                }, .poolSizes = {VkDescriptorPoolSize{
-                                .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                                .descriptorCount = 1,
-                            }},
-                                            .descriptorCreateInfos = {descriptorCreateInfo},
-                                            .renderPass =
+                                }, .renderPass =
                                 li && li->renderPass.has_value() ? li->renderPass.value() : nullptr,
                                             },
     }));
+    auto bufferCreateInfo = std::make_shared<UniformBufferCreateInfoT>();
+    bufferCreateInfo->size = sizeof(UniformPerObject);
+    bufferCreateInfo->devicePtr = loadInfo->deviceptr;
+    bufferCreateInfo->type = DescriptorTypeE::UNIFORM_BUFFER;
+    bufferCreateInfo->frequency = DescriptorFrequencyE::PER_OBJECT;
+    bufferCreateInfo->setLayoutIndex = 0;
+    bufferCreateInfo->backBufferCount = static_cast<uint32_t>(li->type);
+    r->m_uniformBuffers.push_back(std::make_unique<UniformBuffer>(bufferCreateInfo));
+
+    r->m_renderStates.back()->getPipeline()->writeDescriptorSets(DescriptorFrequencyE::PER_OBJECT,
+                                                                 0, *r->m_uniformBuffers.back());
 
     auto host = std::static_pointer_cast<CPUScene>(hostResource);
     for (int i = 0; i < host->m_meshes.size(); ++i)

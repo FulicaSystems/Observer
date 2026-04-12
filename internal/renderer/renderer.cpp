@@ -125,11 +125,13 @@ void LegacyRendererBackend::draw(const std::shared_ptr<Scene> scene) const
 
         for (const auto& obj : rs->getObjects())
         {
-            cx->CmdBindDescriptorSets(
-                cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getLayoutHandle(), 0, 1,
-                &pipeline->getDescriptorSetHandle(m_currentBackBufferIndex,
-                                                  DescriptorFrequencyE::PER_OBJECT),
-                0, nullptr);
+            const auto& sets = pipeline->getDescriptorSetHandles(m_currentBackBufferIndex,
+                                                                 DescriptorFrequencyE::PER_OBJECT);
+            // TODO : this descriptor may not be the first one (index 0), find a way to compute the
+            // descriptor set index (with per frame, per pass, per material and per object)
+            cx->CmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                      pipeline->getLayoutHandle(), 0,
+                                      static_cast<uint32_t>(sets.size()), sets.data(), 0, nullptr);
 
             const auto& mrd = std::dynamic_pointer_cast<MeshRenderDescription>(obj);
             if (mrd)

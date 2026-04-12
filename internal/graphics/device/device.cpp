@@ -496,13 +496,13 @@ std::unique_ptr<Pipeline> LogicalDevice::createPipeline(const PipelineCreateInfo
 
     // pipeline layout
     auto& setLayouts = out->getSetLayouts();
-    setLayouts.resize(ci.setLayoutBindings.size());
-    for (int i = 0; i < ci.setLayoutBindings.size(); ++i)
+    setLayouts.resize(ci.setDescriptions.size());
+    for (int i = 0; i < ci.setDescriptions.size(); ++i)
     {
         VkDescriptorSetLayoutCreateInfo createInfo = {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            .bindingCount = static_cast<uint32_t>(ci.setLayoutBindings[i].size()),
-            .pBindings = ci.setLayoutBindings[i].data(),
+            .bindingCount = static_cast<uint32_t>(ci.setDescriptions[i].setLayoutBindings.size()),
+            .pBindings = ci.setDescriptions[i].setLayoutBindings.data(),
         };
 
         VkResult res =
@@ -670,7 +670,7 @@ std::shared_ptr<Buffer> LogicalDevice::createBuffer(const BufferCreateInfoT ci) 
     bufferInfo.usage = ci.usage;
 
     VmaAllocationCreateInfo allocInfo = {};
-    allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+    allocInfo.requiredFlags = ci.memoryPropertyFlags;
 
     auto out = std::make_shared<Buffer>();
     vmaCreateBuffer(allocator, &bufferInfo, &allocInfo, &out->handle, &out->memory, nullptr);

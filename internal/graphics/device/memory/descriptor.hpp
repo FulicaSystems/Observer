@@ -14,7 +14,6 @@ enum class DescriptorTypeE
     COUNT = 5,
 };
 
-// TODO : use
 enum class DescriptorFrequencyE
 {
     PER_FRAME = 0,
@@ -28,7 +27,9 @@ struct DescriptorCreateInfoT
 {
     const LogicalDevice* devicePtr;
     DescriptorTypeE type;
+    DescriptorFrequencyE frequency;
     uint32_t setLayoutIndex;
+    uint32_t backBufferCount;
 
     virtual ~DescriptorCreateInfoT() {}
 };

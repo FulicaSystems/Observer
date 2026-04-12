@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 #include <stdexcept>
+#include <unordered_map>
 #include <vector>
 
 #include <vulkan/vulkan.h>
@@ -15,6 +16,7 @@ class LogicalDevice;
 struct DescriptorCreateInfoT;
 class DescriptorABC;
 enum class DescriptorFrequencyE;
+class UniformBuffer;
 
 enum class PipelineTypeE
 {
@@ -118,24 +120,15 @@ struct PipelineCreateInfoT
 
     BufferingTypeE type;
 
-    // TODO : have different usage for descriptor sets
-    struct SetLayoutBindingsT
+    struct DescriptorSetDescriptionT
     {
-        std::vector<VkDescriptorSetLayoutBinding> perFrame;
-        std::vector<VkDescriptorSetLayoutBinding> perPass;
-        std::vector<VkDescriptorSetLayoutBinding> perMaterial;
-        std::vector<VkDescriptorSetLayoutBinding> perObject;
+        DescriptorFrequencyE frequency;
+        std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
     };
+    std::vector<DescriptorSetDescriptionT> setDescriptions;
 
-    /**
-     * @brief different set layout bindings may be used in different set layout
-     *
-     */
-    std::vector<std::vector<VkDescriptorSetLayoutBinding>> setLayoutBindings;
     std::vector<VkDescriptorPoolSize> poolSizes;
     std::vector<VkPushConstantRange> pushConstantRanges;
-
-    std::vector<std::shared_ptr<DescriptorCreateInfoT>> descriptorCreateInfos;
 
     const RenderPass* renderPass;
     uint32_t subpassIndex = 0;
@@ -146,26 +139,7 @@ class DescriptorBlock
   public:
     VkDescriptorPool pool;
 
-    // TODO : have different usage for descriptor sets
-    struct SetT
-    {
-        std::vector<VkDescriptorSet> perFrame;
-        std::vector<VkDescriptorSet> perPass;
-        std::vector<VkDescriptorSet> perMaterial;
-        std::vector<VkDescriptorSet> perObject;
-    };
-
-    /**
-     * @brief One set of sets per back buffer
-     *
-     */
-    std::vector<std::vector<VkDescriptorSet>> sets;
-
-    /**
-     * @brief One set of descriptors per descriptor sets
-     *
-     */
-    std::vector<std::vector<std::unique_ptr<DescriptorABC>>> descriptors;
+    std::unordered_map<DescriptorFrequencyE, std::vector<VkDescriptorSet>> sets;
 };
 
 class Pipeline
@@ -180,7 +154,11 @@ class Pipeline
      */
     std::vector<std::shared_ptr<Shader>> shaderProgram;
 
-    std::unique_ptr<DescriptorBlock> m_descriptorBlock;
+    /**
+     * @brief array (element per back buffer)
+     *
+     */
+    std::vector<std::unique_ptr<DescriptorBlock>> m_descriptorBlocks;
     std::vector<VkDescriptorSetLayout> m_setLayouts;
     VkPipelineLayout m_layout;
 
@@ -196,6 +174,9 @@ class Pipeline
     }
 
     void recreateDescriptorSets(const BufferingTypeE& type);
+    // TODO : do other types of descriptors
+    void writeDescriptorSets(const DescriptorFrequencyE frequency, const uint32_t setIndex,
+                             const UniformBuffer& ubo) const;
 
   public:
     [[nodiscard]] std::vector<VkDescriptorSetLayout>& getSetLayouts() { return m_setLayouts; }
@@ -209,11 +190,9 @@ class Pipeline
     [[nodiscard]] VkPipeline& getHandle() { return m_handle; }
     [[nodiscard]] const VkPipeline& getHandle() const { return m_handle; }
 
-    // TODO : return std::vector<>
-    [[nodiscard]] const VkDescriptorSet& getDescriptorSetHandle(
+    [[nodiscard]] const std::vector<VkDescriptorSet>& getDescriptorSetHandles(
         uint32_t backBufferIndex, const DescriptorFrequencyE type) const
     {
-        // TODO : do not use hardcoded index
-        return m_descriptorBlock->sets[backBufferIndex][0];
+        return m_descriptorBlocks[backBufferIndex]->sets[type];
     }
 };

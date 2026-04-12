@@ -7,6 +7,7 @@
 class RenderPass;
 enum class BufferingTypeE;
 class Buffer;
+class UniformBuffer;
 
 struct SceneLoadInfoT : public ResourceLoadInfoT
 {
@@ -43,4 +44,5 @@ class GPUScene : public LocalResourceABC
 {
   public:
     std::vector<std::unique_ptr<RenderState>> m_renderStates;
+    std::vector<std::unique_ptr<UniformBuffer>> m_uniformBuffers;
 };
